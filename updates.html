@@ -16,11 +16,247 @@
 
   <hr>
 
- <section>
-<p><strong>Why?</strong></p>
-<p>Hmmm...</p>
-
+  <section>
+    <p><strong>Why?</strong></p>
+    <p>Because friendly competition is fuel. Beat my Zetamac-style score and claim your bragging rights.</p>
   </section>
+
+  <section class="game-shell">
+    <h2>Zetamac Arena</h2>
+    <p class="small-note">
+      Solve as many arithmetic problems as you can in <strong>120 seconds</strong>. If you beat
+      <strong>Adina's score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
+    </p>
+
+    <div class="hud">
+      <div><span class="label">Time</span><span id="timeLeft">120</span>s</div>
+      <div><span class="label">Score</span><span id="score">0</span></div>
+      <div><span class="label">Streak</span><span id="streak">0</span></div>
+    </div>
+
+    <div class="problem-row">
+      <p id="problem" class="problem">Press start to begin.</p>
+      <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="Answer" disabled>
+      <div class="button-row">
+        <button id="startBtn">Start Game</button>
+        <button id="skipBtn" disabled>Copout 😂 (3 left)</button>
+      </div>
+    </div>
+
+    <p id="statusMsg" class="status-msg" aria-live="polite"></p>
+
+    <div id="bragBanner" class="brag-banner" aria-hidden="true">
+      💥 BRAGGING RIGHTS UNLOCKED 💥
+    </div>
+
+    <div class="leaderboard-wrap">
+      <h3>Leaderboard</h3>
+      <ol id="leaderboard" class="leaderboard-list"></ol>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const SCORE_TO_BEAT = 92;
+      const GAME_SECONDS = 120;
+      const MAX_COP_OUTS = 3;
+      const STORAGE_KEY = "zetamacLeaderboardV1";
+
+      const scoreToBeatEl = document.getElementById("scoreToBeat");
+      const timeLeftEl = document.getElementById("timeLeft");
+      const scoreEl = document.getElementById("score");
+      const streakEl = document.getElementById("streak");
+      const problemEl = document.getElementById("problem");
+      const answerInput = document.getElementById("answerInput");
+      const startBtn = document.getElementById("startBtn");
+      const skipBtn = document.getElementById("skipBtn");
+      const statusMsg = document.getElementById("statusMsg");
+      const leaderboardEl = document.getElementById("leaderboard");
+      const bragBanner = document.getElementById("bragBanner");
+
+      let timer = null;
+      let timeLeft = GAME_SECONDS;
+      let score = 0;
+      let streak = 0;
+      let gameActive = false;
+      let currentAnswer = null;
+      let copoutsLeft = MAX_COP_OUTS;
+
+      scoreToBeatEl.textContent = SCORE_TO_BEAT;
+
+      function updateCopoutButton() {
+        skipBtn.textContent = `Copout 😂 (${copoutsLeft} left)`;
+      }
+
+      function safeLoadLeaderboard() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveLeaderboard(entries) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 10)));
+      }
+
+      function renderLeaderboard() {
+        const entries = safeLoadLeaderboard();
+        leaderboardEl.innerHTML = "";
+        if (!entries.length) {
+          const emptyItem = document.createElement("li");
+          emptyItem.textContent = "No challengers yet. Be the first.";
+          leaderboardEl.appendChild(emptyItem);
+          return;
+        }
+
+        entries.forEach((entry) => {
+          const li = document.createElement("li");
+          const date = new Date(entry.when);
+          const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
+          li.textContent = `${entry.name} — ${entry.score}${dateLabel}`;
+          leaderboardEl.appendChild(li);
+        });
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function nextProblem() {
+        const ops = ["+", "-", "×"];
+        const op = ops[randomInt(0, ops.length - 1)];
+        let a = randomInt(2, 25);
+        let b = randomInt(2, 25);
+
+        if (op === "-") {
+          if (b > a) [a, b] = [b, a];
+          currentAnswer = a - b;
+        } else if (op === "×") {
+          a = randomInt(2, 12);
+          b = randomInt(2, 12);
+          currentAnswer = a * b;
+        } else {
+          currentAnswer = a + b;
+        }
+
+        problemEl.textContent = `${a} ${op} ${b} = ?`;
+        answerInput.value = "";
+      }
+
+      function updateHUD() {
+        timeLeftEl.textContent = timeLeft;
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+      }
+
+      function explodePage() {
+        document.body.classList.add("page-explode");
+        bragBanner.classList.add("show");
+        bragBanner.setAttribute("aria-hidden", "false");
+
+        setTimeout(() => {
+          document.body.classList.remove("page-explode");
+          bragBanner.classList.remove("show");
+          bragBanner.setAttribute("aria-hidden", "true");
+        }, 2200);
+      }
+
+      function finishGame() {
+        gameActive = false;
+        clearInterval(timer);
+        timer = null;
+        answerInput.disabled = true;
+        skipBtn.disabled = true;
+        startBtn.disabled = false;
+        startBtn.textContent = "Play Again";
+        problemEl.textContent = "Round over.";
+
+        if (score > SCORE_TO_BEAT) {
+          explodePage();
+          const entered = window.prompt(
+            `You scored ${score} and beat Adina's ${SCORE_TO_BEAT}! Enter your name for the leaderboard:`,
+            ""
+          );
+          const name = (entered || "").trim().slice(0, 24);
+          if (name) {
+            const entries = safeLoadLeaderboard();
+            entries.push({ name, score, when: new Date().toISOString() });
+            entries.sort((a, b) => b.score - a.score);
+            saveLeaderboard(entries);
+            renderLeaderboard();
+            statusMsg.textContent = `🔥 ${name} just claimed bragging rights with ${score} points.`;
+          } else {
+            statusMsg.textContent = `You beat the score with ${score}, but skipped leaderboard entry.`;
+          }
+        } else {
+          statusMsg.textContent = `You scored ${score}. Beat ${SCORE_TO_BEAT} to earn bragging rights.`;
+        }
+      }
+
+      function startGame() {
+        gameActive = true;
+        timeLeft = GAME_SECONDS;
+        score = 0;
+        streak = 0;
+        currentAnswer = null;
+        copoutsLeft = MAX_COP_OUTS;
+        statusMsg.textContent = "";
+
+        updateHUD();
+        updateCopoutButton();
+        nextProblem();
+        answerInput.disabled = false;
+        skipBtn.disabled = false;
+        startBtn.disabled = true;
+        answerInput.focus();
+
+        timer = setInterval(() => {
+          timeLeft -= 1;
+          updateHUD();
+          if (timeLeft <= 0) {
+            finishGame();
+          }
+        }, 1000);
+      }
+
+      answerInput.addEventListener("input", () => {
+        if (!gameActive) return;
+        const rawGuess = answerInput.value.trim();
+        if (rawGuess === "") return;
+        const guess = Number(rawGuess);
+
+        if (Number.isFinite(guess) && guess === currentAnswer) {
+          score += 1;
+          streak += 1;
+          statusMsg.textContent = "Correct.";
+          nextProblem();
+        }
+        updateHUD();
+      });
+
+      startBtn.addEventListener("click", startGame);
+      skipBtn.addEventListener("click", () => {
+        if (!gameActive) return;
+        if (copoutsLeft <= 0) {
+          statusMsg.textContent = "No more copouts 😂";
+          return;
+        }
+        copoutsLeft -= 1;
+        streak = 0;
+        statusMsg.textContent = `Copout 😂 ${copoutsLeft} left`;
+        updateCopoutButton();
+        nextProblem();
+        updateHUD();
+      });
+
+      renderLeaderboard();
+      updateHUD();
+      updateCopoutButton();
+    })();
+  </script>
 
 </body>
 </html>
