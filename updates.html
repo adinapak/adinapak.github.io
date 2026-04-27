@@ -14,18 +14,25 @@
     <a href="principles.html">Lemmas</a> |
   </nav>
 
+    <hr>
+
+    <section>
+    <p><strong>Why?</strong></p>
+    <p>Hmm...</p>
+  </section>
+  
   <hr>
 
   <section>
-    <p><strong>Why?</strong></p>
-    <p>Because friendly competition is fuel. Beat my Zetamac-style score and claim your bragging rights.</p>
+    <p><strong>My answer to all of these?</strong></p>
+    <p>Beats me! But so can  you... (cop-outs included for your comfort)</p>
   </section>
 
   <section class="game-shell">
     <h2>Zetamac Arena</h2>
     <p class="small-note">
       Solve as many arithmetic problems as you can in <strong>120 seconds</strong>. If you beat
-      <strong>Adina's score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
+      <strong>my (Adina) score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
     </p>
 
     <div class="hud">
@@ -39,7 +46,7 @@
       <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="Answer" disabled>
       <div class="button-row">
         <button id="startBtn">Start Game</button>
-        <button id="skipBtn" disabled>Copout 😂 (3 left)</button>
+        <button id="skipBtn" disabled>Cop Out 😂 (3 left)</button>
       </div>
     </div>
 
@@ -85,7 +92,7 @@
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
 
       function updateCopoutButton() {
-        skipBtn.textContent = `Copout 😂 (${copoutsLeft} left)`;
+        skipBtn.textContent = `Cop Out 😂 (${copoutsLeft} left)`;
       }
 
       function safeLoadLeaderboard() {
@@ -246,7 +253,7 @@
         }
         copoutsLeft -= 1;
         streak = 0;
-        statusMsg.textContent = `Copout 😂 ${copoutsLeft} left`;
+        statusMsg.textContent = `Cop Out 😂 ${copoutsLeft} left`;
         updateCopoutButton();
         nextProblem();
         updateHUD();
