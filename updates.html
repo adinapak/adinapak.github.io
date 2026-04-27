@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Beats Me | Adina Pak</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
 </head>
 <body>
 
@@ -14,18 +17,18 @@
     <a href="principles.html">Lemmas</a> |
   </nav>
 
-    <hr>
+  <hr>
 
-    <section>
+  <section>
     <p><strong>Why?</strong></p>
     <p>Hmm...</p>
   </section>
-  
+
   <hr>
 
   <section>
     <p><strong>My answer to all of these?</strong></p>
-    <p>Beats me! But so can  you... (cop-outs included for your comfort)</p>
+    <p>Beats me! But so can you... (cop-outs included for your comfort)</p>
   </section>
 
   <section class="game-shell">
@@ -34,6 +37,11 @@
       Solve as many arithmetic problems as you can in <strong>120 seconds</strong>. If you beat
       <strong>my (Adina) score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
     </p>
+
+    <div class="profile-row">
+      <p id="welcomeMsg" class="small-note">Connecting leaderboard...</p>
+      <button id="editNameBtn" type="button">Edit Name</button>
+    </div>
 
     <div class="hud">
       <div><span class="label">Time</span><span id="timeLeft">120</span>s</div>
@@ -58,6 +66,7 @@
 
     <div class="leaderboard-wrap">
       <h3>Leaderboard</h3>
+      <p id="boardSourceMsg" class="small-note"></p>
       <ol id="leaderboard" class="leaderboard-list"></ol>
     </div>
   </section>
@@ -68,6 +77,7 @@
       const GAME_SECONDS = 120;
       const MAX_COP_OUTS = 3;
       const STORAGE_KEY = "zetamacLeaderboardV1";
+      const PROFILE_KEY = "zetamacLocalProfileV1";
 
       const scoreToBeatEl = document.getElementById("scoreToBeat");
       const timeLeftEl = document.getElementById("timeLeft");
@@ -80,6 +90,15 @@
       const statusMsg = document.getElementById("statusMsg");
       const leaderboardEl = document.getElementById("leaderboard");
       const bragBanner = document.getElementById("bragBanner");
+      const welcomeMsg = document.getElementById("welcomeMsg");
+      const editNameBtn = document.getElementById("editNameBtn");
+      const boardSourceMsg = document.getElementById("boardSourceMsg");
+
+      const supabaseUrl = window.SUPABASE_URL || "";
+      const supabaseAnonKey = window.SUPABASE_ANON_KEY || "";
+      const supabase = (window.supabase && supabaseUrl && supabaseAnonKey)
+        ? window.supabase.createClient(supabaseUrl, supabaseAnonKey)
+        : null;
 
       let timer = null;
       let timeLeft = GAME_SECONDS;
@@ -88,11 +107,18 @@
       let gameActive = false;
       let currentAnswer = null;
       let copoutsLeft = MAX_COP_OUTS;
+      let currentUserId = null;
+      let currentUsername = "Challenger";
+      let usingCloudBoard = false;
 
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
 
       function updateCopoutButton() {
         skipBtn.textContent = `Cop Out 😂 (${copoutsLeft} left)`;
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
       function safeLoadLeaderboard() {
@@ -105,31 +131,27 @@
         }
       }
 
-      function saveLeaderboard(entries) {
+      function saveLocalLeaderboard(entries) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 10)));
       }
 
-      function renderLeaderboard() {
-        const entries = safeLoadLeaderboard();
-        leaderboardEl.innerHTML = "";
-        if (!entries.length) {
-          const emptyItem = document.createElement("li");
-          emptyItem.textContent = "No challengers yet. Be the first.";
-          leaderboardEl.appendChild(emptyItem);
-          return;
+      function localProfile() {
+        try {
+          const raw = localStorage.getItem(PROFILE_KEY);
+          const parsed = raw ? JSON.parse(raw) : null;
+          if (parsed && typeof parsed.username === "string") return parsed;
+        } catch {
+          return { username: "Challenger" };
         }
-
-        entries.forEach((entry) => {
-          const li = document.createElement("li");
-          const date = new Date(entry.when);
-          const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
-          li.textContent = `${entry.name} — ${entry.score}${dateLabel}`;
-          leaderboardEl.appendChild(li);
-        });
+        return { username: "Challenger" };
       }
 
-      function randomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+      function saveLocalProfile(username) {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify({ username }));
+      }
+
+      function applyWelcomeMessage() {
+        welcomeMsg.textContent = `Welcome back${currentUsername ? `, ${currentUsername}` : ""}!`;
       }
 
       function nextProblem() {
@@ -171,7 +193,178 @@
         }, 2200);
       }
 
-      function finishGame() {
+      async function ensureSupabaseIdentity() {
+        if (!supabase) {
+          usingCloudBoard = false;
+          boardSourceMsg.textContent = "Using local-only leaderboard. Add SUPABASE_URL and SUPABASE_ANON_KEY in supabase-config.js for global leaderboard.";
+          const local = localProfile();
+          currentUsername = local.username || "Challenger";
+          applyWelcomeMessage();
+          return;
+        }
+
+        const sessionResult = await supabase.auth.getSession();
+        let session = sessionResult.data.session;
+
+        if (!session) {
+          const signInResult = await supabase.auth.signInAnonymously();
+          if (signInResult.error) {
+            usingCloudBoard = false;
+            boardSourceMsg.textContent = "Could not connect to Supabase auth. Using local-only leaderboard for now.";
+            const local = localProfile();
+            currentUsername = local.username || "Challenger";
+            applyWelcomeMessage();
+            return;
+          }
+          session = signInResult.data.session;
+        }
+
+        if (!session?.user?.id) {
+          usingCloudBoard = false;
+          boardSourceMsg.textContent = "No active Supabase user session. Using local leaderboard.";
+          const local = localProfile();
+          currentUsername = local.username || "Challenger";
+          applyWelcomeMessage();
+          return;
+        }
+
+        currentUserId = session.user.id;
+        usingCloudBoard = true;
+        boardSourceMsg.textContent = "Live global leaderboard is connected.";
+
+        const profileResult = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", currentUserId)
+          .maybeSingle();
+
+        if (profileResult.error && profileResult.error.code !== "PGRST116") {
+          currentUsername = "Challenger";
+          applyWelcomeMessage();
+          return;
+        }
+
+        const existingName = profileResult.data?.username?.trim();
+        if (existingName) {
+          currentUsername = existingName;
+          applyWelcomeMessage();
+          return;
+        }
+
+        const entered = window.prompt("Pick your leaderboard name:", currentUsername || "");
+        const chosen = (entered || "").trim().slice(0, 24) || "Challenger";
+        currentUsername = chosen;
+
+        const upsertResult = await supabase
+          .from("profiles")
+          .upsert({ id: currentUserId, username: chosen, updated_at: new Date().toISOString() });
+
+        if (upsertResult.error) {
+          usingCloudBoard = false;
+          boardSourceMsg.textContent = "Could not save profile to Supabase. Using local profile backup.";
+          saveLocalProfile(chosen);
+        }
+
+        applyWelcomeMessage();
+      }
+
+      async function promptAndSaveName() {
+        const entered = window.prompt("Edit your display name:", currentUsername || "");
+        if (entered === null) return;
+
+        const chosen = entered.trim().slice(0, 24);
+        if (!chosen) {
+          statusMsg.textContent = "Name unchanged. Please enter at least 1 character.";
+          return;
+        }
+
+        currentUsername = chosen;
+        saveLocalProfile(chosen);
+        applyWelcomeMessage();
+
+        if (usingCloudBoard && supabase && currentUserId) {
+          const updateResult = await supabase
+            .from("profiles")
+            .upsert({ id: currentUserId, username: chosen, updated_at: new Date().toISOString() });
+
+          if (updateResult.error) {
+            statusMsg.textContent = "Saved locally, but cloud profile update failed.";
+            return;
+          }
+        }
+
+        statusMsg.textContent = `Name updated to ${chosen}.`;
+      }
+
+      async function renderLeaderboard() {
+        leaderboardEl.innerHTML = "";
+
+        if (usingCloudBoard && supabase) {
+          const response = await supabase
+            .from("zetamac_scores")
+            .select("username, score, created_at")
+            .order("score", { ascending: false })
+            .order("created_at", { ascending: true })
+            .limit(10);
+
+          if (!response.error) {
+            const rows = response.data || [];
+            if (!rows.length) {
+              const emptyItem = document.createElement("li");
+              emptyItem.textContent = "No challengers yet. Be the first.";
+              leaderboardEl.appendChild(emptyItem);
+              return;
+            }
+
+            rows.forEach((entry) => {
+              const li = document.createElement("li");
+              const date = new Date(entry.created_at);
+              const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
+              li.textContent = `${entry.username} — ${entry.score}${dateLabel}`;
+              leaderboardEl.appendChild(li);
+            });
+            return;
+          }
+        }
+
+        const entries = safeLoadLeaderboard();
+        if (!entries.length) {
+          const emptyItem = document.createElement("li");
+          emptyItem.textContent = "No challengers yet. Be the first.";
+          leaderboardEl.appendChild(emptyItem);
+          return;
+        }
+
+        entries.forEach((entry) => {
+          const li = document.createElement("li");
+          const date = new Date(entry.when);
+          const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
+          li.textContent = `${entry.name} — ${entry.score}${dateLabel}`;
+          leaderboardEl.appendChild(li);
+        });
+      }
+
+      async function saveScore(scoreValue) {
+        if (usingCloudBoard && supabase && currentUserId) {
+          const payload = {
+            user_id: currentUserId,
+            username: currentUsername,
+            score: scoreValue,
+            created_at: new Date().toISOString()
+          };
+
+          const result = await supabase.from("zetamac_scores").insert(payload);
+          if (!result.error) return true;
+        }
+
+        const entries = safeLoadLeaderboard();
+        entries.push({ name: currentUsername, score: scoreValue, when: new Date().toISOString() });
+        entries.sort((a, b) => b.score - a.score);
+        saveLocalLeaderboard(entries);
+        return false;
+      }
+
+      async function finishGame() {
         gameActive = false;
         clearInterval(timer);
         timer = null;
@@ -183,17 +376,19 @@
 
         if (score > SCORE_TO_BEAT) {
           explodePage();
+
           const entered = window.prompt(
             `You scored ${score} and beat Adina's ${SCORE_TO_BEAT}! Enter your name for the leaderboard:`,
-            ""
+            currentUsername || ""
           );
           const name = (entered || "").trim().slice(0, 24);
+
           if (name) {
-            const entries = safeLoadLeaderboard();
-            entries.push({ name, score, when: new Date().toISOString() });
-            entries.sort((a, b) => b.score - a.score);
-            saveLeaderboard(entries);
-            renderLeaderboard();
+            currentUsername = name;
+            saveLocalProfile(name);
+            applyWelcomeMessage();
+            await saveScore(score);
+            await renderLeaderboard();
             statusMsg.textContent = `🔥 ${name} just claimed bragging rights with ${score} points.`;
           } else {
             statusMsg.textContent = `You beat the score with ${score}, but skipped leaderboard entry.`;
@@ -258,10 +453,16 @@
         nextProblem();
         updateHUD();
       });
+      editNameBtn.addEventListener("click", () => {
+        promptAndSaveName();
+      });
 
-      renderLeaderboard();
-      updateHUD();
-      updateCopoutButton();
+      (async () => {
+        updateHUD();
+        updateCopoutButton();
+        await ensureSupabaseIdentity();
+        await renderLeaderboard();
+      })();
     })();
   </script>
 
