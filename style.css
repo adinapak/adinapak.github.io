@@ -13,3 +13,123 @@ nav {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.game-shell {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  background: #fafafa;
+}
+
+.small-note {
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.hud {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.hud > div {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 90px;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-row {
+  margin: 16px 0;
+}
+
+.problem {
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+}
+
+input[type="number"] {
+  width: 160px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.button-row {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.status-msg {
+  min-height: 24px;
+  font-weight: 600;
+}
+
+.leaderboard-wrap {
+  margin-top: 20px;
+}
+
+.leaderboard-list {
+  padding-left: 20px;
+}
+
+.brag-banner {
+  display: none;
+  margin-top: 16px;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #ffe55c, #ff8a5b);
+}
+
+.brag-banner.show {
+  display: block;
+  animation: bragPulse 0.5s ease-in-out 4 alternate;
+}
+
+body.page-explode {
+  animation: shake 0.35s linear 6;
+  background: radial-gradient(circle at center, #fff4e1 0%, #ffffff 70%);
+}
+
+@keyframes shake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(2px, -2px) rotate(-0.6deg); }
+  50% { transform: translate(-3px, 2px) rotate(0.4deg); }
+  75% { transform: translate(3px, 1px) rotate(-0.4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes bragPulse {
+  from { transform: scale(1); filter: saturate(1); }
+  to { transform: scale(1.03); filter: saturate(1.8); }
+}
