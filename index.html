@@ -1,9 +1,37 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Adina Pak</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .dj-widget {
+      max-width: 420px;
+      margin-top: 1rem;
+    }
+
+    .dj-cover {
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+      background: #eee;
+    }
+
+    .dj-progress {
+      width: 220px;
+      margin-top: 0.5rem;
+    }
+
+    .dj-times {
+      width: 220px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 <body>
 
@@ -13,25 +41,130 @@
 
 
  <nav>
-  <a href="principles.html">Lemmas</a> | <em>towards [quote] erat demonstrandum...?</em> 
+  <a href="principles.html">Lemmas</a> | <em>towards [quote] erat demonstrandum...?</em>
   <br>
   <a href="updates.html">Beats Me!</a> | <em>some things that keep me up at night...</em>
 </nav>
   <hr>
 
 
- 
+
 <h3>Connect with Me</h3>
 
 <p>
-  <a href="https://x.com/adinapak_" target="_blank">𝕏</a> / 
-  <a href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a> / 
-  <a href="mailto:adinapak@berkeley.edu">Email</a> / 
-  <a href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>  
+  <a href="https://x.com/adinapak_" target="_blank">𝕏</a> /
+  <a href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a> /
+  <a href="mailto:adinapak@berkeley.edu">Email</a> /
+  <a href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>
 </p>
 
   <i> ...or 1v1 me </i>
-   <a href="updates.html">here</a> 
-  
+   <a href="updates.html">here</a>
+
+  <hr>
+
+  <section class="dj-widget" aria-live="polite">
+    <h3>Public DJ</h3>
+    <img id="dj-album-art" class="dj-cover" alt="Current album art" src="" hidden>
+    <p id="dj-track">Loading now playing…</p>
+    <p id="dj-artist"></p>
+    <progress id="dj-progress" class="dj-progress" max="1" value="0"></progress>
+    <div class="dj-times">
+      <span id="dj-elapsed">0:00</span>
+      <span id="dj-duration">0:00</span>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const albumArtEl = document.getElementById('dj-album-art');
+      const trackEl = document.getElementById('dj-track');
+      const artistEl = document.getElementById('dj-artist');
+      const progressEl = document.getElementById('dj-progress');
+      const elapsedEl = document.getElementById('dj-elapsed');
+      const durationEl = document.getElementById('dj-duration');
+
+      let progressMs = 0;
+      let durationMs = 1;
+      let isPlaying = false;
+      let tickInterval = null;
+
+      function formatMs(ms) {
+        const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      function renderProgress() {
+        progressEl.max = durationMs || 1;
+        progressEl.value = Math.min(progressMs, durationMs || 1);
+        elapsedEl.textContent = formatMs(progressMs);
+        durationEl.textContent = formatMs(durationMs);
+      }
+
+      function startTicking() {
+        if (tickInterval) clearInterval(tickInterval);
+
+        tickInterval = setInterval(function () {
+          if (!isPlaying) return;
+          progressMs = Math.min(progressMs + 1000, durationMs || progressMs + 1000);
+          renderProgress();
+        }, 1000);
+      }
+
+      function setIdleState(message) {
+        isPlaying = false;
+        progressMs = 0;
+        durationMs = 1;
+        trackEl.textContent = message;
+        artistEl.textContent = '';
+        albumArtEl.hidden = true;
+        albumArtEl.src = '';
+        renderProgress();
+      }
+
+      async function fetchNowPlaying() {
+        try {
+          const response = await fetch('/api/now-playing', { cache: 'no-store' });
+          const data = await response.json();
+
+          if (!response.ok) {
+            setIdleState('Unable to load playback right now.');
+            return;
+          }
+
+          if (!data.track) {
+            setIdleState('Nothing is currently playing.');
+            return;
+          }
+
+          isPlaying = !!data.is_playing;
+          progressMs = Number(data.progress_ms || 0);
+          durationMs = Number(data.duration_ms || 1);
+
+          trackEl.textContent = data.track.name || 'Unknown track';
+          artistEl.textContent = data.track.artist || '';
+
+          if (data.track.album_art_url) {
+            albumArtEl.src = data.track.album_art_url;
+            albumArtEl.hidden = false;
+          } else {
+            albumArtEl.hidden = true;
+            albumArtEl.src = '';
+          }
+
+          renderProgress();
+        } catch (error) {
+          setIdleState('Unable to reach now playing endpoint.');
+        }
+      }
+
+      fetchNowPlaying();
+      setInterval(fetchNowPlaying, 10000);
+      startTicking();
+    })();
+  </script>
+
 </body>
 </html>
