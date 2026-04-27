@@ -39,7 +39,7 @@
     </p>
 
     <div class="profile-row">
-      <p id="welcomeMsg" class="small-note">Connecting leaderboard...</p>
+      <p id="welcomeMsg" class="small-note">Checking profile...</p>
       <button id="editNameBtn" type="button">Edit Name</button>
     </div>
 
@@ -71,34 +71,6 @@
     </div>
   </section>
 
-  <section class="game-shell spotify-shell">
-    <h2>Spotify Queue Control</h2>
-    <p class="small-note">Connect Spotify using your owner account to show your recent tracks and let visitors add songs to that queue.</p>
-
-    <div class="spotify-row">
-      <button id="spotifyConnectBtn" type="button">Connect Spotify</button>
-      <button id="spotifyRefreshBtn" type="button">Refresh Recent</button>
-      <button id="spotifyDisconnectBtn" type="button">Disconnect</button>
-    </div>
-
-    <p id="spotifyStatusMsg" class="status-msg" aria-live="polite">Not connected.</p>
-
-    <div class="spotify-queue-row">
-      <input id="spotifySearchInput" type="text" placeholder="Search songs (title, artist)">
-      <button id="spotifySearchBtn" type="button">Search</button>
-    </div>
-
-    <div class="leaderboard-wrap">
-      <h3>Search Results</h3>
-      <ol id="spotifySearchResults" class="leaderboard-list"></ol>
-    </div>
-
-    <div class="leaderboard-wrap">
-      <h3>Recently Played (Last 5)</h3>
-      <ol id="spotifyRecentList" class="leaderboard-list"></ol>
-    </div>
-  </section>
-
   <script>
     (() => {
       const SCORE_TO_BEAT = 92;
@@ -106,15 +78,7 @@
       const MAX_COP_OUTS = 3;
       const STORAGE_KEY = "zetamacLeaderboardV1";
       const PROFILE_KEY = "zetamacLocalProfileV1";
-
-      const SPOTIFY_CLIENT_ID = "f32b6d162f1e4a9997980969162a3f18";
-      const SPOTIFY_SCOPES = [
-        "user-modify-playback-state",
-        "user-read-recently-played",
-        "user-read-playback-state"
-      ];
-      const SPOTIFY_TOKEN_KEY = "spotifyTokenV1";
-      const SPOTIFY_CODE_VERIFIER_KEY = "spotifyCodeVerifierV1";
+      const DEFAULT_NAME = "Player";
 
       const scoreToBeatEl = document.getElementById("scoreToBeat");
       const timeLeftEl = document.getElementById("timeLeft");
@@ -131,15 +95,6 @@
       const editNameBtn = document.getElementById("editNameBtn");
       const boardSourceMsg = document.getElementById("boardSourceMsg");
 
-      const spotifyConnectBtn = document.getElementById("spotifyConnectBtn");
-      const spotifyRefreshBtn = document.getElementById("spotifyRefreshBtn");
-      const spotifyDisconnectBtn = document.getElementById("spotifyDisconnectBtn");
-      const spotifySearchBtn = document.getElementById("spotifySearchBtn");
-      const spotifySearchInput = document.getElementById("spotifySearchInput");
-      const spotifyStatusMsg = document.getElementById("spotifyStatusMsg");
-      const spotifyRecentList = document.getElementById("spotifyRecentList");
-      const spotifySearchResults = document.getElementById("spotifySearchResults");
-
       const supabaseUrl = window.SUPABASE_URL || "";
       const supabaseAnonKey = window.SUPABASE_ANON_KEY || "";
       const supabase = (window.supabase && supabaseUrl && supabaseAnonKey)
@@ -154,7 +109,7 @@
       let currentAnswer = null;
       let copoutsLeft = MAX_COP_OUTS;
       let currentUserId = null;
-      let currentUsername = "Challenger";
+      let currentUsername = "";
       let usingCloudBoard = false;
 
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
@@ -187,9 +142,9 @@
           const parsed = raw ? JSON.parse(raw) : null;
           if (parsed && typeof parsed.username === "string") return parsed;
         } catch {
-          return { username: "Challenger" };
+          return { username: "" };
         }
-        return { username: "Challenger" };
+        return { username: "" };
       }
 
       function saveLocalProfile(username) {
@@ -197,7 +152,45 @@
       }
 
       function applyWelcomeMessage() {
-        welcomeMsg.textContent = `Welcome back${currentUsername ? `, ${currentUsername}` : ""}!`;
+        if (currentUsername) {
+          welcomeMsg.textContent = `Welcome back, ${currentUsername}!`;
+        } else {
+          welcomeMsg.textContent = "Set your name when you start a run.";
+        }
+      }
+
+      function sanitizeName(value) {
+        return (value || "").trim().slice(0, 24);
+      }
+
+      async function saveNameToSupabase(username) {
+        if (!(usingCloudBoard && supabase && currentUserId && username)) return true;
+        const result = await supabase
+          .from("profiles")
+          .upsert({ id: currentUserId, username, updated_at: new Date().toISOString() });
+        return !result.error;
+      }
+
+      async function ensureKnownName({ forcePrompt = false } = {}) {
+        if (!forcePrompt && currentUsername) return true;
+
+        const entered = window.prompt("Enter your display name:", currentUsername || "");
+        if (entered === null) return false;
+
+        const chosen = sanitizeName(entered);
+        if (!chosen) {
+          statusMsg.textContent = "Please enter at least 1 character for your name.";
+          return false;
+        }
+
+        currentUsername = chosen;
+        saveLocalProfile(chosen);
+        const savedCloud = await saveNameToSupabase(chosen);
+        if (!savedCloud) {
+          statusMsg.textContent = "Saved locally, but cloud profile update failed.";
+        }
+        applyWelcomeMessage();
+        return true;
       }
 
       function nextProblem() {
@@ -240,11 +233,12 @@
       }
 
       async function ensureSupabaseIdentity() {
+        const local = localProfile();
+        currentUsername = sanitizeName(local.username);
+
         if (!supabase) {
           usingCloudBoard = false;
           boardSourceMsg.textContent = "Using local-only leaderboard. Add SUPABASE_URL and SUPABASE_ANON_KEY in supabase-config.js for global leaderboard.";
-          const local = localProfile();
-          currentUsername = local.username || "Challenger";
           applyWelcomeMessage();
           return;
         }
@@ -257,8 +251,6 @@
           if (signInResult.error) {
             usingCloudBoard = false;
             boardSourceMsg.textContent = "Could not connect to Supabase auth. Using local-only leaderboard for now.";
-            const local = localProfile();
-            currentUsername = local.username || "Challenger";
             applyWelcomeMessage();
             return;
           }
@@ -268,8 +260,6 @@
         if (!session?.user?.id) {
           usingCloudBoard = false;
           boardSourceMsg.textContent = "No active Supabase user session. Using local leaderboard.";
-          const local = localProfile();
-          currentUsername = local.username || "Challenger";
           applyWelcomeMessage();
           return;
         }
@@ -284,62 +274,24 @@
           .eq("id", currentUserId)
           .maybeSingle();
 
-        if (profileResult.error && profileResult.error.code !== "PGRST116") {
-          currentUsername = "Challenger";
-          applyWelcomeMessage();
-          return;
-        }
-
-        const existingName = profileResult.data?.username?.trim();
-        if (existingName) {
-          currentUsername = existingName;
-          applyWelcomeMessage();
-          return;
-        }
-
-        const entered = window.prompt("Pick your leaderboard name:", currentUsername || "");
-        const chosen = (entered || "").trim().slice(0, 24) || "Challenger";
-        currentUsername = chosen;
-
-        const upsertResult = await supabase
-          .from("profiles")
-          .upsert({ id: currentUserId, username: chosen, updated_at: new Date().toISOString() });
-
-        if (upsertResult.error) {
-          usingCloudBoard = false;
-          boardSourceMsg.textContent = "Could not save profile to Supabase. Using local profile backup.";
-          saveLocalProfile(chosen);
+        if (!profileResult.error) {
+          const existingName = sanitizeName(profileResult.data?.username);
+          if (existingName) {
+            currentUsername = existingName;
+            saveLocalProfile(existingName);
+          } else if (currentUsername) {
+            await saveNameToSupabase(currentUsername);
+          }
         }
 
         applyWelcomeMessage();
       }
 
       async function promptAndSaveName() {
-        const entered = window.prompt("Edit your display name:", currentUsername || "");
-        if (entered === null) return;
-
-        const chosen = entered.trim().slice(0, 24);
-        if (!chosen) {
-          statusMsg.textContent = "Name unchanged. Please enter at least 1 character.";
-          return;
+        const changed = await ensureKnownName({ forcePrompt: true });
+        if (changed) {
+          statusMsg.textContent = `Name updated to ${currentUsername}.`;
         }
-
-        currentUsername = chosen;
-        saveLocalProfile(chosen);
-        applyWelcomeMessage();
-
-        if (usingCloudBoard && supabase && currentUserId) {
-          const updateResult = await supabase
-            .from("profiles")
-            .upsert({ id: currentUserId, username: chosen, updated_at: new Date().toISOString() });
-
-          if (updateResult.error) {
-            statusMsg.textContent = "Saved locally, but cloud profile update failed.";
-            return;
-          }
-        }
-
-        statusMsg.textContent = `Name updated to ${chosen}.`;
       }
 
       async function renderLeaderboard() {
@@ -357,7 +309,7 @@
             const rows = response.data || [];
             if (!rows.length) {
               const emptyItem = document.createElement("li");
-              emptyItem.textContent = "No challengers yet. Be the first.";
+              emptyItem.textContent = "No players yet. Be the first.";
               leaderboardEl.appendChild(emptyItem);
               return;
             }
@@ -376,7 +328,7 @@
         const entries = safeLoadLeaderboard();
         if (!entries.length) {
           const emptyItem = document.createElement("li");
-          emptyItem.textContent = "No challengers yet. Be the first.";
+          emptyItem.textContent = "No players yet. Be the first.";
           leaderboardEl.appendChild(emptyItem);
           return;
         }
@@ -391,10 +343,12 @@
       }
 
       async function saveScore(scoreValue) {
+        const nameToUse = currentUsername || DEFAULT_NAME;
+
         if (usingCloudBoard && supabase && currentUserId) {
           const payload = {
             user_id: currentUserId,
-            username: currentUsername,
+            username: nameToUse,
             score: scoreValue,
             created_at: new Date().toISOString()
           };
@@ -404,7 +358,7 @@
         }
 
         const entries = safeLoadLeaderboard();
-        entries.push({ name: currentUsername, score: scoreValue, when: new Date().toISOString() });
+        entries.push({ name: nameToUse, score: scoreValue, when: new Date().toISOString() });
         entries.sort((a, b) => b.score - a.score);
         saveLocalLeaderboard(entries);
         return false;
@@ -422,29 +376,21 @@
 
         if (score > SCORE_TO_BEAT) {
           explodePage();
-
-          const entered = window.prompt(
-            `You scored ${score} and beat Adina's ${SCORE_TO_BEAT}! Enter your name for the leaderboard:`,
-            currentUsername || ""
-          );
-          const name = (entered || "").trim().slice(0, 24);
-
-          if (name) {
-            currentUsername = name;
-            saveLocalProfile(name);
-            applyWelcomeMessage();
-            await saveScore(score);
-            await renderLeaderboard();
-            statusMsg.textContent = `🔥 ${name} just claimed bragging rights with ${score} points.`;
-          } else {
-            statusMsg.textContent = `You beat the score with ${score}, but skipped leaderboard entry.`;
-          }
+          await saveScore(score);
+          await renderLeaderboard();
+          statusMsg.textContent = `🔥 ${currentUsername || DEFAULT_NAME} just claimed bragging rights with ${score} points.`;
         } else {
           statusMsg.textContent = `You scored ${score}. Beat ${SCORE_TO_BEAT} to earn bragging rights.`;
         }
       }
 
-      function startGame() {
+      async function startGame() {
+        const hasName = await ensureKnownName();
+        if (!hasName) {
+          statusMsg.textContent = "Name required to start the game.";
+          return;
+        }
+
         gameActive = true;
         timeLeft = GAME_SECONDS;
         score = 0;
@@ -470,297 +416,6 @@
         }, 1000);
       }
 
-      function randomString(length) {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        let output = "";
-        const randomValues = new Uint8Array(length);
-        window.crypto.getRandomValues(randomValues);
-        randomValues.forEach((value) => {
-          output += chars[value % chars.length];
-        });
-        return output;
-      }
-
-      async function sha256(plain) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(plain);
-        return window.crypto.subtle.digest("SHA-256", data);
-      }
-
-      function base64UrlEncode(buffer) {
-        const bytes = new Uint8Array(buffer);
-        let str = "";
-        bytes.forEach((byte) => {
-          str += String.fromCharCode(byte);
-        });
-        return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-      }
-
-      async function generateCodeChallenge(codeVerifier) {
-        const hashed = await sha256(codeVerifier);
-        return base64UrlEncode(hashed);
-      }
-
-      function spotifyRedirectUri() {
-        return `${window.location.origin}${window.location.pathname}`;
-      }
-
-      function loadSpotifyToken() {
-        try {
-          const raw = localStorage.getItem(SPOTIFY_TOKEN_KEY);
-          if (!raw) return null;
-          return JSON.parse(raw);
-        } catch {
-          return null;
-        }
-      }
-
-      function saveSpotifyToken(token) {
-        localStorage.setItem(SPOTIFY_TOKEN_KEY, JSON.stringify(token));
-      }
-
-      function clearSpotifyToken() {
-        localStorage.removeItem(SPOTIFY_TOKEN_KEY);
-      }
-
-      async function refreshSpotifyTokenIfNeeded() {
-        const token = loadSpotifyToken();
-        if (!token) return null;
-
-        const now = Date.now();
-        if (token.expires_at && now < token.expires_at - 60_000) {
-          return token.access_token;
-        }
-
-        if (!token.refresh_token) {
-          clearSpotifyToken();
-          return null;
-        }
-
-        const payload = new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: token.refresh_token,
-          client_id: SPOTIFY_CLIENT_ID
-        });
-
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: payload.toString()
-        });
-
-        if (!response.ok) {
-          clearSpotifyToken();
-          return null;
-        }
-
-        const data = await response.json();
-        const updated = {
-          access_token: data.access_token,
-          refresh_token: data.refresh_token || token.refresh_token,
-          expires_at: Date.now() + (data.expires_in * 1000)
-        };
-        saveSpotifyToken(updated);
-        return updated.access_token;
-      }
-
-      async function spotifyApi(path, init = {}) {
-        const accessToken = await refreshSpotifyTokenIfNeeded();
-        if (!accessToken) {
-          throw new Error("Spotify not connected.");
-        }
-
-        const response = await fetch(`https://api.spotify.com${path}`, {
-          ...init,
-          headers: {
-            ...(init.headers || {}),
-            Authorization: `Bearer ${accessToken}`
-          }
-        });
-
-        if (response.status === 204) return null;
-
-        if (!response.ok) {
-          let detail = "";
-          try {
-            const body = await response.json();
-            detail = body.error?.message || "";
-          } catch {
-            detail = "";
-          }
-          throw new Error(detail || `Spotify API error (${response.status})`);
-        }
-
-        return response.json();
-      }
-
-      async function beginSpotifyAuth() {
-        const codeVerifier = randomString(64);
-        const codeChallenge = await generateCodeChallenge(codeVerifier);
-        sessionStorage.setItem(SPOTIFY_CODE_VERIFIER_KEY, codeVerifier);
-
-        const params = new URLSearchParams({
-          response_type: "code",
-          client_id: SPOTIFY_CLIENT_ID,
-          scope: SPOTIFY_SCOPES.join(" "),
-          redirect_uri: spotifyRedirectUri(),
-          code_challenge_method: "S256",
-          code_challenge: codeChallenge,
-          show_dialog: "true"
-        });
-
-        window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
-      }
-
-      async function completeSpotifyAuthIfNeeded() {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        const error = params.get("error");
-
-        if (error) {
-          spotifyStatusMsg.textContent = `Spotify auth error: ${error}`;
-          return;
-        }
-
-        if (!code) {
-          const hasToken = !!loadSpotifyToken();
-          spotifyStatusMsg.textContent = hasToken ? "Spotify connected." : "Not connected.";
-          return;
-        }
-
-        const codeVerifier = sessionStorage.getItem(SPOTIFY_CODE_VERIFIER_KEY);
-        if (!codeVerifier) {
-          spotifyStatusMsg.textContent = "Missing code verifier. Please connect again.";
-          return;
-        }
-
-        const payload = new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: spotifyRedirectUri(),
-          client_id: SPOTIFY_CLIENT_ID,
-          code_verifier: codeVerifier
-        });
-
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: payload.toString()
-        });
-
-        if (!response.ok) {
-          spotifyStatusMsg.textContent = "Spotify connection failed during token exchange.";
-          return;
-        }
-
-        const data = await response.json();
-        saveSpotifyToken({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-          expires_at: Date.now() + (data.expires_in * 1000)
-        });
-        sessionStorage.removeItem(SPOTIFY_CODE_VERIFIER_KEY);
-        window.history.replaceState({}, document.title, spotifyRedirectUri());
-        spotifyStatusMsg.textContent = "Spotify connected.";
-      }
-
-      async function renderRecentTracks() {
-        spotifyRecentList.innerHTML = "";
-
-        try {
-          const data = await spotifyApi("/v1/me/player/recently-played?limit=5");
-          const items = data?.items || [];
-          if (!items.length) {
-            const li = document.createElement("li");
-            li.textContent = "No recent tracks found.";
-            spotifyRecentList.appendChild(li);
-            return;
-          }
-
-          items.forEach((item) => {
-            const li = document.createElement("li");
-            const track = item.track;
-            const artists = (track.artists || []).map((artist) => artist.name).join(", ");
-            li.textContent = `${track.name} — ${artists}`;
-            spotifyRecentList.appendChild(li);
-          });
-        } catch (error) {
-          const li = document.createElement("li");
-          li.textContent = "Connect Spotify to load recent tracks.";
-          spotifyRecentList.appendChild(li);
-          spotifyStatusMsg.textContent = error.message || "Could not load recent tracks.";
-        }
-      }
-      async function addUriToQueue(trackUri) {
-        try {
-          const encoded = encodeURIComponent(trackUri);
-          await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
-            method: "POST"
-          });
-          spotifyStatusMsg.textContent = "Track added to queue.";
-          await renderRecentTracks();
-        } catch (error) {
-          spotifyStatusMsg.textContent = error.message || "Could not add track to queue.";
-        }
-      }
-
-      function renderSearchResults(items) {
-        spotifySearchResults.innerHTML = "";
-        if (!items.length) {
-          const li = document.createElement("li");
-          li.textContent = "No matches found.";
-          spotifySearchResults.appendChild(li);
-          return;
-        }
-
-        items.forEach((track) => {
-          const li = document.createElement("li");
-          const artists = (track.artists || []).map((artist) => artist.name).join(", ");
-          const addButton = document.createElement("button");
-          addButton.type = "button";
-          addButton.textContent = "Add";
-          addButton.addEventListener("click", () => {
-            addUriToQueue(track.uri);
-          });
-
-          const text = document.createElement("span");
-          text.textContent = `${track.name} — ${artists}`;
-          text.className = "search-result-text";
-
-          li.className = "search-result-item";
-          li.appendChild(text);
-          li.appendChild(addButton);
-          spotifySearchResults.appendChild(li);
-        });
-      }
-
-      async function searchSpotifyTracks() {
-        const query = spotifySearchInput.value.trim();
-        if (!query) {
-          spotifyStatusMsg.textContent = "Type a song or artist to search.";
-          return;
-        }
-
-        try {
-          const encodedQuery = encodeURIComponent(query);
-          const data = await spotifyApi(`/v1/search?type=track&limit=5&q=${encodedQuery}`);
-          renderSearchResults(data?.tracks?.items || []);
-          spotifyStatusMsg.textContent = "Select a result to add it to queue.";
-        } catch (error) {
-          spotifyStatusMsg.textContent = error.message || "Search failed.";
-        }
-      }
-
-      function disconnectSpotify() {
-        clearSpotifyToken();
-        spotifyRecentList.innerHTML = "";
-        spotifySearchResults.innerHTML = "";
-        const li = document.createElement("li");
-        li.textContent = "Disconnected.";
-        spotifyRecentList.appendChild(li);
-        spotifyStatusMsg.textContent = "Not connected.";
-      }
-
       answerInput.addEventListener("input", () => {
         if (!gameActive) return;
         const rawGuess = answerInput.value.trim();
@@ -776,7 +431,10 @@
         updateHUD();
       });
 
-      startBtn.addEventListener("click", startGame);
+      startBtn.addEventListener("click", () => {
+        startGame();
+      });
+
       skipBtn.addEventListener("click", () => {
         if (!gameActive) return;
         if (copoutsLeft <= 0) {
@@ -790,27 +448,9 @@
         nextProblem();
         updateHUD();
       });
+
       editNameBtn.addEventListener("click", () => {
         promptAndSaveName();
-      });
-
-      spotifyConnectBtn.addEventListener("click", () => {
-        beginSpotifyAuth();
-      });
-      spotifyRefreshBtn.addEventListener("click", () => {
-        renderRecentTracks();
-      });
-      spotifySearchBtn.addEventListener("click", () => {
-        searchSpotifyTracks();
-      });
-      spotifySearchInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          searchSpotifyTracks();
-        }
-      });
-      spotifyDisconnectBtn.addEventListener("click", () => {
-        disconnectSpotify();
       });
 
       (async () => {
@@ -818,8 +458,6 @@
         updateCopoutButton();
         await ensureSupabaseIdentity();
         await renderLeaderboard();
-        await completeSpotifyAuthIfNeeded();
-        await renderRecentTracks();
       })();
     })();
   </script>

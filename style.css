@@ -1,25 +1,35 @@
+:root {
+  --text: #1f1f1f;
+  --muted: #555;
+  --bg-soft: #fafafa;
+  --line: #e6e6e6;
+  --line-dark: #cfcfcf;
+}
+
+* { box-sizing: border-box; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  max-width: 650px;
-  margin: 60px auto;
+  max-width: 680px;
+  margin: 56px auto;
   line-height: 1.6;
-  padding: 0 20px;
-  color: #222;
+  padding: 0 20px calc(32px + env(safe-area-inset-bottom));
+  color: var(--text);
 }
 
 nav {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   font-size: 0.9em;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .game-shell {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
-  background: #fafafa;
+  background: var(--bg-soft);
 }
 
 .small-note {
@@ -57,12 +67,15 @@ nav {
 .problem {
   font-size: 1.35rem;
   margin-bottom: 8px;
+  min-height: 2.2rem;
 }
 
-input[type="number"] {
-  width: 160px;
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  max-width: 240px;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--line-dark);
   border-radius: 8px;
   font-size: 1rem;
 }
@@ -71,6 +84,7 @@ input[type="number"] {
   margin-top: 10px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 button {
@@ -80,6 +94,14 @@ button {
   border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
+  min-height: 40px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2a7fff;
+  outline-offset: 2px;
 }
 
 button[disabled] {
@@ -98,6 +120,7 @@ button[disabled] {
 
 .leaderboard-list {
   padding-left: 20px;
+  margin: 0;
 }
 
 .brag-banner {
@@ -145,38 +168,33 @@ body.page-explode {
 
 #boardSourceMsg {
   margin-top: 0;
+  min-height: 1.3rem;
 }
 
-.spotify-shell {
-  margin-top: 24px;
-}
+@media (max-width: 640px) {
+  body {
+    margin: 24px auto;
+    padding: 0 14px calc(20px + env(safe-area-inset-bottom));
+  }
 
-.spotify-row,
-.spotify-queue-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0;
-}
+  nav {
+    margin-bottom: 22px;
+  }
 
-#spotifySearchInput {
-  flex: 1;
-  min-width: 260px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-}
+  .game-shell {
+    padding: 16px;
+  }
 
+  .hud {
+    gap: 10px;
+  }
 
-.search-result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
+  .hud > div {
+    min-width: calc(50% - 5px);
+  }
 
-.search-result-text {
-  flex: 1;
+  input[type="number"],
+  input[type="text"] {
+    max-width: 100%;
+  }
 }
