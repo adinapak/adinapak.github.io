@@ -68,6 +68,14 @@ module.exports = async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed. Use GET or POST.' });
   }
 
+
+  // Security: never accept OAuth tokens from client input.
+  if (req.query.refresh_token || req.query.access_token) {
+    return json(res, 400, {
+      error: 'Do not pass Spotify tokens in query params. Server uses env credentials only.',
+    });
+  }
+
   const inputTrack = req.query.track_id || req.query.trackId || req.query.uri;
   const trackUri = normalizeTrackUri(inputTrack);
 
