@@ -25,7 +25,7 @@
     <h2>Zetamac Arena</h2>
     <p class="small-note">
       Solve as many arithmetic problems as you can in <strong>120 seconds</strong>. If you beat
-      <strong>Adina's score (<span id="scoreToBeat">42</span>)</strong>, you'll get added to the leaderboard.
+      <strong>Adina's score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
     </p>
 
     <div class="hud">
@@ -39,7 +39,7 @@
       <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="Answer" disabled>
       <div class="button-row">
         <button id="startBtn">Start Game</button>
-        <button id="skipBtn" disabled>Skip</button>
+        <button id="skipBtn" disabled>Copout 😂 (3 left)</button>
       </div>
     </div>
 
@@ -57,8 +57,9 @@
 
   <script>
     (() => {
-      const SCORE_TO_BEAT = 42;
+      const SCORE_TO_BEAT = 92;
       const GAME_SECONDS = 120;
+      const MAX_COP_OUTS = 3;
       const STORAGE_KEY = "zetamacLeaderboardV1";
 
       const scoreToBeatEl = document.getElementById("scoreToBeat");
@@ -79,8 +80,13 @@
       let streak = 0;
       let gameActive = false;
       let currentAnswer = null;
+      let copoutsLeft = MAX_COP_OUTS;
 
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
+
+      function updateCopoutButton() {
+        skipBtn.textContent = `Copout 😂 (${copoutsLeft} left)`;
+      }
 
       function safeLoadLeaderboard() {
         try {
@@ -196,9 +202,11 @@
         score = 0;
         streak = 0;
         currentAnswer = null;
+        copoutsLeft = MAX_COP_OUTS;
         statusMsg.textContent = "";
 
         updateHUD();
+        updateCopoutButton();
         nextProblem();
         answerInput.disabled = false;
         skipBtn.disabled = false;
@@ -214,18 +222,16 @@
         }, 1000);
       }
 
-      answerInput.addEventListener("keydown", (event) => {
-        if (!gameActive || event.key !== "Enter") return;
-        const guess = Number(answerInput.value);
+      answerInput.addEventListener("input", () => {
+        if (!gameActive) return;
+        const rawGuess = answerInput.value.trim();
+        if (rawGuess === "") return;
+        const guess = Number(rawGuess);
 
         if (Number.isFinite(guess) && guess === currentAnswer) {
           score += 1;
           streak += 1;
           statusMsg.textContent = "Correct.";
-          nextProblem();
-        } else {
-          streak = 0;
-          statusMsg.textContent = "Nope. Next.";
           nextProblem();
         }
         updateHUD();
@@ -234,13 +240,21 @@
       startBtn.addEventListener("click", startGame);
       skipBtn.addEventListener("click", () => {
         if (!gameActive) return;
+        if (copoutsLeft <= 0) {
+          statusMsg.textContent = "No more copouts 😂";
+          return;
+        }
+        copoutsLeft -= 1;
         streak = 0;
+        statusMsg.textContent = `Copout 😂 ${copoutsLeft} left`;
+        updateCopoutButton();
         nextProblem();
         updateHUD();
       });
 
       renderLeaderboard();
       updateHUD();
+      updateCopoutButton();
     })();
   </script>
 
