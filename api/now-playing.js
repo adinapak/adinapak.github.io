@@ -97,6 +97,8 @@ module.exports = async function handler(req, res) {
       progress_ms: playback.progress_ms,
       duration_ms: item.duration_ms,
       track: {
+        id: item.id || null,
+        uri: item.uri || null,
         name: item.name,
         artist: (item.artists || []).map((artist) => artist.name).join(', '),
         album_art_url: item.album?.images?.[0]?.url || null,
