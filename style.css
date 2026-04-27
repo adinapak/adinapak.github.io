@@ -146,3 +146,24 @@ body.page-explode {
 #boardSourceMsg {
   margin-top: 0;
 }
+
+.spotify-shell {
+  margin-top: 24px;
+}
+
+.spotify-row,
+.spotify-queue-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+#spotifyTrackInput {
+  flex: 1;
+  min-width: 260px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
