@@ -159,11 +159,24 @@ body.page-explode {
   margin: 10px 0;
 }
 
-#spotifyTrackInput {
+#spotifySearchInput {
   flex: 1;
   min-width: 260px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
+}
+
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.search-result-text {
+  flex: 1;
 }

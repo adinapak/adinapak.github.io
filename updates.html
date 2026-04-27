@@ -71,16 +71,9 @@
     </div>
   </section>
 
-   <hr>
-
-  <section>
-    <p><strong>Put Me On!</strong></p>
-    <p>What song is that? Beats me...(mayhaps?)</p>
-  </section>
-
   <section class="game-shell spotify-shell">
     <h2>Spotify Queue Control</h2>
-    <p class="small-note">Connect Spotify to show your 3 most recent tracks and add songs to your queue.</p>
+    <p class="small-note">Connect Spotify using your owner account to show your recent tracks and let visitors add songs to that queue.</p>
 
     <div class="spotify-row">
       <button id="spotifyConnectBtn" type="button">Connect Spotify</button>
@@ -91,12 +84,17 @@
     <p id="spotifyStatusMsg" class="status-msg" aria-live="polite">Not connected.</p>
 
     <div class="spotify-queue-row">
-      <input id="spotifyTrackInput" type="text" placeholder="Paste Spotify track URL or URI">
-      <button id="spotifyQueueBtn" type="button">Add to Queue</button>
+      <input id="spotifySearchInput" type="text" placeholder="Search songs (title, artist)">
+      <button id="spotifySearchBtn" type="button">Search</button>
     </div>
 
     <div class="leaderboard-wrap">
-      <h3>Recently Played (Last 3)</h3>
+      <h3>Search Results</h3>
+      <ol id="spotifySearchResults" class="leaderboard-list"></ol>
+    </div>
+
+    <div class="leaderboard-wrap">
+      <h3>Recently Played (Last 5)</h3>
       <ol id="spotifyRecentList" class="leaderboard-list"></ol>
     </div>
   </section>
@@ -136,10 +134,11 @@
       const spotifyConnectBtn = document.getElementById("spotifyConnectBtn");
       const spotifyRefreshBtn = document.getElementById("spotifyRefreshBtn");
       const spotifyDisconnectBtn = document.getElementById("spotifyDisconnectBtn");
-      const spotifyQueueBtn = document.getElementById("spotifyQueueBtn");
-      const spotifyTrackInput = document.getElementById("spotifyTrackInput");
+      const spotifySearchBtn = document.getElementById("spotifySearchBtn");
+      const spotifySearchInput = document.getElementById("spotifySearchInput");
       const spotifyStatusMsg = document.getElementById("spotifyStatusMsg");
       const spotifyRecentList = document.getElementById("spotifyRecentList");
+      const spotifySearchResults = document.getElementById("spotifySearchResults");
 
       const supabaseUrl = window.SUPABASE_URL || "";
       const supabaseAnonKey = window.SUPABASE_ANON_KEY || "";
@@ -524,25 +523,6 @@
         localStorage.removeItem(SPOTIFY_TOKEN_KEY);
       }
 
-      function trackIdFromInput(input) {
-        const trimmed = input.trim();
-        if (!trimmed) return "";
-
-        if (trimmed.startsWith("spotify:track:")) {
-          return trimmed.split(":")[2] || "";
-        }
-
-        try {
-          const url = new URL(trimmed);
-          if (url.hostname.includes("spotify.com") && url.pathname.includes("/track/")) {
-            return url.pathname.split("/track/")[1].split("/")[0].split("?")[0];
-          }
-        } catch {
-          return "";
-        }
-        return "";
-      }
-
       async function refreshSpotifyTokenIfNeeded() {
         const token = loadSpotifyToken();
         if (!token) return null;
@@ -688,7 +668,7 @@
         spotifyRecentList.innerHTML = "";
 
         try {
-          const data = await spotifyApi("/v1/me/player/recently-played?limit=3");
+          const data = await spotifyApi("/v1/me/player/recently-played?limit=5");
           const items = data?.items || [];
           if (!items.length) {
             const li = document.createElement("li");
@@ -711,30 +691,70 @@
           spotifyStatusMsg.textContent = error.message || "Could not load recent tracks.";
         }
       }
-
-      async function addTrackToQueue() {
-        const trackId = trackIdFromInput(spotifyTrackInput.value);
-        if (!trackId) {
-          spotifyStatusMsg.textContent = "Paste a valid Spotify track URL or URI.";
-          return;
-        }
-
+      async function addUriToQueue(trackUri) {
         try {
-          const encoded = encodeURIComponent(`spotify:track:${trackId}`);
+          const encoded = encodeURIComponent(trackUri);
           await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
             method: "POST"
           });
           spotifyStatusMsg.textContent = "Track added to queue.";
-          spotifyTrackInput.value = "";
           await renderRecentTracks();
         } catch (error) {
           spotifyStatusMsg.textContent = error.message || "Could not add track to queue.";
         }
       }
 
+      function renderSearchResults(items) {
+        spotifySearchResults.innerHTML = "";
+        if (!items.length) {
+          const li = document.createElement("li");
+          li.textContent = "No matches found.";
+          spotifySearchResults.appendChild(li);
+          return;
+        }
+
+        items.forEach((track) => {
+          const li = document.createElement("li");
+          const artists = (track.artists || []).map((artist) => artist.name).join(", ");
+          const addButton = document.createElement("button");
+          addButton.type = "button";
+          addButton.textContent = "Add";
+          addButton.addEventListener("click", () => {
+            addUriToQueue(track.uri);
+          });
+
+          const text = document.createElement("span");
+          text.textContent = `${track.name} — ${artists}`;
+          text.className = "search-result-text";
+
+          li.className = "search-result-item";
+          li.appendChild(text);
+          li.appendChild(addButton);
+          spotifySearchResults.appendChild(li);
+        });
+      }
+
+      async function searchSpotifyTracks() {
+        const query = spotifySearchInput.value.trim();
+        if (!query) {
+          spotifyStatusMsg.textContent = "Type a song or artist to search.";
+          return;
+        }
+
+        try {
+          const encodedQuery = encodeURIComponent(query);
+          const data = await spotifyApi(`/v1/search?type=track&limit=5&q=${encodedQuery}`);
+          renderSearchResults(data?.tracks?.items || []);
+          spotifyStatusMsg.textContent = "Select a result to add it to queue.";
+        } catch (error) {
+          spotifyStatusMsg.textContent = error.message || "Search failed.";
+        }
+      }
+
       function disconnectSpotify() {
         clearSpotifyToken();
         spotifyRecentList.innerHTML = "";
+        spotifySearchResults.innerHTML = "";
         const li = document.createElement("li");
         li.textContent = "Disconnected.";
         spotifyRecentList.appendChild(li);
@@ -780,8 +800,14 @@
       spotifyRefreshBtn.addEventListener("click", () => {
         renderRecentTracks();
       });
-      spotifyQueueBtn.addEventListener("click", () => {
-        addTrackToQueue();
+      spotifySearchBtn.addEventListener("click", () => {
+        searchSpotifyTracks();
+      });
+      spotifySearchInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          searchSpotifyTracks();
+        }
       });
       spotifyDisconnectBtn.addEventListener("click", () => {
         disconnectSpotify();
