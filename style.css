@@ -133,3 +133,50 @@ body.page-explode {
   from { transform: scale(1); filter: saturate(1); }
   to { transform: scale(1.03); filter: saturate(1.8); }
 }
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#boardSourceMsg {
+  margin-top: 0;
+}
+
+.spotify-shell {
+  margin-top: 24px;
+}
+
+.spotify-row,
+.spotify-queue-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+#spotifySearchInput {
+  flex: 1;
+  min-width: 260px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.search-result-text {
+  flex: 1;
+}
