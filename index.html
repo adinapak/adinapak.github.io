@@ -206,7 +206,8 @@
       const SPOTIFY_VERIFIER_KEY = 'spotifyCodeVerifierV2';
       const SPOTIFY_SCOPES = [
         'user-read-playback-state',
-        'user-modify-playback-state'
+        'user-modify-playback-state',
+        'user-library-modify'
       ];
       const SURPRISE_SOURCE_TRACK_IDS = new Set([
         '6habFhsOp2NvshLv26DqMb',
@@ -356,8 +357,20 @@
         });
       }
 
-      async function likeCurrentTrack() { setStatus('Use the queue controls below to connect Spotify and queue tracks.'); }
-
+      async function likeCurrentTrack() {
+        if (!currentTrack?.id) {
+          setStatus('No active track to like right now.');
+          return;
+        }
+      
+        await withSpotifyAuth(async () => {
+          await spotifyApi(`/v1/me/tracks?ids=${encodeURIComponent(currentTrack.id)}`, {
+            method: 'PUT'
+          });
+      
+          setStatus('Added to your liked songs.');
+        });
+      }
       async function fetchNowPlaying() {
         try {
           const response = await fetch('/api/now-playing', { cache: 'no-store' });
@@ -407,8 +420,10 @@
       bindAlbumInteractions();
 
       function renderSearchResults(items) {
-        if (!items.length) { queueResultsEl.innerHTML = '<div class="queue-master-item"><span class="queue-master-meta">No matches yet.</span></div>'; return; }
-        queueResultsEl.innerHTML = items.map((item) => {
+        if (!items.length) {
+          queueResultsEl.innerHTML = '';
+          return;
+        }        queueResultsEl.innerHTML = items.map((item) => {
           const id = item.id || '';
           const title = (item.name || 'Unknown').replace(/</g, '&lt;');
           const artist = ((item.artists || []).map((a) => a.name).join(', ') || '').replace(/</g, '&lt;');
@@ -419,8 +434,10 @@
       }
 
       function renderUserQueue(items) {
-        if (!items.length) { userQueueResultsEl.innerHTML = '<div class="queue-master-item"><span class="queue-master-meta">Queue is empty or unavailable.</span></div>'; return; }
-        userQueueResultsEl.innerHTML = items.slice(0, 8).map((item) => {
+        if (!items.length) {
+          userQueueResultsEl.innerHTML = '';
+          return;
+        }        userQueueResultsEl.innerHTML = items.slice(0, 8).map((item) => {
           const title = (item?.name || 'Unknown').replace(/</g, '&lt;');
           const artist = ((item?.artists || []).map((a) => a.name).join(', ') || '').replace(/</g, '&lt;');
           const cover = item?.album?.images?.[2]?.url || item?.album?.images?.[1]?.url || item?.album?.images?.[0]?.url || '';
@@ -459,8 +476,12 @@
       queueSearchBtn.addEventListener('click', function () { searchTracks(); });
       queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { updateAuthUi(); await refreshUserQueue(); setStatus('Spotify connected. You can stay right here and queue songs.'); }); });
       queueSearchInput.addEventListener('input', function () { clearTimeout(searchDebounce); searchDebounce = setTimeout(function () { if (!queueSearchInput.value.trim()) renderSearchResults([]); }, 220); });
-      queueSearchInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); searchTracks(); } });
-      queueResultsEl.addEventListener('click', function (event) {
+      queueSearchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          searchTracks();
+        }
+      });      queueResultsEl.addEventListener('click', function (event) {
         const button = event.target.closest('button[data-track-id]');
         if (!button) return;
         queueTrackId(button.getAttribute('data-track-id'));
