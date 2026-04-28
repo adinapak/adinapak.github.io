@@ -511,8 +511,8 @@ async function queueTrackId(trackId) {
   if (!trackId) return;
 
   const button = queueResultsEl.querySelector(`[data-track-id="${trackId}"]`);
-  const item = button ? button.closest('.queue-master-item') : null;
-  const originalText = button ? button.textContent : '';
+  const resultItem = button ? button.closest('.queue-master-item') : null;
+  const originalText = button ? button.textContent : 'Queue';
 
   if (button) {
     button.textContent = 'Queued ✓';
@@ -521,18 +521,16 @@ async function queueTrackId(trackId) {
 
   setStatus('');
 
-  if (item) {
-    const optimisticItem = item.cloneNode(true);
+  let optimisticItem = null;
+
+  if (resultItem && !userQueueResultsEl.querySelector(`[data-queued-track-id="${trackId}"]`)) {
+    optimisticItem = resultItem.cloneNode(true);
+    optimisticItem.dataset.queuedTrackId = trackId;
+
     const optimisticButton = optimisticItem.querySelector('button');
+    if (optimisticButton) optimisticButton.remove();
 
-    if (optimisticButton) {
-      optimisticButton.remove();
-    }
-
-    if (!userQueueResultsEl.querySelector(`[data-optimistic-track-id="${trackId}"]`)) {
-      optimisticItem.dataset.optimisticTrackId = trackId;
-      userQueueResultsEl.prepend(optimisticItem);
-    }
+    userQueueResultsEl.prepend(optimisticItem);
   }
 
   await withSpotifyAuth(async () => {
@@ -544,20 +542,22 @@ async function queueTrackId(trackId) {
       maybeShowSurprise(trackId);
     } catch (error) {
       if (button) {
-        button.textContent = originalText || 'Queue';
+        button.textContent = originalText;
         button.disabled = false;
       }
 
-      const optimisticItem = userQueueResultsEl.querySelector(`[data-optimistic-track-id="${trackId}"]`);
-      if (optimisticItem) {
-        optimisticItem.remove();
-      }
+      const queuedItem = userQueueResultsEl.querySelector(`[data-queued-track-id="${trackId}"]`);
+      if (queuedItem) queuedItem.remove();
 
-      throw error;
+      return;
     }
   });
 }
-
+  queueResultsEl.addEventListener('click', function (event) {
+  const btn = event.target.closest('[data-track-id]');
+  if (!btn) return;
+  queueTrackId(btn.dataset.trackId);
+});
       queueSearchBtn.addEventListener('click', function () { searchTracks(); });
       queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { updateAuthUi(); await refreshUserQueue(); setStatus('Spotify connected. You can stay right here and queue songs.'); }); });
       queueSearchInput.addEventListener('input', function () { clearTimeout(searchDebounce); searchDebounce = setTimeout(function () { if (!queueSearchInput.value.trim()) renderSearchResults([]); }, 220); });
