@@ -325,7 +325,7 @@
           const response = await fetch('/api/now-playing', { cache: 'no-store' });
           const data = await response.json();
           if (!response.ok) { setIdleState('Unable to load playback right now.'); return; }
-          if (!data.track) { setIdleState('If you're seeing this...'); artistEl.textContent = "I'm paused...come back later!"; return; }
+          if (!data.track) { setIdleState("If you're seeing this..."); artistEl.textContent = "I'm paused...come back later!"; return; }
           isPlaying = !!data.is_playing;
           progressMs = Number(data.progress_ms || 0);
           durationMs = Number(data.duration_ms || 1);
