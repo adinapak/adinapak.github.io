@@ -1,61 +1,40 @@
-:root {
-  --text: #1a1a1a;
-  --muted: #666;
-  --muted-light: #888;
-  --bg: #fdfdfd;
-  --bg-soft: #fafafa;
-  --line: #ddd;
-  --line-soft: #eee;
-  --line-dark: #bbb;
-}
-
+/* ---------- RESET ---------- */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* ---------- BASE ---------- */
 body {
   font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif;
-  background: var(--bg);
-  color: var(--text);
+  background: #fdfdfd;
+  color: #1a1a1a;
   line-height: 1.65;
   max-width: 680px;
   margin: 64px auto;
   padding: 0 24px 80px;
 }
 
+button,
+input {
+  font-family: inherit;
+}
+
+@media (max-width: 640px) {
+  body {
+    margin: 36px auto;
+    padding: 0 18px 60px;
+  }
+}
+
+/* ---------- TYPOGRAPHY ---------- */
 h1 {
   font-size: 2.1rem;
   font-weight: 400;
   letter-spacing: 0.01em;
   margin-bottom: 18px;
   color: #111;
-}
-
-nav {
-  font-size: 0.88rem;
-  font-style: italic;
-  margin-bottom: 28px;
-  line-height: 2.2;
-  text-align: center;
-  color: #444;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-nav a,
-a {
-  color: #111;
-  text-decoration: none;
-  font-style: normal;
-  border-bottom: 1px solid var(--line-dark);
-}
-
-hr {
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 0 0 28px;
 }
 
 h3 {
@@ -68,28 +47,47 @@ section {
   margin-bottom: 26px;
 }
 
-section p,
-.small-note {
+section p {
   font-size: 0.85rem;
   font-style: italic;
-  color: var(--muted-light);
+  color: #888;
   margin-bottom: 8px;
 }
 
-ul,
-ol {
+ul {
   padding-left: 22px;
   line-height: 2;
   font-size: 0.9rem;
   color: #333;
 }
 
-button,
-input {
-  font-family: inherit;
+/* ---------- NAV ---------- */
+nav {
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-bottom: 28px;
+  line-height: 2.2;
+  text-align: center;
+  color: #444;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
-/* Game shell: matches index.html glass-card aesthetic */
+nav a {
+  color: #111;
+  text-decoration: none;
+  font-style: normal;
+  border-bottom: 1px solid #bbb;
+}
+
+/* ---------- DIVIDERS ---------- */
+hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 0 0 28px;
+}
+
+/* ---------- GAME CARD ---------- */
 .game-shell {
   background: rgba(255,255,255,0.72);
   backdrop-filter: blur(18px);
@@ -101,10 +99,11 @@ input {
   margin-top: 20px;
 }
 
+/* ---------- HUD ---------- */
 .hud {
   display: flex;
   gap: 8px;
-  margin: 18px 0 24px;
+  margin-bottom: 24px;
 }
 
 .hud > div {
@@ -113,8 +112,7 @@ input {
   border-radius: 2px;
   padding: 8px 12px;
   text-align: center;
-  background: var(--bg-soft);
-  min-width: 90px;
+  background: #fafafa;
 }
 
 .label {
@@ -126,25 +124,27 @@ input {
   margin-bottom: 3px;
 }
 
-.problem-row {
-  margin: 16px 0;
+.hud strong,
+.hud span:last-child {
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
+/* ---------- PROBLEM ---------- */
 .problem {
   font-size: 2.2rem;
   font-weight: 400;
   text-align: center;
   margin-bottom: 18px;
   letter-spacing: -0.02em;
-  min-height: 2.8rem;
   color: #111;
 }
 
+/* ---------- INPUT ---------- */
 input[type="number"],
 input[type="text"] {
   display: block;
   width: 100%;
-  max-width: none;
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 2px;
@@ -155,8 +155,8 @@ input[type="text"] {
   outline: none;
 }
 
+/* ---------- BUTTONS ---------- */
 .button-row {
-  margin-top: 10px;
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -171,122 +171,57 @@ button {
   background: #fff;
   color: #333;
   cursor: pointer;
-  min-height: 32px;
 }
 
 button.primary,
-button.start {
+button.start,
+.button-row button:first-child {
   background: #111;
   color: #fff;
   border-color: #111;
 }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
-  outline: 2px solid #2a7fff;
-  outline-offset: 2px;
-}
-
 button[disabled] {
-  opacity: 0.55;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* ---------- STATUS ---------- */
 .status-msg {
-  min-height: 24px;
   text-align: center;
   font-size: 0.85rem;
   font-style: italic;
   color: #444;
   margin-top: 12px;
-  font-weight: 400;
 }
 
+/* ---------- LEADERBOARD ---------- */
 .leaderboard-wrap {
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid #eee;
+}
+
+.leaderboard-wrap .label {
+  font-size: 0.72rem;
+  letter-spacing: 1.2px;
+  color: #999;
+  margin-bottom: 12px;
 }
 
 .leaderboard-list {
-  padding-left: 20px;
-  margin: 0;
+  list-style: none;
+  padding: 0;
 }
 
-.brag-banner {
-  display: none;
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #bbb;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.8);
+.leaderboard-list li {
+  margin-bottom: 9px;
 }
 
-.brag-banner.show {
-  display: block;
-  animation: bragPulse 0.5s ease-in-out 4 alternate;
-}
-
-body.page-explode {
-  animation: shake 0.35s linear 6;
-}
-
-.profile-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-#boardSourceMsg {
-  margin-top: 0;
-  min-height: 1.3rem;
-}
-
-@keyframes shake {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(2px, -2px) rotate(-0.6deg); }
-  50% { transform: translate(-3px, 2px) rotate(0.4deg); }
-  75% { transform: translate(3px, 1px) rotate(-0.4deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-@keyframes bragPulse {
-  from { transform: scale(1); filter: saturate(1); }
-  to { transform: scale(1.03); filter: saturate(1.8); }
-}
-
-@media (max-width: 640px) {
-  body {
-    margin: 36px auto;
-    padding: 0 18px 60px;
-  }
-
-  nav {
-    margin-bottom: 22px;
-  }
-
-  .game-shell {
-    padding: 20px 18px;
-  }
-
-  .hud {
-    gap: 8px;
-  }
-
-  .hud > div {
-    min-width: calc(33.333% - 6px);
-  }
-
-  input[type="number"],
-  input[type="text"] {
-    max-width: 100%;
-  }
+/* ---------- FOCUS ---------- */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2a7fff;
+  outline-offset: 2px;
 }
