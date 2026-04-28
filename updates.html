@@ -434,6 +434,18 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
+      function weightedChoice(items) {
+        const total = items.reduce((sum, item) => sum + item.weight, 0);
+        let pick = Math.random() * total;
+
+        for (const item of items) {
+          pick -= item.weight;
+          if (pick <= 0) return item.value;
+        }
+
+        return items[items.length - 1].value;
+      }
+
       function sanitizeName(value) {
         return (value || "").trim().slice(0, 24);
       }
@@ -491,33 +503,46 @@
         streakEl.textContent = streak;
       }
 
-      function createProblem() {
-        const problemTypes = ["addition", "subtraction", "multiplication", "division"];
-        const type = problemTypes[randomInt(0, problemTypes.length - 1)];
+      function createAdditionProblem() {
+        const useHardRange = Math.random() < 0.35;
+        const a = randomInt(useHardRange ? 40 : 2, useHardRange ? 199 : 100);
+        const b = randomInt(useHardRange ? 40 : 2, useHardRange ? 199 : 100);
+        return { text: `${a} + ${b} =`, answer: a + b };
+      }
 
-        if (type === "addition") {
-          const a = randomInt(2, 100);
-          const b = randomInt(2, 100);
-          return { text: `${a} + ${b} =`, answer: a + b };
-        }
-
-        if (type === "subtraction") {
-          const answer = randomInt(2, 100);
-          const b = randomInt(2, 100);
-          const a = answer + b;
-          return { text: `${a} − ${b} =`, answer };
-        }
-
-        if (type === "multiplication") {
-          const a = randomInt(2, 12);
-          const b = randomInt(2, 100);
-          return { text: `${a} × ${b} =`, answer: a * b };
-        }
-
-        const b = randomInt(2, 12);
+      function createSubtractionProblem() {
         const answer = randomInt(2, 100);
-        const a = b * answer;
-        return { text: `${a} ÷ ${b} =`, answer };
+        const b = randomInt(2, 100);
+        const a = answer + b;
+        return { text: `${a} − ${b} =`, answer };
+      }
+
+      function createMultiplicationProblem() {
+        const useHardFactor = Math.random() < 0.25;
+        const a = randomInt(2, useHardFactor ? 20 : 12);
+        const b = randomInt(2, 100);
+        return { text: `${a} × ${b} =`, answer: a * b };
+      }
+
+      function createDivisionProblem() {
+        const divisor = randomInt(2, 12);
+        const answer = randomInt(2, 100);
+        const dividend = divisor * answer;
+        return { text: `${dividend} ÷ ${divisor} =`, answer };
+      }
+
+      function createProblem() {
+        const type = weightedChoice([
+          { value: "addition", weight: 20 },
+          { value: "subtraction", weight: 20 },
+          { value: "multiplication", weight: 35 },
+          { value: "division", weight: 25 }
+        ]);
+
+        if (type === "addition") return createAdditionProblem();
+        if (type === "subtraction") return createSubtractionProblem();
+        if (type === "multiplication") return createMultiplicationProblem();
+        return createDivisionProblem();
       }
 
       function nextProblem() {
