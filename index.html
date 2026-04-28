@@ -233,7 +233,7 @@
       async function sha256(plain) { const encoder = new TextEncoder(); const data = encoder.encode(plain); return window.crypto.subtle.digest('SHA-256', data); }
       function base64UrlEncode(buffer) { const bytes = new Uint8Array(buffer); let str = ''; bytes.forEach((byte) => { str += String.fromCharCode(byte); }); return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, ''); }
       async function generateCodeChallenge(codeVerifier) { const hashed = await sha256(codeVerifier); return base64UrlEncode(hashed); }
-      function spotifyRedirectUri() { return spotifyRedirectUriValue || `${window.location.origin}${window.location.pathname}`; }
+      function spotifyRedirectUri() { return spotifyRedirectUriValue || `${window.location.origin}/`; }
       function loadSpotifyToken() { try { const raw = localStorage.getItem(SPOTIFY_TOKEN_KEY); if (!raw) return null; return JSON.parse(raw); } catch { return null; } }
       function saveSpotifyToken(token) { localStorage.setItem(SPOTIFY_TOKEN_KEY, JSON.stringify(token)); updateAuthUi(); }
       function clearSpotifyToken() { localStorage.removeItem(SPOTIFY_TOKEN_KEY); updateAuthUi(); }
@@ -408,12 +408,26 @@
         }).join('');
       }
 
+
+      async function suggestTracksPublic(query) {
+        if (!query) { renderSearchResults([]); return; }
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { cache: 'no-store' });
+          const data = await response.json();
+          if (!response.ok) return;
+          renderSearchResults(data?.tracks || []);
+        } catch (_) {
+          // keep previous suggestions if endpoint hiccups
+        }
+      }
+
       async function searchTracks() {
         const query = queueSearchInput.value.trim();
         if (!query) { renderSearchResults([]); return; }
         await withSpotifyAuth(async () => {
           const res = await spotifyApi(`/v1/search?type=track&limit=8&q=${encodeURIComponent(query)}`);
           renderSearchResults(res?.tracks?.items || []);
+          setStatus('Search connected to your Spotify session.');
         });
       }
 
@@ -436,7 +450,7 @@
 
       queueSearchBtn.addEventListener('click', function () { searchTracks(); });
       queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { updateAuthUi(); await refreshUserQueue(); setStatus('Spotify connected. You can stay right here and queue songs.'); }); });
-      queueSearchInput.addEventListener('input', function () { clearTimeout(searchDebounce); searchDebounce = setTimeout(searchTracks, 250); });
+      queueSearchInput.addEventListener('input', function () { const q = queueSearchInput.value.trim(); clearTimeout(searchDebounce); searchDebounce = setTimeout(function () { suggestTracksPublic(q); }, 220); });
       queueSearchInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); searchTracks(); } });
       queueResultsEl.addEventListener('click', function (event) {
         const button = event.target.closest('button[data-track-id]');
