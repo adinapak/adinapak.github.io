@@ -346,16 +346,39 @@
           setStatus(getQueueFriendlyError(error));
         }
       }
+async function queueCurrentTrack() {
+  if (!currentTrack?.uri) {
+    setStatus('No active track to queue right now.');
+    return;
+  }
 
-      async function queueCurrentTrack() {
-        if (!currentTrack?.uri) { setStatus('No active track to queue right now.'); return; }
-        await withSpotifyAuth(async () => {
-          const encoded = encodeURIComponent(currentTrack.uri);
-          await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, { method: 'POST' });
-          maybeShowSurprise(currentTrack.id);
-          setStatus('Queued current track to your Spotify device.');
-        });
-      }
+  const originalText = loginBtnEl.textContent;
+  loginBtnEl.textContent = 'Queued ✓';
+  loginBtnEl.disabled = true;
+  setStatus('Queued current track.');
+
+  await withSpotifyAuth(async () => {
+    try {
+      const encoded = encodeURIComponent(currentTrack.uri);
+
+      await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
+        method: 'POST'
+      });
+
+      maybeShowSurprise(currentTrack.id);
+      refreshUserQueue();
+    } catch (error) {
+      loginBtnEl.textContent = originalText;
+      loginBtnEl.disabled = false;
+      throw error;
+    }
+  });
+
+  window.setTimeout(() => {
+    loginBtnEl.textContent = originalText;
+    loginBtnEl.disabled = false;
+  }, 1200);
+}
 
       async function likeCurrentTrack() {
         if (!currentTrack?.id) {
@@ -463,15 +486,37 @@
         });
       }
 
-      async function queueTrackId(trackId) {
-        if (!trackId) return;
-        await withSpotifyAuth(async () => {
-          await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(`spotify:track:${trackId}`)}`, { method: 'POST' });
-          maybeShowSurprise(trackId);
-          setStatus('Queued.');
-          await refreshUserQueue();
-        });
+     async function queueTrackId(trackId) {
+  if (!trackId) return;
+
+  const button = queueResultsEl.querySelector(`[data-track-id="${trackId}"]`);
+  const originalText = button ? button.textContent : '';
+
+  if (button) {
+    button.textContent = 'Queued ✓';
+    button.disabled = true;
+  }
+
+  setStatus('Queued.');
+
+  await withSpotifyAuth(async () => {
+    try {
+      await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(`spotify:track:${trackId}`)}`, {
+        method: 'POST'
+      });
+
+      maybeShowSurprise(trackId);
+      refreshUserQueue();
+    } catch (error) {
+      if (button) {
+        button.textContent = originalText || 'Queue';
+        button.disabled = false;
       }
+
+      throw error;
+    }
+  });
+}
 
       queueSearchBtn.addEventListener('click', function () { searchTracks(); });
       queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { updateAuthUi(); await refreshUserQueue(); setStatus('Spotify connected. You can stay right here and queue songs.'); }); });
