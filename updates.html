@@ -491,25 +491,39 @@
         streakEl.textContent = streak;
       }
 
-      function nextProblem() {
-        const ops = ["+", "−", "×"];
-        const op = ops[randomInt(0, ops.length - 1)];
+      function createProblem() {
+        const problemTypes = ["addition", "subtraction", "multiplication", "division"];
+        const type = problemTypes[randomInt(0, problemTypes.length - 1)];
 
-        let a = randomInt(2, 25);
-        let b = randomInt(2, 25);
-
-        if (op === "−") {
-          if (b > a) [a, b] = [b, a];
-          currentAnswer = a - b;
-        } else if (op === "×") {
-          a = randomInt(2, 12);
-          b = randomInt(2, 12);
-          currentAnswer = a * b;
-        } else {
-          currentAnswer = a + b;
+        if (type === "addition") {
+          const a = randomInt(2, 100);
+          const b = randomInt(2, 100);
+          return { text: `${a} + ${b} =`, answer: a + b };
         }
 
-        problemEl.textContent = `${a} ${op} ${b} =`;
+        if (type === "subtraction") {
+          const answer = randomInt(2, 100);
+          const b = randomInt(2, 100);
+          const a = answer + b;
+          return { text: `${a} − ${b} =`, answer };
+        }
+
+        if (type === "multiplication") {
+          const a = randomInt(2, 12);
+          const b = randomInt(2, 100);
+          return { text: `${a} × ${b} =`, answer: a * b };
+        }
+
+        const b = randomInt(2, 12);
+        const answer = randomInt(2, 100);
+        const a = b * answer;
+        return { text: `${a} ÷ ${b} =`, answer };
+      }
+
+      function nextProblem() {
+        const problem = createProblem();
+        currentAnswer = problem.answer;
+        problemEl.textContent = problem.text;
         answerInput.value = "";
       }
 
