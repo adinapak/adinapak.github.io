@@ -504,7 +504,7 @@ async function queueCurrentTrack() {
     async function queueTrackId(trackId) {
   if (!trackId) return;
 
-  const button = queueResultsEl.querySelector(`[data-track-id="${trackId}"]`);
+const button = queueResultsEl.querySelector(`[data-track-id="${trackId}"]`);  
   const originalText = button ? button.textContent : '';
 
   if (button) {
