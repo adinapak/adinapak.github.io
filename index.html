@@ -22,6 +22,7 @@
 
     h1 { font-weight: 400; font-size: 2.1rem; letter-spacing: 0.01em; margin-bottom: 18px; color: #111; }
     nav { font-size: 0.88rem; font-style: italic; margin-bottom: 28px; line-height: 2.2; text-align: center; color: #444; }
+    .nav-sep { font-style: normal; }
     nav a { color: #111; text-decoration: none; font-style: normal; border-bottom: 1px solid #bbb; }
     nav em { color: #666; }
     hr { border: none; border-top: 1px solid #ddd; margin: 0 0 28px; }
@@ -52,6 +53,8 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
       padding: 16px 20px;
       max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .dj-widget h3 { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.2px; color: #999; font-weight: 400; margin-bottom: 12px; }
     .dj-now-playing { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 48px; }
@@ -62,15 +65,24 @@
     .dj-track { font-size: 0.92rem; font-weight: 600; }
     .dj-artist { font-size: 0.8rem; color: #666; font-style: italic; }
     .dj-actions { display: flex; align-items: center; gap: 6px; }
-    .dj-love-btn, .dj-login-btn {
+    .dj-widget.paused .dj-love-btn, .dj-widget.idle .dj-love-btn { display: none; }
+    .dj-love-btn, .dj-login-btn, .dj-queue-btn {
       font-family: inherit; font-size: 0.78rem; padding: 5px 12px; border-radius: 2px;
       line-height: 1; min-height: 30px; touch-action: manipulation; cursor: pointer;
     }
     .dj-love-btn { border: 1px solid #bbb; background: #fff; color: #333; }
-    .dj-login-btn { border: none; background: #111; color: #fff; }
+    .dj-login-btn, .dj-queue-btn { border: none; background: #111; color: #fff; }
     .dj-progress { width: 100%; margin-top: 10px; height: 2px; }
     .dj-times { display: flex; justify-content: space-between; font-size: 0.7rem; color: #aaa; margin-top: 4px; min-height: 18px; }
     .dj-status { min-height: 20px; font-size: 0.78rem; color: #666; font-style: italic; margin: 8px 0 0; }
+    .queue-master { margin-top: 1rem; border-top: 1px dashed #d9d9d9; padding-top: 0.9rem; }
+    .queue-master p { margin: 0 0 0.6rem; font-size: 0.85rem; color: #444; }
+    .queue-master-controls { display: grid; gap: 0.5rem; }
+    .queue-master-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.4rem; }
+    .queue-master-input { width: 100%; border: 1px solid #ccc; border-radius: 2px; padding: 0.38rem 0.45rem; font: inherit; font-size: 0.82rem; }
+    .queue-master-results { display: grid; gap: 0.35rem; }
+    .queue-master-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.35rem; align-items: center; font-size: 0.8rem; padding: 0.32rem 0.1rem; border-bottom: 1px dotted #ececec; }
+    .queue-master-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .surprise-overlay {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
@@ -89,9 +101,9 @@
   <h1>Adina Pak</h1>
 
  <nav>
-  <a href="principles.html">Lemmas</a> | <em>towards [quote] erat demonstrandum...?</em>
+  <a href="principles.html">Lemmas</a> <span class="nav-sep">|</span> <em>towards [quote] erat demonstrandum...?</em>
   <br>
-  <a href="updates.html">Beats Me!</a> | <em>some things that keep me up at night...</em>
+  <a href="updates.html">Beats Me!</a> <span class="nav-sep">|</span> <em>some things that keep me up at night...</em>
 </nav>
   <hr>
 
@@ -107,7 +119,7 @@
 </p>
 
   <i> ...or 1v1 me </i>
-   <a href="updates.html">here</a>
+   <a href="updates.html" style="margin-bottom: 0.8rem; display: block;">Here</a>
 
   <hr>
 
@@ -125,7 +137,7 @@
 
       <div class="dj-actions">
         <button id="dj-love-btn" class="dj-love-btn" type="button">I love it!</button>
-        <button id="dj-login-btn" class="dj-login-btn" type="button">Spotify Login</button>
+        <button id="dj-login-btn" class="dj-login-btn" type="button">Add to Queue</button>
       </div>
     </div>
 
@@ -135,10 +147,22 @@
       <span id="dj-duration">0:00</span>
     </div>
     <p id="dj-status" class="dj-status" role="status"></p>
+
+    <div class="queue-master">
+      <p>Here's a quick queue master for you! Pile on all the songs you like...or queue one of mine!</p>
+      <div class="queue-master-controls">
+        <div class="queue-master-input-row">
+          <input id="queue-search-input" class="queue-master-input" type="search" placeholder="Search any song" aria-label="Search songs to queue">
+          <button id="queue-search-btn" class="dj-love-btn" type="button">Search</button>
+          <button id="queue-login-btn" class="dj-queue-btn" type="button">Login</button>
+        </div>
+        <div id="queue-results" class="queue-master-results" aria-live="polite"></div>
+      </div>
+    </div>
   </section>
 
   <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
-    🎉 Surprise unlocked — that track is from my liked list.
+    🎉 TWINNEMMMM
   </div>
 
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -154,6 +178,11 @@
       const loginBtnEl = document.getElementById('dj-login-btn');
       const statusEl = document.getElementById('dj-status');
       const surpriseOverlay = document.getElementById('surpriseOverlay');
+      const widgetEl = document.querySelector('.dj-widget');
+      const queueSearchInput = document.getElementById('queue-search-input');
+      const queueSearchBtn = document.getElementById('queue-search-btn');
+      const queueLoginBtn = document.getElementById('queue-login-btn');
+      const queueResultsEl = document.getElementById('queue-results');
 
       const SPOTIFY_TOKEN_KEY = 'spotifyUserTokenV2';
       const SPOTIFY_VERIFIER_KEY = 'spotifyCodeVerifierV2';
@@ -177,12 +206,15 @@
       let tickInterval = null;
       let fetchInterval = null;
       let lastTapAt = 0;
+      let lastLivePlaybackAt = 0;
+      const PAUSE_FUNNY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23f6e27f'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24'%3E%F0%9F%90%8C%3C/text%3E%3C/svg%3E";
 
       function setStatus(message) { statusEl.textContent = message || ''; }
       function formatMs(ms) { const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000)); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}:${String(seconds).padStart(2, '0')}`; }
       function renderProgress() { progressEl.max = durationMs || 1; progressEl.value = Math.min(progressMs, durationMs || 1); elapsedEl.textContent = formatMs(progressMs); durationEl.textContent = formatMs(durationMs); }
+      function formatAway(ms) { const minutes = Math.floor((ms || 0) / 60000); const hours = Math.floor(minutes / 60); const rem = minutes % 60; if (hours > 0) return `${hours}h ${rem}m away`; return `${Math.max(minutes, 0)}m away`; }
       function startTicking() { if (tickInterval) clearInterval(tickInterval); tickInterval = setInterval(function () { if (!isPlaying) return; progressMs = Math.min(progressMs + 1000, durationMs || progressMs + 1000); renderProgress(); }, 1000); }
-      function setIdleState(message) { isPlaying = false; progressMs = 0; durationMs = 1; currentTrack = null; trackEl.textContent = message; artistEl.textContent = ''; albumArtEl.hidden = true; albumArtEl.src = ''; renderProgress(); }
+      function setIdleState(message) { isPlaying = false; progressMs = 0; durationMs = 1; currentTrack = null; widgetEl.classList.add('idle'); widgetEl.classList.remove('paused'); trackEl.textContent = message; artistEl.textContent = ''; albumArtEl.hidden = false; albumArtEl.src = PAUSE_FUNNY_IMAGE; renderProgress(); }
 
       function randomString(length) { const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; let output = ''; const randomValues = new Uint8Array(length); window.crypto.getRandomValues(randomValues); randomValues.forEach((value) => { output += chars[value % chars.length]; }); return output; }
       async function sha256(plain) { const encoder = new TextEncoder(); const data = encoder.encode(plain); return window.crypto.subtle.digest('SHA-256', data); }
@@ -293,16 +325,37 @@
           const response = await fetch('/api/now-playing', { cache: 'no-store' });
           const data = await response.json();
           if (!response.ok) { setIdleState('Unable to load playback right now.'); return; }
-          if (!data.track) { setIdleState('Nothing is currently playing.'); return; }
+          if (!data.track) { setIdleState('If you're seeing this...'); artistEl.textContent = "I'm paused...come back later!"; return; }
           isPlaying = !!data.is_playing;
           progressMs = Number(data.progress_ms || 0);
           durationMs = Number(data.duration_ms || 1);
-          trackEl.textContent = data.track.name || 'Unknown track';
-          artistEl.textContent = data.track.artist || '';
           currentTrack = { id: data.track.id || '', uri: data.track.uri || '', name: data.track.name || '' };
-          if (data.track.album_art_url) { albumArtEl.src = data.track.album_art_url; albumArtEl.hidden = false; }
-          else { albumArtEl.hidden = true; albumArtEl.src = ''; }
+          if (isPlaying) {
+            lastLivePlaybackAt = Date.now();
+            widgetEl.classList.remove('paused', 'idle');
+            trackEl.textContent = data.track.name || 'Unknown track';
+            artistEl.textContent = data.track.artist || '';
+            elapsedEl.textContent = formatMs(progressMs);
+            durationEl.textContent = formatMs(durationMs);
+            if (data.track.album_art_url) { albumArtEl.src = data.track.album_art_url; albumArtEl.hidden = false; }
+            else { albumArtEl.hidden = false; albumArtEl.src = PAUSE_FUNNY_IMAGE; }
+          } else {
+            widgetEl.classList.add('paused');
+            widgetEl.classList.remove('idle');
+            trackEl.textContent = "If you're seeing this...";
+            artistEl.textContent = "I'm paused...come back later!";
+            albumArtEl.hidden = false;
+            albumArtEl.src = PAUSE_FUNNY_IMAGE;
+            const awayMs = lastLivePlaybackAt ? Date.now() - lastLivePlaybackAt : 0;
+            elapsedEl.textContent = formatAway(awayMs);
+            durationEl.textContent = 'minutes since';
+          }
           renderProgress();
+          if (!isPlaying) {
+            const awayMs = lastLivePlaybackAt ? Date.now() - lastLivePlaybackAt : 0;
+            elapsedEl.textContent = formatAway(awayMs);
+            durationEl.textContent = 'minutes since';
+          }
         } catch (error) { setIdleState('Unable to reach now playing endpoint.'); }
       }
 
@@ -311,16 +364,53 @@
         albumBtnEl.addEventListener('touchend', function () { const now = Date.now(); if (now - lastTapAt < 350) { queueCurrentTrack(); lastTapAt = 0; return; } lastTapAt = now; }, { passive: true });
       }
 
-      loginBtnEl.addEventListener('click', function () { withSpotifyAuth(async function () { setStatus('Already connected to Spotify.'); }); });
+      loginBtnEl.addEventListener('click', function () { queueCurrentTrack(); });
       loveBtnEl.addEventListener('click', function () { likeCurrentTrack(); });
       bindAlbumInteractions();
+
+      function renderSearchResults(items) {
+        if (!items.length) { queueResultsEl.innerHTML = '<div class="queue-master-item"><span class="queue-master-meta">No matches yet.</span></div>'; return; }
+        queueResultsEl.innerHTML = items.map((item) => {
+          const id = item.id || '';
+          const title = (item.name || 'Unknown').replace(/</g, '&lt;');
+          const artist = ((item.artists || []).map((a) => a.name).join(', ') || '').replace(/</g, '&lt;');
+          return `<div class="queue-master-item"><span class="queue-master-meta">${title} — ${artist}</span><button class="dj-queue-btn" data-track-id="${id}">Queue</button></div>`;
+        }).join('');
+      }
+
+      async function searchTracks() {
+        const query = queueSearchInput.value.trim();
+        if (!query) { setStatus('Type a song name first.'); return; }
+        await withSpotifyAuth(async () => {
+          const res = await spotifyApi(`/v1/search?type=track&limit=5&q=${encodeURIComponent(query)}`);
+          renderSearchResults(res?.tracks?.items || []);
+          setStatus('Pick a song and queue it.');
+        });
+      }
+
+      async function queueTrackId(trackId) {
+        if (!trackId) return;
+        await withSpotifyAuth(async () => {
+          await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(`spotify:track:${trackId}`)}`, { method: 'POST' });
+          maybeShowSurprise(trackId);
+          setStatus('Queued.');
+        });
+      }
+
+      queueSearchBtn.addEventListener('click', function () { searchTracks(); });
+      queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { setStatus('Spotify connected. Search away.'); }); });
+      queueSearchInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); searchTracks(); } });
+      queueResultsEl.addEventListener('click', function (event) {
+        const button = event.target.closest('button[data-track-id]');
+        if (!button) return;
+        queueTrackId(button.getAttribute('data-track-id'));
+      });
 
       (async function init() {
         try { spotifyClientId = await fetchSpotifyClientId(); }
         catch (error) { setStatus('Spotify user actions unavailable until client id is configured.'); }
         await completeSpotifyAuthIfNeeded();
         await fetchNowPlaying();
-        renderProgress();
         startTicking();
         if (fetchInterval) clearInterval(fetchInterval);
         fetchInterval = setInterval(fetchNowPlaying, 10000);
