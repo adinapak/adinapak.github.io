@@ -78,8 +78,15 @@
     .queue-master { margin-top: 1rem; border-top: 1px dashed #d9d9d9; padding-top: 0.9rem; }
     .queue-master p { margin: 0 0 0.6rem; font-size: 0.85rem; color: #444; }
     .queue-master-controls { display: grid; gap: 0.5rem; }
-    .queue-master-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.4rem; }
+    .queue-master-input-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.4rem; align-items: center; }
     .queue-master-input { width: 100%; border: 1px solid #ccc; border-radius: 2px; padding: 0.38rem 0.45rem; font: inherit; font-size: 0.82rem; }
+    .queue-master-connect-btn { display: inline-flex; align-items: center; gap: 0.28rem; }
+    .queue-master-connect-icon { font-size: 0.92rem; line-height: 1; color: inherit; }
+    .queue-master-connect-btn.connected .queue-master-connect-icon { color: #1DB954; }
+    @media (max-width: 560px) {
+      .queue-master-input-row { grid-template-columns: minmax(0, 1fr) auto; }
+      .queue-master-connect-btn { grid-column: 1 / -1; justify-self: start; }
+    }
     .queue-master-results { display: grid; gap: 0.35rem; }
     .queue-master-item { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 0.45rem; align-items: center; font-size: 0.8rem; padding: 0.32rem 0.1rem; border-bottom: 1px dotted #ececec; }
     .queue-master-cover { width: 38px; height: 38px; object-fit: cover; border-radius: 2px; background: #f0f0f0; }
@@ -157,9 +164,9 @@
       <p>Here's a quick queue master for you! Pile on all the songs you like...or queue one of mine!</p>
       <div class="queue-master-controls">
         <div class="queue-master-input-row">
+          <button id="queue-login-btn" class="dj-queue-btn queue-master-connect-btn" type="button"><span class="queue-master-connect-icon" aria-hidden="true">◉</span><span id="queue-login-label">Connect Spotify</span></button>
           <input id="queue-search-input" class="queue-master-input" type="search" placeholder="Search any song" aria-label="Search songs to queue">
           <button id="queue-search-btn" class="dj-love-btn" type="button">Search</button>
-          <button id="queue-login-btn" class="dj-queue-btn" type="button">Connect Spotify</button>
         </div>
         <div id="queue-results" class="queue-master-results" aria-live="polite"></div>
         <div class="queue-list">
@@ -191,17 +198,15 @@
       const queueSearchInput = document.getElementById('queue-search-input');
       const queueSearchBtn = document.getElementById('queue-search-btn');
       const queueLoginBtn = document.getElementById('queue-login-btn');
+      const queueLoginLabel = document.getElementById('queue-login-label');
       const queueResultsEl = document.getElementById('queue-results');
       const userQueueResultsEl = document.getElementById('user-queue-results');
 
       const SPOTIFY_TOKEN_KEY = 'spotifyUserTokenV2';
       const SPOTIFY_VERIFIER_KEY = 'spotifyCodeVerifierV2';
       const SPOTIFY_SCOPES = [
-        'user-read-private',
         'user-read-playback-state',
-        'user-modify-playback-state',
-        'user-library-modify',
-        'user-read-currently-playing'
+        'user-modify-playback-state'
       ];
       const SURPRISE_SOURCE_TRACK_IDS = new Set([
         '6habFhsOp2NvshLv26DqMb',
@@ -240,7 +245,8 @@
 
       function updateAuthUi() {
         const token = loadSpotifyToken();
-        queueLoginBtn.textContent = token ? 'Connected ✓' : 'Connect Spotify';
+        queueLoginLabel.textContent = token ? 'Connected ✓' : 'Connect Spotify';
+        queueLoginBtn.classList.toggle('connected', !!token);
       }
 
       async function fetchSpotifyClientConfig() { const response = await fetch('/api/spotify-client', { cache: 'no-store' }); if (!response.ok) throw new Error('Spotify auth config unavailable. Check SPOTIFY_PUBLIC_CLIENT_ID and SPOTIFY_REDIRECT_URI.'); const data = await response.json(); if (!data.client_id) throw new Error('Missing Spotify client id.'); return data; }
@@ -295,12 +301,33 @@
         if (response.status === 204) return null;
         if (!response.ok) {
           let detail = '';
-          try { const body = await response.json(); detail = body.error?.message || ''; } catch { detail = ''; }
+          let reason = '';
+          try {
+            const body = await response.json();
+            detail = body.error?.message || '';
+            reason = body.error?.reason || '';
+          } catch {
+            detail = '';
+            reason = '';
+          }
           const err = new Error(detail || `Spotify API error (${response.status})`);
           err.code = response.status;
+          err.reason = reason;
           throw err;
         }
         return response.json();
+      }
+
+      function getQueueFriendlyError(error) {
+        const message = String(error?.message || '').toLowerCase();
+        const reason = String(error?.reason || '').toLowerCase();
+        if (error?.code === 'NO_AUTH') return 'Connect Spotify first to search and queue songs.';
+        if (error?.code === 401) return 'Your Spotify session expired. Please reconnect Spotify.';
+        if (message.includes('no active device') || message.includes('active device') || error?.code === 404) return 'No active Spotify device found. Open Spotify on a device and start playback.';
+        if (message.includes('premium required') || message.includes('only premium users')) return 'Spotify Premium is required to add tracks to queue.';
+        if (reason.includes('insufficient_scope') || message.includes('insufficient client scope')) return 'Permission denied. Reconnect Spotify and approve queue permissions.';
+        if (error?.code === 403) return 'Permission denied by Spotify. Verify playback permissions and try again.';
+        return error?.message || 'Spotify action failed.';
       }
 
       function maybeShowSurprise(trackId) {
@@ -314,9 +341,8 @@
         try { await action(); }
         catch (error) {
           if (error.code === 'NO_AUTH') { setStatus('Logging in to Spotify…'); await beginSpotifyAuth(); return; }
-          if (error.code === 401) { clearSpotifyToken(); setStatus('Session expired. Please log in to Spotify again.'); return; }
-          if (error.code === 403 || String(error.message || '').toLowerCase().includes('active device')) { setStatus('Open Spotify on a device, start playback, then try again.'); return; }
-          setStatus(error.message || 'Spotify action failed.');
+          if (error.code === 401) { clearSpotifyToken(); }
+          setStatus(getQueueFriendlyError(error));
         }
       }
 
@@ -330,13 +356,7 @@
         });
       }
 
-      async function likeCurrentTrack() {
-        if (!currentTrack?.id) { setStatus('No active track to like right now.'); return; }
-        await withSpotifyAuth(async () => {
-          await spotifyApi(`/v1/me/tracks?ids=${encodeURIComponent(currentTrack.id)}`, { method: 'PUT', body: JSON.stringify({ ids: [currentTrack.id] }) });
-          setStatus('Added to your Liked Songs.');
-        });
-      }
+      async function likeCurrentTrack() { setStatus('Use the queue controls below to connect Spotify and queue tracks.'); }
 
       async function fetchNowPlaying() {
         try {
@@ -409,18 +429,6 @@
       }
 
 
-      async function suggestTracksPublic(query) {
-        if (!query) { renderSearchResults([]); return; }
-        try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { cache: 'no-store' });
-          const data = await response.json();
-          if (!response.ok) return;
-          renderSearchResults(data?.tracks || []);
-        } catch (_) {
-          // keep previous suggestions if endpoint hiccups
-        }
-      }
-
       async function searchTracks() {
         const query = queueSearchInput.value.trim();
         if (!query) { renderSearchResults([]); return; }
@@ -450,7 +458,7 @@
 
       queueSearchBtn.addEventListener('click', function () { searchTracks(); });
       queueLoginBtn.addEventListener('click', function () { withSpotifyAuth(async function () { updateAuthUi(); await refreshUserQueue(); setStatus('Spotify connected. You can stay right here and queue songs.'); }); });
-      queueSearchInput.addEventListener('input', function () { const q = queueSearchInput.value.trim(); clearTimeout(searchDebounce); searchDebounce = setTimeout(function () { suggestTracksPublic(q); }, 220); });
+      queueSearchInput.addEventListener('input', function () { clearTimeout(searchDebounce); searchDebounce = setTimeout(function () { if (!queueSearchInput.value.trim()) renderSearchResults([]); }, 220); });
       queueSearchInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); searchTracks(); } });
       queueResultsEl.addEventListener('click', function (event) {
         const button = event.target.closest('button[data-track-id]');
