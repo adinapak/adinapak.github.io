@@ -1,77 +1,392 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
-<link rel="stylesheet" href="./style.css?v=2">
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Beats Me | Adina Pak</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <script src="./supabase-config.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html,
+    body,
+    button,
+    input {
+      font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif;
+    }
+
+    body {
+      background: #fdfdfd;
+      color: #1a1a1a;
+      line-height: 1.65;
+    }
+
+    #root {
+      max-width: 680px;
+      margin: 64px auto;
+      padding: 0 24px 80px;
+    }
+
+    @media (max-width: 640px) {
+      #root {
+        margin: 36px auto;
+        padding: 0 18px 60px;
+      }
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      margin-bottom: 18px;
+      color: #111;
+    }
+
+    nav {
+      font-size: 0.88rem;
+      font-style: italic;
+      margin-bottom: 28px;
+      line-height: 2.2;
+      text-align: left;
+      color: #444;
+    }
+
+    nav a {
+      color: #111;
+      text-decoration: none;
+      font-style: normal;
+      border-bottom: 1px solid #bbb;
+    }
+
+    nav span {
+      color: #bbb;
+      margin: 0 6px;
+      font-style: normal;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 0 0 28px;
+    }
+
+    section {
+      margin-bottom: 26px;
+    }
+
+    section p {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    section strong {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111;
+      font-style: normal;
+    }
+
+    .game-shell {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.07);
+      padding: 24px 22px;
+      margin-top: 20px;
+    }
+
+    .game-shell h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .small-note {
+      font-size: 0.82rem;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .profile-row .small-note {
+      margin-bottom: 0;
+    }
+
+    .hud {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .hud > div {
+      flex: 1;
+      border: 1px solid #e8e8e8;
+      border-radius: 2px;
+      padding: 8px 12px;
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 3px;
+    }
+
+    .hud-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .problem {
+      font-size: 2.2rem;
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 18px;
+      letter-spacing: -0.02em;
+      color: #111;
+    }
+
+    input[type="number"] {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      font-size: 1rem;
+      text-align: center;
+      background: #fff;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-size: 0.82rem;
+      padding: 7px 16px;
+      border-radius: 2px;
+      border: 1px solid #bbb;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+      min-height: 32px;
+    }
+
+    #startBtn {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+
+    button[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .status-msg {
+      min-height: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-style: italic;
+      color: #444;
+      margin-top: 12px;
+    }
+
+    .brag-banner {
+      display: none;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #bbb;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.8);
+    }
+
+    .brag-banner.show {
+      display: block;
+    }
+
+    .leaderboard-wrap {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #eee;
+    }
+
+    .leaderboard-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #999;
+      font-weight: 400;
+      margin-bottom: 12px;
+    }
+
+    #boardSourceMsg {
+      min-height: 18px;
+      margin-bottom: 8px;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .leaderboard-table th {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      font-weight: 400;
+      text-align: left;
+      padding: 4px 0 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .leaderboard-table td {
+      padding: 7px 0;
+      border-bottom: 1px solid #f1f1f1;
+      color: #333;
+    }
+
+    .leaderboard-table th:nth-child(2),
+    .leaderboard-table td:nth-child(2) {
+      text-align: right;
+      font-weight: 600;
+      padding-right: 28px;
+    }
+
+    .leaderboard-table th:nth-child(3),
+    .leaderboard-table td:nth-child(3) {
+      text-align: right;
+      color: #777;
+    }
+
+    body.page-explode {
+      animation: shake 0.35s linear 6;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(2px, -2px) rotate(-0.6deg); }
+      50% { transform: translate(-3px, 2px) rotate(0.4deg); }
+      75% { transform: translate(3px, 1px) rotate(-0.4deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+  </style>
 </head>
+
 <body>
+  <div id="root">
+    <h1>Beats Me</h1>
 
-  <h1>Beats Me</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <span>|</span>
+      <a href="principles.html">Lemmas</a>
+    </nav>
 
-  <nav>
-    <a href="index.html">Home</a> |
-    <a href="principles.html">Lemmas</a> |
-  </nav>
+    <hr>
 
-  <hr>
+    <section>
+      <p><strong>Why?</strong></p>
+      <p>Hmm...</p>
+    </section>
 
-  <section>
-    <p><strong>Why?</strong></p>
-    <p>Hmm...</p>
-  </section>
+    <hr>
 
-  <hr>
+    <section>
+      <p><strong>My answer to all of these?</strong></p>
+      <p>Beats me! But so can you... cop-outs included for your comfort.</p>
+    </section>
 
-  <section>
-    <p><strong>My answer to all of these?</strong></p>
-    <p>Beats me! But so can you... (cop-outs included for your comfort)</p>
-  </section>
+    <section class="game-shell">
+      <h2>Zetamac Arena</h2>
+      <p class="small-note">
+        Solve as many arithmetic problems as possible in 120 seconds. Beat <span id="scoreToBeat">92</span> to earn bragging rights.
+      </p>
 
-  <section class="game-shell">
-    <h2>Zetamac Arena</h2>
-    <p class="small-note">
-      Solve as many arithmetic problems as you can in <strong>120 seconds</strong>. If you beat
-      <strong>my score (<span id="scoreToBeat">92</span>)</strong>, you'll get added to the leaderboard.
-    </p>
-
-    <div class="profile-row">
-      <p id="welcomeMsg" class="small-note">Checking profile...</p>
-      <button id="editNameBtn" type="button">Edit Name</button>
-    </div>
-
-    <div class="hud">
-      <div><span class="label">Time</span><span id="timeLeft">120</span>s</div>
-      <div><span class="label">Score</span><span id="score">0</span></div>
-      <div><span class="label">Streak</span><span id="streak">0</span></div>
-    </div>
-
-    <div class="problem-row">
-      <p id="problem" class="problem">Press start to begin.</p>
-      <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="Answer" disabled>
-      <div class="button-row">
-        <button id="startBtn">Start Game</button>
-        <button id="skipBtn" disabled>Cop Out 😂 (3 left)</button>
+      <div class="profile-row">
+        <p id="welcomeMsg" class="small-note">Checking profile...</p>
+        <button id="editNameBtn" type="button">Edit Name</button>
       </div>
-    </div>
 
-    <p id="statusMsg" class="status-msg" aria-live="polite"></p>
+      <div class="hud">
+        <div>
+          <span class="label">Time</span>
+          <span class="hud-value"><span id="timeLeft">120</span>s</span>
+        </div>
+        <div>
+          <span class="label">Score</span>
+          <span id="score" class="hud-value">0</span>
+        </div>
+        <div>
+          <span class="label">Streak</span>
+          <span id="streak" class="hud-value">0</span>
+        </div>
+      </div>
 
-    <div id="bragBanner" class="brag-banner" aria-hidden="true">
-      💥 BRAGGING RIGHTS UNLOCKED 💥
-    </div>
+      <p id="problem" class="problem">Press start to begin.</p>
 
-    <div class="leaderboard-wrap">
-      <h3>Leaderboard</h3>
-      <p id="boardSourceMsg" class="small-note"></p>
-      <ol id="leaderboard" class="leaderboard-list"></ol>
-    </div>
-  </section>
+      <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="answer" disabled>
+
+      <div class="button-row">
+        <button id="startBtn" type="button">Start Game</button>
+        <button id="skipBtn" type="button" disabled>Cop Out (3 left)</button>
+      </div>
+
+      <p id="statusMsg" class="status-msg" aria-live="polite"></p>
+
+      <div id="bragBanner" class="brag-banner" aria-hidden="true">
+        Q.E.D. — bragging rights: unlocked ∎
+      </div>
+
+      <div class="leaderboard-wrap">
+        <h3 class="leaderboard-title">Leaderboard</h3>
+        <p id="boardSourceMsg" class="small-note"></p>
+
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 
   <script>
     (() => {
@@ -116,12 +431,22 @@
 
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
 
-      function updateCopoutButton() {
-        skipBtn.textContent = `Cop Out 😂 (${copoutsLeft} left)`;
-      }
-
       function randomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function sanitizeName(value) {
+        return (value || "").trim().slice(0, 24);
+      }
+
+      function formatDate(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric"
+        });
       }
 
       function safeLoadLeaderboard() {
@@ -143,9 +468,7 @@
           const raw = localStorage.getItem(PROFILE_KEY);
           const parsed = raw ? JSON.parse(raw) : null;
           if (parsed && typeof parsed.username === "string") return parsed;
-        } catch {
-          return { username: "" };
-        }
+        } catch {}
         return { username: "" };
       }
 
@@ -154,22 +477,54 @@
       }
 
       function applyWelcomeMessage() {
-        if (currentUsername) {
-          welcomeMsg.textContent = `Welcome back, ${currentUsername}!`;
-        } else {
-          welcomeMsg.textContent = "Set your name when you start a run.";
-        }
+        welcomeMsg.textContent = currentUsername
+          ? `Welcome back, ${currentUsername}!`
+          : "Set your name when you start a run.";
       }
 
-      function sanitizeName(value) {
-        return (value || "").trim().slice(0, 24);
+      function updateCopoutButton() {
+        skipBtn.textContent = `Cop Out (${copoutsLeft} left)`;
+      }
+
+      function updateHUD() {
+        timeLeftEl.textContent = timeLeft;
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+      }
+
+      function nextProblem() {
+        const ops = ["+", "−", "×"];
+        const op = ops[randomInt(0, ops.length - 1)];
+
+        let a = randomInt(2, 25);
+        let b = randomInt(2, 25);
+
+        if (op === "−") {
+          if (b > a) [a, b] = [b, a];
+          currentAnswer = a - b;
+        } else if (op === "×") {
+          a = randomInt(2, 12);
+          b = randomInt(2, 12);
+          currentAnswer = a * b;
+        } else {
+          currentAnswer = a + b;
+        }
+
+        problemEl.textContent = `${a} ${op} ${b} =`;
+        answerInput.value = "";
       }
 
       async function saveNameToSupabase(username) {
         if (!(usingCloudBoard && supabase && currentUserId && username)) return true;
+
         const result = await supabase
           .from("profiles")
-          .upsert({ id: currentUserId, username, updated_at: new Date().toISOString() });
+          .upsert({
+            id: currentUserId,
+            username,
+            updated_at: new Date().toISOString()
+          });
+
         return !result.error;
       }
 
@@ -187,39 +542,164 @@
 
         currentUsername = chosen;
         saveLocalProfile(chosen);
+
         const savedCloud = await saveNameToSupabase(chosen);
         if (!savedCloud) {
           statusMsg.textContent = "Saved locally, but cloud profile update failed.";
         }
+
         applyWelcomeMessage();
         return true;
       }
 
-      function nextProblem() {
-        const ops = ["+", "-", "×"];
-        const op = ops[randomInt(0, ops.length - 1)];
-        let a = randomInt(2, 25);
-        let b = randomInt(2, 25);
+      async function ensureSupabaseIdentity() {
+        const local = localProfile();
+        currentUsername = sanitizeName(local.username);
 
-        if (op === "-") {
-          if (b > a) [a, b] = [b, a];
-          currentAnswer = a - b;
-        } else if (op === "×") {
-          a = randomInt(2, 12);
-          b = randomInt(2, 12);
-          currentAnswer = a * b;
-        } else {
-          currentAnswer = a + b;
+        if (!supabase) {
+          usingCloudBoard = false;
+          boardSourceMsg.textContent = "Leaderboard connection unavailable.";
+          applyWelcomeMessage();
+          return;
         }
 
-        problemEl.textContent = `${a} ${op} ${b} = ?`;
-        answerInput.value = "";
+        const sessionResult = await supabase.auth.getSession();
+        let session = sessionResult.data.session;
+
+        if (!session) {
+          const signInResult = await supabase.auth.signInAnonymously();
+
+          if (signInResult.error) {
+            usingCloudBoard = false;
+            boardSourceMsg.textContent = "Leaderboard connection unavailable.";
+            applyWelcomeMessage();
+            return;
+          }
+
+          session = signInResult.data.session;
+        }
+
+        if (!session?.user?.id) {
+          usingCloudBoard = false;
+          boardSourceMsg.textContent = "Leaderboard connection unavailable.";
+          applyWelcomeMessage();
+          return;
+        }
+
+        currentUserId = session.user.id;
+        usingCloudBoard = true;
+        boardSourceMsg.textContent = "";
+
+        const profileResult = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", currentUserId)
+          .maybeSingle();
+
+        if (!profileResult.error) {
+          const existingName = sanitizeName(profileResult.data?.username);
+
+          if (existingName) {
+            currentUsername = existingName;
+            saveLocalProfile(existingName);
+          } else if (currentUsername) {
+            await saveNameToSupabase(currentUsername);
+          }
+        }
+
+        applyWelcomeMessage();
       }
 
-      function updateHUD() {
-        timeLeftEl.textContent = timeLeft;
-        scoreEl.textContent = score;
-        streakEl.textContent = streak;
+      async function renderLeaderboard() {
+        leaderboardEl.innerHTML = "";
+
+        let rows = [];
+
+        if (usingCloudBoard && supabase) {
+          const response = await supabase
+            .from("zetamac_scores")
+            .select("username, score, created_at")
+            .order("score", { ascending: false })
+            .order("created_at", { ascending: true })
+            .limit(10);
+
+          if (!response.error) {
+            rows = (response.data || []).map((entry) => ({
+              name: entry.username || DEFAULT_NAME,
+              score: entry.score,
+              date: entry.created_at
+            }));
+          } else {
+            boardSourceMsg.textContent = "Leaderboard connection unavailable.";
+          }
+        }
+
+        if (!rows.length) {
+          rows = safeLoadLeaderboard().map((entry) => ({
+            name: entry.name || DEFAULT_NAME,
+            score: entry.score,
+            date: entry.when
+          }));
+        }
+
+        if (!rows.length) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 3;
+          td.textContent = "No players yet. Be the first.";
+          tr.appendChild(td);
+          leaderboardEl.appendChild(tr);
+          return;
+        }
+
+        rows.slice(0, 10).forEach((entry) => {
+          const tr = document.createElement("tr");
+
+          const nameTd = document.createElement("td");
+          nameTd.textContent = entry.name;
+
+          const scoreTd = document.createElement("td");
+          scoreTd.textContent = entry.score;
+
+          const dateTd = document.createElement("td");
+          dateTd.textContent = formatDate(entry.date);
+
+          tr.appendChild(nameTd);
+          tr.appendChild(scoreTd);
+          tr.appendChild(dateTd);
+          leaderboardEl.appendChild(tr);
+        });
+      }
+
+      async function saveScore(scoreValue) {
+        const nameToUse = currentUsername || DEFAULT_NAME;
+        const now = new Date().toISOString();
+
+        if (usingCloudBoard && supabase && currentUserId) {
+          const result = await supabase
+            .from("zetamac_scores")
+            .insert({
+              user_id: currentUserId,
+              username: nameToUse,
+              score: scoreValue,
+              created_at: now
+            });
+
+          if (!result.error) return true;
+          boardSourceMsg.textContent = "Leaderboard connection unavailable.";
+        }
+
+        const entries = safeLoadLeaderboard();
+        entries.push({
+          name: nameToUse,
+          score: scoreValue,
+          when: now
+        });
+
+        entries.sort((a, b) => b.score - a.score);
+        saveLocalLeaderboard(entries);
+
+        return false;
       }
 
       function explodePage() {
@@ -234,155 +714,24 @@
         }, 2200);
       }
 
-      async function ensureSupabaseIdentity() {
-        const local = localProfile();
-        currentUsername = sanitizeName(local.username);
-
-        if (!supabase) {
-          usingCloudBoard = false;
-          boardSourceMsg.textContent = "Using local-only leaderboard. Add SUPABASE_URL and SUPABASE_ANON_KEY in supabase-config.js for global leaderboard.";
-          applyWelcomeMessage();
-          return;
-        }
-
-        const sessionResult = await supabase.auth.getSession();
-        let session = sessionResult.data.session;
-
-        if (!session) {
-          const signInResult = await supabase.auth.signInAnonymously();
-          if (signInResult.error) {
-            usingCloudBoard = false;
-            boardSourceMsg.textContent = "Could not connect to Supabase auth. Using local-only leaderboard for now.";
-            applyWelcomeMessage();
-            return;
-          }
-          session = signInResult.data.session;
-        }
-
-        if (!session?.user?.id) {
-          usingCloudBoard = false;
-          boardSourceMsg.textContent = "No active Supabase user session. Using local leaderboard.";
-          applyWelcomeMessage();
-          return;
-        }
-
-        currentUserId = session.user.id;
-        usingCloudBoard = true;
-        boardSourceMsg.textContent = "Live global leaderboard is connected.";
-
-        const profileResult = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", currentUserId)
-          .maybeSingle();
-
-        if (!profileResult.error) {
-          const existingName = sanitizeName(profileResult.data?.username);
-          if (existingName) {
-            currentUsername = existingName;
-            saveLocalProfile(existingName);
-          } else if (currentUsername) {
-            await saveNameToSupabase(currentUsername);
-          }
-        }
-
-        applyWelcomeMessage();
-      }
-
-      async function promptAndSaveName() {
-        const changed = await ensureKnownName({ forcePrompt: true });
-        if (changed) {
-          statusMsg.textContent = `Name updated to ${currentUsername}.`;
-        }
-      }
-
-      async function renderLeaderboard() {
-        leaderboardEl.innerHTML = "";
-
-        if (usingCloudBoard && supabase) {
-          const response = await supabase
-            .from("zetamac_scores")
-            .select("username, score, created_at")
-            .order("score", { ascending: false })
-            .order("created_at", { ascending: true })
-            .limit(10);
-
-          if (!response.error) {
-            const rows = response.data || [];
-            if (!rows.length) {
-              const emptyItem = document.createElement("li");
-              emptyItem.textContent = "No players yet. Be the first.";
-              leaderboardEl.appendChild(emptyItem);
-              return;
-            }
-
-            rows.forEach((entry) => {
-              const li = document.createElement("li");
-              const date = new Date(entry.created_at);
-              const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
-              li.textContent = `${entry.username} — ${entry.score}${dateLabel}`;
-              leaderboardEl.appendChild(li);
-            });
-            return;
-          }
-        }
-
-        const entries = safeLoadLeaderboard();
-        if (!entries.length) {
-          const emptyItem = document.createElement("li");
-          emptyItem.textContent = "No players yet. Be the first.";
-          leaderboardEl.appendChild(emptyItem);
-          return;
-        }
-
-        entries.forEach((entry) => {
-          const li = document.createElement("li");
-          const date = new Date(entry.when);
-          const dateLabel = Number.isNaN(date.getTime()) ? "" : ` · ${date.toLocaleDateString()}`;
-          li.textContent = `${entry.name} — ${entry.score}${dateLabel}`;
-          leaderboardEl.appendChild(li);
-        });
-      }
-
-      async function saveScore(scoreValue) {
-        const nameToUse = currentUsername || DEFAULT_NAME;
-
-        if (usingCloudBoard && supabase && currentUserId) {
-          const payload = {
-            user_id: currentUserId,
-            username: nameToUse,
-            score: scoreValue,
-            created_at: new Date().toISOString()
-          };
-
-          const result = await supabase.from("zetamac_scores").insert(payload);
-          if (!result.error) return true;
-        }
-
-        const entries = safeLoadLeaderboard();
-        entries.push({ name: nameToUse, score: scoreValue, when: new Date().toISOString() });
-        entries.sort((a, b) => b.score - a.score);
-        saveLocalLeaderboard(entries);
-        return false;
-      }
-
       async function finishGame() {
         gameActive = false;
         clearInterval(timer);
         timer = null;
+
         answerInput.disabled = true;
         skipBtn.disabled = true;
         startBtn.disabled = false;
         startBtn.textContent = "Play Again";
-        problemEl.textContent = "Round over.";
+        problemEl.textContent = "□";
 
         if (score > SCORE_TO_BEAT) {
           explodePage();
           await saveScore(score);
           await renderLeaderboard();
-          statusMsg.textContent = `🔥 ${currentUsername || DEFAULT_NAME} just claimed bragging rights with ${score} points.`;
+          statusMsg.textContent = `Q.E.D. — ${currentUsername || DEFAULT_NAME} scored ${score}.`;
         } else {
-          statusMsg.textContent = `You scored ${score}. Beat ${SCORE_TO_BEAT} to earn bragging rights.`;
+          statusMsg.textContent = `Score: ${score}. Beat ${SCORE_TO_BEAT} to claim bragging rights.`;
         }
       }
 
@@ -399,11 +748,15 @@
         streak = 0;
         currentAnswer = null;
         copoutsLeft = MAX_COP_OUTS;
+
         statusMsg.textContent = "";
+        bragBanner.classList.remove("show");
+        bragBanner.setAttribute("aria-hidden", "true");
 
         updateHUD();
         updateCopoutButton();
         nextProblem();
+
         answerInput.disabled = false;
         skipBtn.disabled = false;
         startBtn.disabled = true;
@@ -412,6 +765,7 @@
         timer = setInterval(() => {
           timeLeft -= 1;
           updateHUD();
+
           if (timeLeft <= 0) {
             finishGame();
           }
@@ -420,39 +774,43 @@
 
       answerInput.addEventListener("input", () => {
         if (!gameActive) return;
+
         const rawGuess = answerInput.value.trim();
         if (rawGuess === "") return;
+
         const guess = Number(rawGuess);
 
         if (Number.isFinite(guess) && guess === currentAnswer) {
           score += 1;
           streak += 1;
-          statusMsg.textContent = "Correct.";
+          statusMsg.textContent = "✓";
           nextProblem();
         }
+
         updateHUD();
       });
 
-      startBtn.addEventListener("click", () => {
-        startGame();
-      });
+      startBtn.addEventListener("click", startGame);
 
       skipBtn.addEventListener("click", () => {
         if (!gameActive) return;
+
         if (copoutsLeft <= 0) {
-          statusMsg.textContent = "No more copouts 😂";
+          statusMsg.textContent = "No more cop-outs.";
           return;
         }
+
         copoutsLeft -= 1;
         streak = 0;
-        statusMsg.textContent = `Cop Out 😂 ${copoutsLeft} left`;
+        statusMsg.textContent = "";
         updateCopoutButton();
         nextProblem();
         updateHUD();
       });
 
-      editNameBtn.addEventListener("click", () => {
-        promptAndSaveName();
+      editNameBtn.addEventListener("click", async () => {
+        const changed = await ensureKnownName({ forcePrompt: true });
+        if (changed) statusMsg.textContent = `Name updated to ${currentUsername}.`;
       });
 
       (async () => {
@@ -463,6 +821,5 @@
       })();
     })();
   </script>
-
 </body>
 </html>
