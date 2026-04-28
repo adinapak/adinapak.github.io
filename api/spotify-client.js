@@ -17,5 +17,10 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  return json(res, 200, { client_id: clientId });
+  const redirectUri = process.env.SPOTIFY_REDIRECT_URI || '';
+
+  return json(res, 200, {
+    client_id: clientId,
+    redirect_uri: redirectUri,
+  });
 };
