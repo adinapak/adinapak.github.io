@@ -857,7 +857,8 @@
 
       const pendingQueuedTrackIds = new Set();
 
-      const PAUSE_FUNNY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23f6e27f'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24'%3E%F0%9F%90%8C%3C/text%3E%3C/svg%3E";
+      const SPOTIFY_PROFILE_IMAGE = 'https://i.scdn.co/image/ab6775700000ee850a2eec1f8d44ff13e233f6d8';
+      const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93';
 
       function setStatus(message) {
         statusEl.textContent = message || '';
@@ -927,6 +928,18 @@
         }, 1000);
       }
 
+      function setLibraryButtonMode() {
+        loginBtnEl.textContent = 'Peruse my Library';
+        loginBtnEl.onclick = () => {
+          window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
+        };
+      }
+
+      function resetQueueButtonMode() {
+        loginBtnEl.textContent = 'Add to Queue';
+        loginBtnEl.onclick = null;
+      }
+
       function setIdleState(message) {
         isPlaying = false;
         progressMs = 0;
@@ -940,7 +953,8 @@
         trackEl.textContent = message;
         artistEl.textContent = '';
         albumArtEl.hidden = false;
-        albumArtEl.src = PAUSE_FUNNY_IMAGE;
+        albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
+        setLibraryButtonMode();
 
         renderProgress();
         renderLoveButton();
@@ -1414,6 +1428,7 @@
           }
 
           renderLoveButton();
+          resetQueueButtonMode();
 
           if (isPlaying) {
             lastLivePlaybackAt = Date.now();
@@ -1430,7 +1445,7 @@
               albumArtEl.hidden = false;
             } else {
               albumArtEl.hidden = false;
-              albumArtEl.src = PAUSE_FUNNY_IMAGE;
+              albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
             }
           } else {
             widgetEl.classList.add('paused');
@@ -1439,7 +1454,7 @@
             trackEl.textContent = "If you're seeing this...";
             artistEl.textContent = "I'm paused...come back later!";
             albumArtEl.hidden = false;
-            albumArtEl.src = PAUSE_FUNNY_IMAGE;
+            albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
 
             const awayMs = lastLivePlaybackAt ? Date.now() - lastLivePlaybackAt : 0;
             elapsedEl.textContent = formatAway(awayMs);
@@ -1613,7 +1628,12 @@
       }
 
       loginBtnEl.addEventListener('click', function () {
-        queueCurrentTrack();
+        if (widgetEl.classList.contains('idle')) {
+          window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
+          return;
+        }
+
+        withSpotifyAuth(queueCurrentTrack);
       });
 
       loveBtnEl.addEventListener('click', function () {
