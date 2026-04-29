@@ -71,28 +71,30 @@
   </section>
 
   <script>
-    function getTimeSinceBirth() {
-      const birthDate = new Date(2005, 6, 19, 6, 48); // July = 6
-      const now = new Date();
+  function getTimeSinceBirth() {
+    // July 19, 2005 6:48 AM in Pacific Time (PDT = UTC-7)
+    const birthDate = new Date("2005-07-19T06:48:00-07:00");
+    const now = new Date();
 
-      const totalMinutes = Math.floor((now - birthDate) / (1000 * 60));
-      const days = Math.floor(totalMinutes / (60 * 24));
-      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-      const minutes = totalMinutes % 60;
+    const totalMinutes = Math.floor((now - birthDate) / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
 
-      return { days, hours, minutes };
-    }
+    return { days, hours, minutes };
+  }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const numberEl = document.getElementById("days-since-birth");
-      const headerEl = document.getElementById("days-header");
+  document.addEventListener("DOMContentLoaded", () => {
+    const numberEl = document.getElementById("days-since-birth");
+    const headerEl = document.getElementById("days-header");
 
-      const { days, hours, minutes } = getTimeSinceBirth();
-      const detail = days + " days, " + hours + " hours, " + minutes + " minutes";
+    const { days, hours, minutes } = getTimeSinceBirth();
+    const detail = days + " days, " + hours + " hours, " + minutes + " minutes, to be exact";
 
-      if (numberEl) numberEl.textContent = days;
-      if (headerEl) headerEl.title = detail;
-    });
+    numberEl.textContent = days;
+    headerEl.setAttribute("data-detail", detail);
+  });
+</script>
   </script>
 </body>
 </html>
