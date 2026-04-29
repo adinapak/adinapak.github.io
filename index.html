@@ -122,6 +122,7 @@
     }
 
     .proof-title {
+      position: relative;
       text-align: center;
       margin: 54px 0 34px;
     }
@@ -142,12 +143,134 @@
       font-style: normal;
     }
 
-    .existence-counter {
+    .date-proof {
+      position: relative;
+      display: inline-block;
+      text-align: center;
+      margin: 0 auto 18px;
+    }
+
+    .date-counter {
+      font: inherit;
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      color: #000;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: help;
       font-variant-numeric: tabular-nums;
     }
 
-    .counter-sep {
-      color: #555;
+    .date-proof-panel {
+      position: absolute;
+      top: 50%;
+      width: clamp(210px, 18vw, 300px);
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+      border-radius: 3px;
+      text-align: left;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 30;
+      transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+    }
+
+    .date-proof-left {
+      right: calc(100% + 64px);
+      transform: translateY(-50%) translateX(6px);
+    }
+
+    .date-proof-right {
+      left: calc(100% + 64px);
+      transform: translateY(-50%) translateX(-6px);
+    }
+
+    .date-proof:hover .date-proof-panel,
+    .date-proof:focus-within .date-proof-panel,
+    .date-proof.open .date-proof-panel {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .date-proof:hover .date-proof-left,
+    .date-proof:focus-within .date-proof-left,
+    .date-proof.open .date-proof-left {
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .date-proof:hover .date-proof-right,
+    .date-proof:focus-within .date-proof-right,
+    .date-proof.open .date-proof-right {
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .date-proof-panel p,
+    .date-proof-panel li {
+      font-size: 0.84rem;
+      line-height: 1.45;
+      color: #333;
+      margin: 0 0 8px;
+      font-style: normal;
+    }
+
+    .date-proof-panel p:last-child,
+    .date-proof-panel li:last-child {
+      margin-bottom: 0;
+    }
+
+    .date-proof-panel ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .date-notes-toggle {
+      font: inherit;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #777;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      margin: 0 0 8px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 980px) {
+      .date-proof-panel {
+        top: calc(100% + 10px);
+        left: 50%;
+        right: auto;
+        width: min(340px, calc(100vw - 36px));
+        transform: translateX(-50%) translateY(-4px);
+      }
+
+      .date-proof-left {
+        z-index: 31;
+      }
+
+      .date-proof-right {
+        margin-top: 118px;
+        z-index: 30;
+      }
+
+      .date-proof:hover .date-proof-panel,
+      .date-proof:focus-within .date-proof-panel,
+      .date-proof.open .date-proof-panel {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .date-proof-right ul {
+        display: none;
+      }
+
+      .date-proof-right.open ul {
+        display: block;
+      }
     }
 
     .dj-widget {
@@ -494,11 +617,32 @@
   <header class="proof-title">
     <h1>Proof of Online Existence</h1>
     <p>Adina Pak</p>
-    <p class="existence-counter">
-      <span id="secondsScientific">0.000000 × 10^0</span>
-      <span class="counter-sep"> seconds </span>
-      <span id="secondsPlain">(0)</span>
-    </p>
+    <div class="date-proof" id="dateProof">
+      <button class="date-counter" id="dateCounterToggle" type="button" aria-expanded="false" aria-controls="dateProofLeft dateProofRight">
+        <span id="dateSeconds">0</span> seconds
+      </button>
+
+      <aside class="date-proof-panel date-proof-left" id="dateProofLeft">
+        <p>
+          That is, since I had a <span id="dateTypeLabel">Medjool</span> date.
+        </p>
+        <p>
+          I’d normally put the date published here if this were a proof, but why not put proof of the last date — the one I ate?
+        </p>
+      </aside>
+
+      <aside class="date-proof-panel date-proof-right" id="dateProofRight">
+        <button class="date-notes-toggle" type="button" aria-expanded="true">
+          Date notes
+        </button>
+        <ul>
+          <li><strong>Medjool</strong> — almond butter + flaky salt</li>
+          <li><strong>Deglet Noor</strong> — chopped into Greek yogurt</li>
+          <li><strong>Barhi</strong> — frozen, eaten like caramel</li>
+          <li><strong>Ajwa</strong> — with coffee</li>
+        </ul>
+      </aside>
+    </div>
   </header>
 
   <hr>
@@ -562,29 +706,43 @@
 
   <script>
     (function () {
-      const scientificEl = document.getElementById("secondsScientific");
-      const plainEl = document.getElementById("secondsPlain");
+      const dateSecondsEl = document.getElementById("dateSeconds");
+      const dateProof = document.getElementById("dateProof");
+      const dateCounterToggle = document.getElementById("dateCounterToggle");
+      const dateNotesToggle = document.querySelector(".date-notes-toggle");
+      const dateProofRight = document.getElementById("dateProofRight");
 
-      if (!scientificEl || !plainEl) return;
+      if (!dateSecondsEl) return;
 
       const birthTime = new Date("2005-07-19T06:48:00-08:00");
-
-      function formatScientific(seconds) {
-        if (seconds <= 0) return "0.000000 × 10^0";
-
-        const exponent = Math.floor(Math.log10(seconds));
-        const mantissa = seconds / Math.pow(10, exponent);
-
-        return `${mantissa.toFixed(6)} × 10^${exponent}`;
-      }
 
       function updateExistenceCounter() {
         const seconds = Math.max(0, (Date.now() - birthTime.getTime()) / 1000);
         const wholeSeconds = Math.floor(seconds);
-
-        scientificEl.textContent = formatScientific(seconds);
-        plainEl.textContent = `(${wholeSeconds.toLocaleString()} seconds)`;
+        dateSecondsEl.textContent = wholeSeconds.toLocaleString();
       }
+
+      if (dateCounterToggle && dateProof) {
+        dateCounterToggle.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = dateProof.classList.toggle("open");
+          dateCounterToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+      }
+
+      if (dateNotesToggle && dateProofRight) {
+        dateNotesToggle.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = dateProofRight.classList.toggle("open");
+          dateNotesToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+      }
+
+      document.addEventListener("click", (event) => {
+        if (!dateProof || dateProof.contains(event.target)) return;
+        dateProof.classList.remove("open");
+        if (dateCounterToggle) dateCounterToggle.setAttribute("aria-expanded", "false");
+      });
 
       updateExistenceCounter();
       window.setInterval(updateExistenceCounter, 250);
