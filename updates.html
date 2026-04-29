@@ -518,6 +518,39 @@
         });
       }
 
+
+      function normalizeScoreRow(entry) {
+        const scoreValue = Number(entry?.score);
+        const createdAt = entry?.created_at || entry?.date || entry?.when || null;
+        const resolvedName = sanitizeName(entry?.username || entry?.name || entry?.display_name || "") || DEFAULT_NAME;
+        const resolvedPlayerId = (entry?.player_id || "").toString().trim();
+
+        return {
+          name: resolvedName,
+          score: Number.isFinite(scoreValue) ? scoreValue : 0,
+          date: createdAt,
+          player_id: resolvedPlayerId
+        };
+      }
+
+      function bestScoresByPlayer(rows) {
+        const grouped = new Map();
+
+        rows.forEach((row) => {
+          const normalized = normalizeScoreRow(row);
+          const key = normalized.player_id ? `pid:${normalized.player_id}` : `name:${normalized.name.toLowerCase()}`;
+          const existing = grouped.get(key);
+
+          if (!existing || normalized.score > existing.score || (normalized.score === existing.score && new Date(normalized.date || 0) < new Date(existing.date || 0))) {
+            grouped.set(key, normalized);
+          }
+        });
+
+        return [...grouped.values()]
+          .sort((a, b) => (b.score - a.score) || (new Date(a.date || 0) - new Date(b.date || 0)))
+          .slice(0, 10);
+      }
+
       function safeLoadLeaderboard() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -714,28 +747,21 @@
         if (usingCloudBoard && supabase) {
           const response = await supabase
             .from("zetamac_scores")
-            .select("username, score, created_at")
+            .select("*")
             .order("score", { ascending: false })
             .order("created_at", { ascending: true })
             .limit(10);
 
           if (!response.error) {
-            rows = (response.data || []).map((entry) => ({
-              name: entry.username || DEFAULT_NAME,
-              score: entry.score,
-              date: entry.created_at
-            }));
+            rows = bestScoresByPlayer(response.data || []);
+            boardSourceMsg.textContent = "";
           } else {
             boardSourceMsg.textContent = "Leaderboard connection unavailable.";
           }
         }
 
         if (!rows.length) {
-          rows = safeLoadLeaderboard().map((entry) => ({
-            name: entry.name || DEFAULT_NAME,
-            score: entry.score,
-            date: entry.when
-          }));
+          rows = bestScoresByPlayer(safeLoadLeaderboard());
         }
 
         if (!rows.length) {
@@ -772,27 +798,65 @@
         const now = new Date().toISOString();
 
         if (usingCloudBoard && supabase && currentUserId) {
-          const result = await supabase
+          const primaryPayload = {
+            user_id: currentUserId,
+            player_id: playerId || null,
+            username: nameToUse,
+            name: nameToUse,
+            spotify_user_id: spotifyUserId || null,
+            spotify_display_name: spotifyDisplayName || null,
+            score: scoreValue,
+            created_at: now
+          };
+
+          let result = await supabase
             .from("zetamac_scores")
-            .insert({
+            .insert(primaryPayload);
+
+          if (result.error) {
+            const fallbackPayload = {
               user_id: currentUserId,
-              player_id: playerId,
+              player_id: playerId || null,
               username: nameToUse,
-              spotify_user_id: spotifyUserId || null,
-              spotify_display_name: spotifyDisplayName || null,
               score: scoreValue,
               created_at: now
-            });
+            };
 
-          if (!result.error) return true;
+            result = await supabase
+              .from("zetamac_scores")
+              .insert(fallbackPayload);
+          }
+
+          if (result.error) {
+            const legacyPayload = {
+              user_id: currentUserId,
+              player_id: playerId || null,
+              name: nameToUse,
+              score: scoreValue,
+              created_at: now
+            };
+
+            result = await supabase
+              .from("zetamac_scores")
+              .insert(legacyPayload);
+          }
+
+          if (!result.error) {
+            boardSourceMsg.textContent = "";
+            return true;
+          }
+
           boardSourceMsg.textContent = "Leaderboard connection unavailable.";
         }
 
         const entries = safeLoadLeaderboard();
         entries.push({
           name: nameToUse,
+          username: nameToUse,
+          player_id: playerId || "",
           score: scoreValue,
-          when: now
+          when: now,
+          created_at: now
         });
 
         entries.sort((a, b) => b.score - a.score);
