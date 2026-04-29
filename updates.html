@@ -471,6 +471,12 @@
       color: #fff;
     }
 
+    .dj-login-btn.library-mode {
+      background: #fff;
+      color: #111;
+      border: 1px solid #bbb;
+    }
+
     .dj-progress {
       width: 100%;
       margin-top: 10px;
@@ -857,8 +863,8 @@
 
       const pendingQueuedTrackIds = new Set();
 
-      const SPOTIFY_PROFILE_IMAGE = 'https://i.scdn.co/image/ab6775700000ee850a2eec1f8d44ff13e233f6d8';
-      const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93';
+      const SPOTIFY_PROFILE_IMAGE = "https://i.scdn.co/image/ab6775700000ee850a2eec1f8d44ff13e233f6d8";
+      const SPOTIFY_PROFILE_URL = "https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93";
 
       function setStatus(message) {
         statusEl.textContent = message || '';
@@ -928,18 +934,6 @@
         }, 1000);
       }
 
-      function setLibraryButtonMode() {
-        loginBtnEl.textContent = 'Peruse my Library';
-        loginBtnEl.onclick = () => {
-          window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
-        };
-      }
-
-      function resetQueueButtonMode() {
-        loginBtnEl.textContent = 'Add to Queue';
-        loginBtnEl.onclick = null;
-      }
-
       function setIdleState(message) {
         isPlaying = false;
         progressMs = 0;
@@ -954,7 +948,8 @@
         artistEl.textContent = '';
         albumArtEl.hidden = false;
         albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
-        setLibraryButtonMode();
+        loginBtnEl.textContent = "Adina's Spotify Library!";
+        loginBtnEl.classList.add('library-mode');
 
         renderProgress();
         renderLoveButton();
@@ -1428,11 +1423,13 @@
           }
 
           renderLoveButton();
-          resetQueueButtonMode();
 
           if (isPlaying) {
             lastLivePlaybackAt = Date.now();
             widgetEl.classList.remove('paused', 'idle');
+
+            loginBtnEl.textContent = 'Add to Queue';
+            loginBtnEl.classList.remove('library-mode');
 
             trackEl.textContent = data.track.name || 'Unknown track';
             artistEl.textContent = data.track.artist || '';
@@ -1628,7 +1625,7 @@
       }
 
       loginBtnEl.addEventListener('click', function () {
-        if (widgetEl.classList.contains('idle')) {
+        if (loginBtnEl.classList.contains('library-mode')) {
           window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
           return;
         }
