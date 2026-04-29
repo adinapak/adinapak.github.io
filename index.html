@@ -543,6 +543,8 @@
       let lastLivePlaybackAt = 0;
       let searchDebounce = null;
 
+      const pendingQueuedTrackIds = new Set();
+
       const PAUSE_FUNNY_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23f6e27f'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24'%3E%F0%9F%90%8C%3C/text%3E%3C/svg%3E";
 
       function setStatus(message) {
@@ -567,7 +569,6 @@
         const minutes = Math.floor((ms || 0) / 60000);
         const hours = Math.floor(minutes / 60);
         const rem = minutes % 60;
-
         if (hours > 0) return `${hours}h ${rem}m away`;
         return `${Math.max(minutes, 0)}m away`;
       }
@@ -874,7 +875,7 @@
         if (reason.includes('insufficient_scope') || message.includes('insufficient client scope')) return 'Permission denied. Reconnect Spotify and approve queue permissions.';
         if (error?.code === 403) return 'Permission denied by Spotify. Verify playback permissions and try again.';
 
-        return error?.message || 'Spotify action failed.';
+        return 'Spotify action failed.';
       }
 
       function maybeShowSurprise(trackId) {
@@ -902,7 +903,7 @@
             clearSpotifyToken();
           }
 
-          throw error;
+          setStatus(getQueueFriendlyError(error));
         }
       }
 
@@ -915,19 +916,15 @@
         loginBtnEl.disabled = true;
         setStatus('');
 
-        try {
-          await withSpotifyAuth(async () => {
-            const encoded = encodeURIComponent(currentTrack.uri);
+        await withSpotifyAuth(async () => {
+          const encoded = encodeURIComponent(currentTrack.uri);
 
-            await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
-              method: 'POST'
-            });
-
-            maybeShowSurprise(currentTrack.id);
+          await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
+            method: 'POST'
           });
-        } catch (error) {
-          setStatus(getQueueFriendlyError(error));
-        }
+
+          maybeShowSurprise(currentTrack.id);
+        });
 
         window.setTimeout(() => {
           loginBtnEl.textContent = originalText;
@@ -941,17 +938,13 @@
           return;
         }
 
-        try {
-          await withSpotifyAuth(async () => {
-            await spotifyApi(`/v1/me/tracks?ids=${encodeURIComponent(currentTrack.id)}`, {
-              method: 'PUT'
-            });
-
-            setStatus('Added to your liked songs.');
+        await withSpotifyAuth(async () => {
+          await spotifyApi(`/v1/me/tracks?ids=${encodeURIComponent(currentTrack.id)}`, {
+            method: 'PUT'
           });
-        } catch (error) {
-          setStatus(getQueueFriendlyError(error));
-        }
+
+          setStatus('Added to your liked songs.');
+        });
       }
 
       async function fetchNowPlaying() {
@@ -1108,32 +1101,26 @@
           return;
         }
 
-        try {
-          await withSpotifyAuth(async () => {
-            const res = await spotifyApi(`/v1/search?type=track&limit=8&q=${encodeURIComponent(query)}`);
-            renderSearchResults(res?.tracks?.items || []);
-            setStatus('Search connected to your Spotify session.');
-          });
-        } catch (error) {
-          setStatus(getQueueFriendlyError(error));
-        }
+        await withSpotifyAuth(async () => {
+          const res = await spotifyApi(`/v1/search?type=track&limit=8&q=${encodeURIComponent(query)}`);
+          renderSearchResults(res?.tracks?.items || []);
+          setStatus('Search connected to your Spotify session.');
+        });
       }
 
       async function refreshUserQueue() {
-        try {
-          await withSpotifyAuth(async () => {
-            const res = await spotifyApi('/v1/me/player/queue');
-            renderUserQueue(res?.queue || []);
-          });
-        } catch (error) {
-          setStatus(getQueueFriendlyError(error));
-        }
+        await withSpotifyAuth(async () => {
+          const res = await spotifyApi('/v1/me/player/queue');
+          renderUserQueue(res?.queue || []);
+        });
       }
 
       async function queueTrackId(trackId) {
-        if (!trackId) return;
+        if (!trackId || pendingQueuedTrackIds.has(trackId)) return;
 
-        const button = queueResultsEl.querySelector(`button[data-track-id="${CSS.escape(trackId)}"]`);
+        pendingQueuedTrackIds.add(trackId);
+
+        const button = queueResultsEl.querySelector(`button[data-track-id="${trackId}"]`);
         const resultItem = button ? button.closest('.queue-master-item') : null;
         const originalText = button ? button.textContent : 'Queue';
 
@@ -1157,13 +1144,11 @@
         }
 
         try {
-          await withSpotifyAuth(async () => {
-            await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(`spotify:track:${trackId}`)}`, {
-              method: 'POST'
-            });
-
-            maybeShowSurprise(trackId);
+          await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(`spotify:track:${trackId}`)}`, {
+            method: 'POST'
           });
+
+          maybeShowSurprise(trackId);
         } catch (error) {
           if (optimisticItem) optimisticItem.remove();
 
@@ -1173,14 +1158,26 @@
           }
 
           setStatus(getQueueFriendlyError(error));
+
+          if (error.code === 'NO_AUTH') {
+            await beginSpotifyAuth();
+          }
+
+          if (error.code === 401) {
+            clearSpotifyToken();
+          }
+
+          pendingQueuedTrackIds.delete(trackId);
           return;
         }
 
-        window.setTimeout(() => {
+        setTimeout(() => {
           if (button) {
             button.textContent = originalText;
             button.disabled = false;
           }
+
+          pendingQueuedTrackIds.delete(trackId);
         }, 1200);
       }
 
@@ -1201,8 +1198,6 @@
           updateAuthUi();
           await refreshUserQueue();
           setStatus('Spotify connected. You can stay right here and queue songs.');
-        }).catch(function (error) {
-          setStatus(getQueueFriendlyError(error));
         });
       });
 
