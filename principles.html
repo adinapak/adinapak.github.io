@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Derivations on <span id="days-since-birth"></span> Days</h1>  
-
+  <h1 id="days-header">Derivations from <span id="days-since-birth"></span> Days</h1>
   <hr>
 
   <section>
@@ -75,21 +74,30 @@
 
       const diffMs = now - birthDate;
 
-      const totalMinutes = Math.floor(diffMs / (1000 * 60));
-      const days = Math.floor(totalMinutes / (60 * 24));
-      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-      const minutes = totalMinutes % 60;
+     <script>
+  function getTimeSinceBirth() {
+    const birthDate = new Date(2005, 6, 19, 6, 48);
+    const now = new Date();
 
-      return { days, hours, minutes };
-    }
+    const totalMinutes = Math.floor((now - birthDate) / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const el = document.getElementById("days-since-birth");
-      const { days, hours, minutes } = getTimeSinceBirth();
+    return { days, hours, minutes };
+  }
 
-      el.textContent = days;
-      el.title = `${days} days, ${hours} hours, ${minutes} minutes`;
-    });
-  </script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const numberEl = document.getElementById("days-since-birth");
+    const headerEl = document.getElementById("days-header");
+
+    const { days, hours, minutes } = getTimeSinceBirth();
+    const detail = `${days} days, ${hours} hours, ${minutes} minutes`;
+
+    numberEl.textContent = days;
+    numberEl.title = detail;
+    headerEl.title = detail;
+  });
+</script>
 </body>
 </html>
