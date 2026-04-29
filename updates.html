@@ -163,21 +163,29 @@
       font-weight: 400;
       font-style: normal;
       text-align: center;
-      margin-bottom: 18px;
       letter-spacing: -0.02em;
       color: #111;
+      margin: 0;
     }
 
-    input[type="number"] {
+    .problem-row {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    #answerInput {
       display: block;
-      width: 100%;
+      width: 140px;
       padding: 10px 14px;
       border: 1px solid #ccc;
       border-radius: 2px;
       font-size: 1rem;
       text-align: center;
       background: #fff;
-      margin-bottom: 12px;
+      margin-bottom: 0;
       outline: none;
     }
 
@@ -351,9 +359,10 @@
         </div>
       </div>
 
-      <p id="problem" class="problem">Press start to begin.</p>
-
-      <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="answer" disabled>
+      <div class="problem-row">
+        <p id="problem" class="problem">Press start to begin.</p>
+        <input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="answer" disabled>
+      </div>
 
       <div class="button-row">
         <button id="startBtn" type="button">Start Game</button>
@@ -849,7 +858,7 @@
         if (Number.isFinite(guess) && guess === currentAnswer) {
           score += 1;
           streak += 1;
-          statusMsg.textContent = "✓";
+          statusMsg.textContent = "";
           nextProblem();
         }
 
