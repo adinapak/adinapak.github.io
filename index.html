@@ -48,7 +48,7 @@
       align-items: center;
       gap: 10px 20px;
       padding: 12px 24px;
-      font-size: 0.85rem;
+      font-size: 0.98rem;
       background: rgba(255,255,255,0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -123,23 +123,31 @@
 
     .proof-title {
       text-align: center;
-      margin: 82px 0 44px;
+      margin: 54px 0 34px;
     }
 
     .proof-title h1 {
-      font-size: clamp(2.4rem, 7vw, 3.1rem);
+      font-size: clamp(1.85rem, 5vw, 2.45rem);
       font-weight: 400;
       letter-spacing: 0;
-      margin: 0 0 38px;
+      margin: 0 0 26px;
       color: #000;
     }
 
     .proof-title p {
-      font-size: clamp(1.45rem, 4.2vw, 2rem);
+      font-size: clamp(1.05rem, 3vw, 1.45rem);
       line-height: 1.35;
-      margin: 0 0 22px;
+      margin: 0 0 14px;
       color: #000;
       font-style: normal;
+    }
+
+    .existence-counter {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .counter-sep {
+      color: #555;
     }
 
     .dj-widget {
@@ -484,9 +492,13 @@
   </div>
 
   <header class="proof-title">
-    <h1>Proof of Existence</h1>
+    <h1>Proof of Online Existence</h1>
     <p>Adina Pak</p>
-    <p>April 29, 2026</p>
+    <p class="existence-counter">
+      <span id="secondsScientific">0.000000 × 10^0</span>
+      <span class="counter-sep"> seconds </span>
+      <span id="secondsPlain">(0)</span>
+    </p>
   </header>
 
   <hr>
@@ -547,6 +559,37 @@
   <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
     🎉 TWINNEMMMM
   </div>
+
+  <script>
+    (function () {
+      const scientificEl = document.getElementById("secondsScientific");
+      const plainEl = document.getElementById("secondsPlain");
+
+      if (!scientificEl || !plainEl) return;
+
+      const birthTime = new Date("2005-07-19T06:48:00-08:00");
+
+      function formatScientific(seconds) {
+        if (seconds <= 0) return "0.000000 × 10^0";
+
+        const exponent = Math.floor(Math.log10(seconds));
+        const mantissa = seconds / Math.pow(10, exponent);
+
+        return `${mantissa.toFixed(6)} × 10^${exponent}`;
+      }
+
+      function updateExistenceCounter() {
+        const seconds = Math.max(0, (Date.now() - birthTime.getTime()) / 1000);
+        const wholeSeconds = Math.floor(seconds);
+
+        scientificEl.textContent = formatScientific(seconds);
+        plainEl.textContent = `(${wholeSeconds.toLocaleString()} seconds)`;
+      }
+
+      updateExistenceCounter();
+      window.setInterval(updateExistenceCounter, 250);
+    })();
+  </script>
 
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 
