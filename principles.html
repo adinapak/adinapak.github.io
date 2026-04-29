@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 id="days-header">Derivations from <span id="days-since-birth"></span> Days</h1>
+  <h1 id="days-header">
+    Derivations from <span id="days-since-birth"></span> Days
+  </h1>
+
   <hr>
 
   <section>
@@ -30,10 +33,10 @@
     <h3>Axioms</h3>
     <p><em>Musical works I return to</em></p>
     <ul>
-      <li> Frederic Chopin - Concerto No. 1 in E-Minor, Op.11 </li>
-      <li> Frederic Chopin - Ballade No.4 in F-Minor, Op.52 </li>
-      <li> Sergei Rachmaninoff - Concerto No.2 in E-Minor, Op.18 </li>
-      <li> Franz Liszt - Rigoletto Paraphrase S.434</li>
+      <li>Frederic Chopin - Concerto No. 1 in E-Minor, Op.11</li>
+      <li>Frederic Chopin - Ballade No.4 in F-Minor, Op.52</li>
+      <li>Sergei Rachmaninoff - Concerto No.2 in E-Minor, Op.18</li>
+      <li>Franz Liszt - Rigoletto Paraphrase S.434</li>
     </ul>
   </section>
   
@@ -42,11 +45,11 @@
     <p><em>What I've come to believe</em></p>
     <ul>
       <li>Every (calculated and intentional) bet I make in my youth is a convex payoff. The floor is set and the ceiling isn't, so the only mistake is not taking the swing!</li>
-      <li>Early mistakes hard-code edge cases into your priors, so the lesson compounds. Don't dwell, just DO better! </li>
+      <li>Early mistakes hard-code edge cases into your priors, so the lesson compounds. Don't dwell, just DO better!</li>
       <li>You inevitably begin to emulate the average of the few people you spend the most time with. Choose them deliberately and wisely!</li>
-      <li>Being driven by mimetic desires puts you on the road to complacency, whereas pursuing intrinsic goals and desires allows for fulfillment to accrue over time. I aspire to choose the latter every time. </li>
-      <li>Society today is strangely averse to recognizing privilege, weakness, and other unflattering inputs, but be truthful about all of them before baking false assumptions into the next pursuit. </li>
-      <li>The West, as it was built (free markets, rule of law, earned merit), is an incredibly high-functioning civilizational stack, and one of the few forgiving systems where (above) convex payoff is available.</li>
+      <li>Being driven by mimetic desires puts you on the road to complacency, whereas pursuing intrinsic goals and desires allows for fulfillment to accrue over time. I aspire to choose the latter every time.</li>
+      <li>Society today is strangely averse to recognizing privilege, weakness, and other unflattering inputs, but be truthful about all of them before baking false assumptions into the next pursuit.</li>
+      <li>The West, as it was built (free markets, rule of law, earned merit), is an incredibly high-functioning civilizational stack, and one of the few forgiving systems where convex payoff is available.</li>
     </ul>
   </section>
 
@@ -56,7 +59,7 @@
     <ul>
       <li>Investment Theses</li>
       <li>Pearls</li>
-      <li>In E-Minor </li>
+      <li>In E-Minor</li>
       <li>Whale Hunting</li>
       <li>And more...</li>
     </ul>
@@ -64,7 +67,7 @@
 
   <section style="margin-top: 40px;">
     <p><a href="index.html">← Back to Home</a></p>
-    <p><a href="updates.html">  To conjectures →</a></p>
+    <p><a href="updates.html">To conjectures →</a></p>
   </section>
 
   <script>
@@ -72,32 +75,24 @@
       const birthDate = new Date(2005, 6, 19, 6, 48); // July = 6
       const now = new Date();
 
-      const diffMs = now - birthDate;
+      const totalMinutes = Math.floor((now - birthDate) / (1000 * 60));
+      const days = Math.floor(totalMinutes / (60 * 24));
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+      const minutes = totalMinutes % 60;
 
-     <script>
-  function getTimeSinceBirth() {
-    const birthDate = new Date(2005, 6, 19, 6, 48);
-    const now = new Date();
+      return { days, hours, minutes };
+    }
 
-    const totalMinutes = Math.floor((now - birthDate) / (1000 * 60));
-    const days = Math.floor(totalMinutes / (60 * 24));
-    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-    const minutes = totalMinutes % 60;
+    document.addEventListener("DOMContentLoaded", () => {
+      const numberEl = document.getElementById("days-since-birth");
+      const headerEl = document.getElementById("days-header");
 
-    return { days, hours, minutes };
-  }
+      const { days, hours, minutes } = getTimeSinceBirth();
+      const detail = days + " days, " + hours + " hours, " + minutes + " minutes";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const numberEl = document.getElementById("days-since-birth");
-    const headerEl = document.getElementById("days-header");
-
-    const { days, hours, minutes } = getTimeSinceBirth();
-    const detail = `${days} days, ${hours} hours, ${minutes} minutes`;
-
-    numberEl.textContent = days;
-    numberEl.title = detail;
-    headerEl.title = detail;
-  });
-</script>
+      if (numberEl) numberEl.textContent = days;
+      if (headerEl) headerEl.title = detail;
+    });
+  </script>
 </body>
 </html>
