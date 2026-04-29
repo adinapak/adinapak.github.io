@@ -225,3 +225,29 @@ input:focus-visible {
   outline: 2px solid #2a7fff;
   outline-offset: 2px;
 }
+
+#days-header {
+  position: relative;
+  cursor: help;
+}
+/* ---------- TIME HOVER ---------- */
+
+#days-header::after {
+  content: attr(data-detail);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  font-weight: normal;
+  white-space: nowrap;
+  background: white;
+  border: 1px solid black;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#days-header:hover::after {
+  opacity: 1;
+}
