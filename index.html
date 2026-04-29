@@ -588,6 +588,48 @@
       display: flex;
     }
 
+
+
+    .email-mini-player {
+      display: none;
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: min(320px, calc(100vw - 40px));
+      background: #000;
+      z-index: 2000;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .email-mini-player.open {
+      display: block;
+    }
+
+    .email-mini-player iframe {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      height: auto;
+      border: 0;
+    }
+
+    .email-mini-player-close {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      z-index: 1;
+      border: 0;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font: inherit;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 7px 4px;
+    }
+
     @keyframes flashIn {
       from {
         opacity: 0;
@@ -609,7 +651,7 @@
       <span class="slash-sep">/</span>
       <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a>
       <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="/cdn-cgi/l/email-protection#b6d7d2dfd8d7c6d7ddf6d4d3c4ddd3dad3cf98d3d2c3">Email</a>
+      <a class="top-nav-contact" href="#email-video" id="email-video-link">Email</a>
       <span class="slash-sep">/</span>
       <a class="top-nav-contact" href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>
     </div>
@@ -618,6 +660,17 @@
       <span class="nav-sep">|</span>
       <a href="updates.html">Sandbox</a>
     </div>
+  </div>
+
+  <div id="email-mini-player" class="email-mini-player" aria-hidden="true">
+    <button id="email-mini-player-close" class="email-mini-player-close" type="button" aria-label="Close video">×</button>
+    <iframe
+      src="https://www.youtube.com/embed/s6maxxDCVC4?si=TLVotlMwVHmCXcMC"
+      title="YouTube video player"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
   </div>
 
   <header class="proof-title">
@@ -755,7 +808,29 @@
     })();
   </script>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+
+  <script>
+    (function () {
+      const emailLink = document.getElementById('email-video-link');
+      const miniPlayer = document.getElementById('email-mini-player');
+      const closeButton = document.getElementById('email-mini-player-close');
+
+      if (!emailLink || !miniPlayer || !closeButton) return;
+
+      emailLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        miniPlayer.classList.add('open');
+        miniPlayer.setAttribute('aria-hidden', 'false');
+      });
+
+      closeButton.addEventListener('click', function () {
+        miniPlayer.classList.remove('open');
+        miniPlayer.setAttribute('aria-hidden', 'true');
+      });
+    })();
+  </script>
+
 
   <script>
     (function () {
