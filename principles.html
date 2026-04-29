@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Derivations on 8,432 Days </h1>
-  
+  <h1>Derivations on <span id="days-since-birth"></span> Days</h1>  
+
   <hr>
 
   <section>
@@ -24,11 +24,10 @@
       <li>Mobilize by Shyam Sankar</li>
       <li>Zero to One by Peter Thiel</li>
       <li>The Holy Bible</li>
-
     </ul>
   </section>
 
-<section>
+  <section>
     <h3>Axioms</h3>
     <p><em>Musical works I return to</em></p>
     <ul>
@@ -42,13 +41,14 @@
   <section>
     <h3>Lemmas</h3>
     <p><em>What I've come to believe</em></p>
-<ul>
-  <li>Every (calculated and intentional) bet I make in my youth is a convex payoff. The floor is set and the ceiling isn't, so the only mistake is not taking the swing!</li>
-  <li>Early mistakes hard-code edge cases into your priors, so the lesson compounds. Don't dwell, just DO better! </li>
-  <li>You inevitably begin to emulate the average of the few people you spend the most time with. Choose them deliberately and wisely!</li>
-  <li>Being driven by mimetic desires puts you on the road to complacency, whereas pursuing intrinsic goals and desires allows for fulfillment to accrue over time. I aspire to choose the latter every time. </li>
-  <li>Society today is strangely averse to recognizing privilege, weakness, and other unflattering inputs, but be truthful about all of them before baking false assumptions into the next pursuit. </li>
-  <li>The West, as it was built (free markets, rule of law, earned merit), is an incredibly high-functioning civilizational stack, and one of the few forgiving systems where (above) convex payoff is available.</li></ul>
+    <ul>
+      <li>Every (calculated and intentional) bet I make in my youth is a convex payoff. The floor is set and the ceiling isn't, so the only mistake is not taking the swing!</li>
+      <li>Early mistakes hard-code edge cases into your priors, so the lesson compounds. Don't dwell, just DO better! </li>
+      <li>You inevitably begin to emulate the average of the few people you spend the most time with. Choose them deliberately and wisely!</li>
+      <li>Being driven by mimetic desires puts you on the road to complacency, whereas pursuing intrinsic goals and desires allows for fulfillment to accrue over time. I aspire to choose the latter every time. </li>
+      <li>Society today is strangely averse to recognizing privilege, weakness, and other unflattering inputs, but be truthful about all of them before baking false assumptions into the next pursuit. </li>
+      <li>The West, as it was built (free markets, rule of law, earned merit), is an incredibly high-functioning civilizational stack, and one of the few forgiving systems where (above) convex payoff is available.</li>
+    </ul>
   </section>
 
   <section>
@@ -64,8 +64,32 @@
   </section>
 
   <section style="margin-top: 40px;">
-    <p><a href="index.html">← Back to home</a></p>
-  </nav>
+    <p><a href="index.html">← Back to Home</a></p>
+    <p><a href="updates.html">  To conjectures →</a></p>
   </section>
+
+  <script>
+    function getTimeSinceBirth() {
+      const birthDate = new Date(2005, 6, 19, 6, 48); // July = 6
+      const now = new Date();
+
+      const diffMs = now - birthDate;
+
+      const totalMinutes = Math.floor(diffMs / (1000 * 60));
+      const days = Math.floor(totalMinutes / (60 * 24));
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+      const minutes = totalMinutes % 60;
+
+      return { days, hours, minutes };
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const el = document.getElementById("days-since-birth");
+      const { days, hours, minutes } = getTimeSinceBirth();
+
+      el.textContent = days;
+      el.title = `${days} days, ${hours} hours, ${minutes} minutes`;
+    });
+  </script>
 </body>
 </html>
