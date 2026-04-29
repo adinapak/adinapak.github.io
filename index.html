@@ -1149,7 +1149,7 @@
 
           maybeShowSurprise(trackId);
         } catch (error) {
-          if (error.code === 'NO_AUTH' || error.code === 401) {
+          if (error.code === 'NO_AUTH') {
             if (optimisticItem) optimisticItem.remove();
 
             if (button) {
@@ -1157,13 +1157,13 @@
               button.disabled = false;
             }
 
-            if (error.code === 'NO_AUTH') {
-              await beginSpotifyAuth();
-            } else {
-              clearSpotifyToken();
-            }
-
+            await beginSpotifyAuth();
             setStatus(getQueueFriendlyError(error));
+          } else if (error.code === 401) {
+            clearSpotifyToken();
+            setStatus(getQueueFriendlyError(error));
+          } else if (error.message === 'insufficient_scope') {
+            setStatus('Spotify connection is missing queue permissions. Reconnect to continue.');
           }
         } finally {
           pendingQueuedTrackIds.delete(trackId);
