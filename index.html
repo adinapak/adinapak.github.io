@@ -17,13 +17,13 @@
       line-height: 1.65;
       max-width: 680px;
       margin: 64px auto;
-      padding: 0 24px 80px;
+      padding: 52px 24px 80px;
     }
 
     @media (max-width: 640px) {
       body {
         margin: 36px auto;
-        padding: 0 18px 60px;
+        padding: 44px 18px 60px;
       }
     }
 
@@ -33,79 +33,92 @@
       letter-spacing: 0.01em;
       margin-bottom: 18px;
       color: #111;
-    }
-
-    nav {
-      font-size: 0.88rem;
-      font-style: italic;
-      margin-bottom: 28px;
-      line-height: 2.2;
       text-align: center;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      box-sizing: border-box;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px 20px;
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #ddd;
       color: #444;
+      flex-wrap: wrap;
     }
 
-    .nav-sep {
-      font-style: normal;
+    .top-nav-links,
+    .top-nav-pages {
+      display: flex;
+      align-items: center;
+      gap: 0.28rem;
+      flex-wrap: wrap;
     }
 
-    nav a {
+    .top-nav a {
       color: #111;
       text-decoration: none;
       font-style: normal;
+    }
+
+    .top-nav-pages a {
       border-bottom: 1px solid #bbb;
     }
 
-    nav em {
-      color: #666;
+    .top-nav .nav-sep,
+    .top-nav .slash-sep {
+      font-style: italic;
+    }
+
+    .top-nav-contact:nth-of-type(1):hover {
+      color: #000;
+      font-weight: 700;
+    }
+
+    .top-nav-contact:nth-of-type(2):hover {
+      color: #0077b5;
+      font-weight: 700;
+    }
+
+    .top-nav-contact:nth-of-type(3):hover {
+      color: #EA4335;
+      font-weight: 700;
+    }
+
+    .top-nav-contact:nth-of-type(4):hover {
+      background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .top-nav {
+        padding: 10px 18px;
+        font-size: 0.78rem;
+        gap: 8px;
+      }
+
+      .top-nav-pages {
+        justify-content: flex-end;
+      }
     }
 
     hr {
       border: none;
       border-top: 1px solid #ddd;
       margin: 0 0 28px;
-    }
-
-    h3 {
-      font-weight: 600;
-      font-size: 1rem;
-      text-align: center;
-      margin-bottom: 14px;
-    }
-
-    h3 + p {
-      text-align: center;
-      line-height: 2.6;
-      font-size: 0.95rem;
-    }
-
-    h3 + p a {
-      color: #111;
-      text-decoration: none;
-      transition: color .15s, font-weight .15s;
-      display: inline-block;
-    }
-
-    h3 + p a:nth-of-type(1):hover {
-      color: #000;
-      font-weight: 700;
-    }
-
-    h3 + p a:nth-of-type(2):hover {
-      color: #0077b5;
-      font-weight: 700;
-    }
-
-    h3 + p a:nth-of-type(3):hover {
-      color: #EA4335;
-      font-weight: 700;
-    }
-
-    h3 + p a:nth-of-type(4):hover {
-      background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
     }
 
     body > i {
@@ -446,24 +459,26 @@
 </head>
 
 <body>
+  <div class="top-nav" aria-label="Primary">
+    <div class="top-nav-links">
+      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="/cdn-cgi/l/email-protection#b6d7d2dfd8d7c6d7ddf6d4d3c4ddd3dad3cf98d3d2c3">Email</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>
+    </div>
+    <div class="top-nav-pages">
+      <a href="principles.html">Principles</a>
+      <span class="nav-sep">|</span>
+      <a href="updates.html">Sandbox</a>
+    </div>
+  </div>
+
   <h1>Adina Pak</h1>
 
-  <nav>
-    <a href="principles.html">Principles</a>
-    <span class="nav-sep">|</span>
-    <a href="updates.html"> Toys </a>
-  </nav>
-
   <hr>
-
-  <h3>Contact Me!</h3>
-
-  <p>
-    <a href="https://x.com/adinapak_" target="_blank">𝕏</a> /
-    <a href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a> /
-    <a href="/cdn-cgi/l/email-protection#b6d7d2dfd8d7c6d7ddf6d4d3c4ddd3dad3cf98d3d2c3">Email</a> /
-    <a href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail (preferred)</a>
-  </p>
 
   <i> ...or 1v1 me </i>
   <a href="updates.html" style="margin-bottom: 0.8rem; display: block;">Here</a>
