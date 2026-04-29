@@ -910,26 +910,54 @@
       async function queueCurrentTrack() {
         if (!currentTrack?.uri) return;
 
-        const originalText = loginBtnEl.textContent;
+        const trackId = currentTrack.id || '';
+
+        if (trackId && pendingQueuedTrackIds.has(trackId)) return;
+        if (trackId) pendingQueuedTrackIds.add(trackId);
+
+        const title = currentTrack.name || trackEl.textContent || 'Unknown';
+        const artist = artistEl.textContent || '';
+        const cover = albumArtEl.src || '';
+
+        if (trackId) {
+          const existingOptimisticItem = userQueueResultsEl.querySelector(`[data-optimistic-current-track-id="${trackId}"]`);
+          if (!existingOptimisticItem) {
+            const optimisticMarkup = `
+              <div class="queue-master-item" data-optimistic-current-track-id="${escapeHtml(trackId)}">
+                <img class="queue-master-cover" src="${escapeHtml(cover)}" alt="">
+                <span class="queue-master-meta">
+                  <div class="queue-master-title">${escapeHtml(title)}</div>
+                  <div class="queue-master-sub">${escapeHtml(artist)}</div>
+                </span>
+              </div>
+            `;
+            userQueueResultsEl.insertAdjacentHTML('afterbegin', optimisticMarkup);
+          }
+        }
 
         loginBtnEl.textContent = 'Queued ✓';
         loginBtnEl.disabled = true;
         setStatus('');
 
-        await withSpotifyAuth(async () => {
-          const encoded = encodeURIComponent(currentTrack.uri);
+        (async function () {
+          try {
+            await spotifyApi(`/v1/me/player/queue?uri=${encodeURIComponent(currentTrack.uri)}`, {
+              method: 'POST'
+            });
 
-          await spotifyApi(`/v1/me/player/queue?uri=${encoded}`, {
-            method: 'POST'
-          });
+            maybeShowSurprise(trackId);
+          } catch (error) {
+            if (error.code === 'NO_AUTH') {
+              await beginSpotifyAuth();
+            } else if (error.code === 401) {
+              clearSpotifyToken();
+            }
 
-          maybeShowSurprise(currentTrack.id);
-        });
-
-        window.setTimeout(() => {
-          loginBtnEl.textContent = originalText;
-          loginBtnEl.disabled = false;
-        }, 1200);
+            console.warn('Current-track queue request failed silently.', error);
+          } finally {
+            if (trackId) pendingQueuedTrackIds.delete(trackId);
+          }
+        })();
       }
 
       async function likeCurrentTrack() {
