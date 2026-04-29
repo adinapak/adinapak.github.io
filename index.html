@@ -1122,7 +1122,6 @@
 
         const button = queueResultsEl.querySelector(`button[data-track-id="${trackId}"]`);
         const resultItem = button ? button.closest('.queue-master-item') : null;
-        const originalText = button ? button.textContent : 'Queue';
 
         if (button) {
           button.textContent = 'Queued ✓';
@@ -1150,35 +1149,25 @@
 
           maybeShowSurprise(trackId);
         } catch (error) {
-          if (optimisticItem) optimisticItem.remove();
+          if (error.code === 'NO_AUTH' || error.code === 401) {
+            if (optimisticItem) optimisticItem.remove();
 
-          if (button) {
-            button.textContent = originalText;
-            button.disabled = false;
+            if (button) {
+              button.textContent = 'Queue';
+              button.disabled = false;
+            }
+
+            if (error.code === 'NO_AUTH') {
+              await beginSpotifyAuth();
+            } else {
+              clearSpotifyToken();
+            }
+
+            setStatus(getQueueFriendlyError(error));
           }
-
-          setStatus(getQueueFriendlyError(error));
-
-          if (error.code === 'NO_AUTH') {
-            await beginSpotifyAuth();
-          }
-
-          if (error.code === 401) {
-            clearSpotifyToken();
-          }
-
+        } finally {
           pendingQueuedTrackIds.delete(trackId);
-          return;
         }
-
-        setTimeout(() => {
-          if (button) {
-            button.textContent = originalText;
-            button.disabled = false;
-          }
-
-          pendingQueuedTrackIds.delete(trackId);
-        }, 1200);
       }
 
       loginBtnEl.addEventListener('click', function () {
