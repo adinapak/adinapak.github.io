@@ -89,7 +89,7 @@
     const headerEl = document.getElementById("days-header");
 
     const { days, hours, minutes } = getTimeSinceBirth();
-    const detail = days + " days, " + hours + " hours, " + minutes + " minutes, to be exact";
+    const detail = "...and " + hours + " hours, " + minutes + " minutes, to be precise";
 
     numberEl.textContent = days;
     headerEl.setAttribute("data-detail", detail);
