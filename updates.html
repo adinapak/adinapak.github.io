@@ -161,6 +161,7 @@
     .problem {
       font-size: 2.2rem;
       font-weight: 400;
+      font-style: normal;
       text-align: center;
       margin-bottom: 18px;
       letter-spacing: -0.02em;
@@ -742,6 +743,29 @@
         return false;
       }
 
+      async function getCurrentHighScoreBeforeInsert() {
+        let highScore = 0;
+
+        if (usingCloudBoard && supabase) {
+          const response = await supabase
+            .from("zetamac_scores")
+            .select("score")
+            .order("score", { ascending: false })
+            .limit(1);
+
+          if (!response.error) {
+            highScore = Number(response.data?.[0]?.score) || 0;
+          }
+        }
+
+        if (highScore === 0) {
+          const localHigh = safeLoadLeaderboard()[0]?.score;
+          highScore = Number(localHigh) || 0;
+        }
+
+        return highScore;
+      }
+
       function explodePage() {
         document.body.classList.add("page-explode");
         bragBanner.classList.add("show");
@@ -765,13 +789,15 @@
         startBtn.textContent = "Play Again";
         problemEl.textContent = "□";
 
-        if (score > SCORE_TO_BEAT) {
+        const previousHighScore = await getCurrentHighScoreBeforeInsert();
+        await saveScore(score);
+        await renderLeaderboard();
+
+        if (score > previousHighScore) {
           explodePage();
-          await saveScore(score);
-          await renderLeaderboard();
           statusMsg.textContent = `Q.E.D. — ${currentUsername || DEFAULT_NAME} scored ${score}.`;
         } else {
-          statusMsg.textContent = `Score: ${score}. Beat ${SCORE_TO_BEAT} to claim bragging rights.`;
+          statusMsg.textContent = `Score recorded. ${currentUsername || DEFAULT_NAME} scored ${score}.`;
         }
       }
 
