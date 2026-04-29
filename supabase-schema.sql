@@ -10,10 +10,17 @@ create table if not exists public.profiles (
 create table if not exists public.zetamac_scores (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
+  player_id text,
   username text not null check (char_length(username) between 1 and 24),
+  spotify_user_id text,
+  spotify_display_name text check (spotify_display_name is null or char_length(spotify_display_name) between 1 and 24),
   score integer not null check (score >= 0),
   created_at timestamptz not null default now()
 );
+
+alter table public.zetamac_scores add column if not exists player_id text;
+alter table public.zetamac_scores add column if not exists spotify_user_id text;
+alter table public.zetamac_scores add column if not exists spotify_display_name text check (spotify_display_name is null or char_length(spotify_display_name) between 1 and 24);
 
 alter table public.profiles enable row level security;
 alter table public.zetamac_scores enable row level security;

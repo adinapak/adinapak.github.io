@@ -222,9 +222,27 @@
       min-height: 20px;
       text-align: center;
       font-size: 0.85rem;
-      font-style: italic;
       color: #444;
       margin-top: 12px;
+    }
+
+    .game-shell.game-over .problem-row,
+    .game-shell.game-over #answerInput,
+    .game-shell.game-over #skipBtn {
+      display: none;
+    }
+
+    #finalScoreMsg {
+      display: none;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .game-shell.game-over #finalScoreMsg {
+      display: block;
     }
 
     .brag-banner {
@@ -369,6 +387,7 @@
         <button id="skipBtn" type="button" disabled>Cop Out (3 left)</button>
       </div>
 
+      <p id="finalScoreMsg" aria-live="polite"></p>
       <p id="statusMsg" class="status-msg" aria-live="polite"></p>
 
       <div id="bragBanner" class="brag-banner" aria-hidden="true">
@@ -406,6 +425,7 @@
       const MAX_COP_OUTS = 3;
       const STORAGE_KEY = "zetamacLeaderboardV1";
       const PROFILE_KEY = "zetamacLocalProfileV1";
+      const PLAYER_ID_KEY = "zetamacPlayerId";
       const DEFAULT_NAME = "Player";
 
       const scoreToBeatEl = document.getElementById("scoreToBeat");
@@ -422,6 +442,8 @@
       const welcomeMsg = document.getElementById("welcomeMsg");
       const editNameBtn = document.getElementById("editNameBtn");
       const boardSourceMsg = document.getElementById("boardSourceMsg");
+      const gameShell = document.querySelector(".game-shell");
+      const finalScoreMsg = document.getElementById("finalScoreMsg");
 
       const supabaseUrl = window.SUPABASE_URL || "";
       const supabaseAnonKey = window.SUPABASE_ANON_KEY || "";
@@ -439,6 +461,9 @@
       let currentUserId = null;
       let currentUsername = "";
       let usingCloudBoard = false;
+      let playerId = "";
+      let spotifyUserId = "";
+      let spotifyDisplayName = "";
 
       scoreToBeatEl.textContent = SCORE_TO_BEAT;
 
@@ -460,6 +485,27 @@
 
       function sanitizeName(value) {
         return (value || "").trim().slice(0, 24);
+      }
+
+      function getOrCreateZetamacPlayerId() {
+        const existing = localStorage.getItem(PLAYER_ID_KEY);
+        if (existing) return existing;
+
+        const created = `zp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+        localStorage.setItem(PLAYER_ID_KEY, created);
+        return created;
+      }
+
+      function loadSpotifyIdentity() {
+        try {
+          const rawProfile = localStorage.getItem("spotifyUserProfileV1");
+          const parsedProfile = rawProfile ? JSON.parse(rawProfile) : null;
+          spotifyUserId = parsedProfile?.id || "";
+          spotifyDisplayName = sanitizeName(parsedProfile?.display_name || "");
+        } catch {
+          spotifyUserId = "";
+          spotifyDisplayName = "";
+        }
       }
 
       function formatDate(value) {
@@ -722,7 +768,7 @@
       }
 
       async function saveScore(scoreValue) {
-        const nameToUse = currentUsername || DEFAULT_NAME;
+        const nameToUse = currentUsername || spotifyDisplayName || DEFAULT_NAME;
         const now = new Date().toISOString();
 
         if (usingCloudBoard && supabase && currentUserId) {
@@ -730,7 +776,10 @@
             .from("zetamac_scores")
             .insert({
               user_id: currentUserId,
+              player_id: playerId,
               username: nameToUse,
+              spotify_user_id: spotifyUserId || null,
+              spotify_display_name: spotifyDisplayName || null,
               score: scoreValue,
               created_at: now
             });
@@ -796,7 +845,8 @@
         skipBtn.disabled = true;
         startBtn.disabled = false;
         startBtn.textContent = "Play Again";
-        problemEl.textContent = "□";
+        gameShell.classList.add("game-over");
+        finalScoreMsg.textContent = `Final score: ${score}`;
 
         const previousHighScore = await getCurrentHighScoreBeforeInsert();
         await saveScore(score);
@@ -825,6 +875,8 @@
         copoutsLeft = MAX_COP_OUTS;
 
         statusMsg.textContent = "";
+        finalScoreMsg.textContent = "";
+        gameShell.classList.remove("game-over");
         bragBanner.classList.remove("show");
         bragBanner.setAttribute("aria-hidden", "true");
 
@@ -889,6 +941,8 @@
       });
 
       (async () => {
+        playerId = getOrCreateZetamacPlayerId();
+        loadSpotifyIdentity();
         updateHUD();
         updateCopoutButton();
         await ensureSupabaseIdentity();
