@@ -25,13 +25,14 @@ create extension if not exists pgcrypto;
 create table if not exists activity_feed (
   id uuid primary key default gen_random_uuid(),
   source text not null,
+  activity_date date not null,
   title text not null,
   body text,
   icon text,
   occurred_at timestamptz not null default now(),
   visibility text not null default 'public',
   metadata jsonb not null default '{}'::jsonb,
-  unique (source, (metadata->>'date'))
+  unique (source, activity_date)
 );
 
 create index if not exists activity_feed_source_visibility_occurred_at_idx
@@ -46,6 +47,26 @@ create policy "Public can read public activity"
   using (visibility = 'public');
 ```
 
+If your table already exists from the older setup, run this migration once:
+
+```sql
+alter table activity_feed
+  add column if not exists activity_date date;
+
+update activity_feed
+set activity_date = coalesce((metadata->>'date')::date, occurred_at::date)
+where activity_date is null;
+
+alter table activity_feed
+  alter column activity_date set not null;
+
+drop index if exists activity_feed_source_metadata_date_key;
+alter table activity_feed
+  drop constraint if exists activity_feed_source_metadata_date_key;
+alter table activity_feed
+  add constraint activity_feed_source_activity_date_key unique (source, activity_date);
+```
+
 ## Workflow behavior
 
 `.github/workflows/oura-sync.yml`:
@@ -55,16 +76,25 @@ create policy "Public can read public activity"
    - `GET https://api.ouraring.com/v2/usercollection/daily_activity?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
    - Header: `Authorization: Bearer $OURA_ACCESS_TOKEN`
 3. Extracts `steps` from the response (`.data[0].steps`, default `0` if missing).
-4. Upserts into Supabase via PostgREST with `Prefer: resolution=merge-duplicates`.
+4. Upserts into Supabase via PostgREST:
+   - `POST /rest/v1/activity_feed?on_conflict=source,activity_date`
+   - Header: `Prefer: resolution=merge-duplicates`
+5. Each successful run updates:
+   - `occurred_at` (current UTC timestamp),
+   - `body`,
+   - `metadata.steps`,
+   - `metadata.date`.
 
 ## Row shape written to `activity_feed`
 
 ```json
 {
   "source": "oura",
+  "activity_date": "2026-04-30",
   "title": "Today's steps",
   "body": "8421 steps",
   "icon": "steps",
+  "occurred_at": "2026-04-30T14:15:00Z",
   "visibility": "public",
   "metadata": {
     "steps": 8421,
