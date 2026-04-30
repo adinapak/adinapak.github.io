@@ -1105,96 +1105,17 @@
       }
 
       async function beginSpotifyAuth() {
-        if (!spotifyClientId) {
-          const cfg = await fetchSpotifyClientConfig();
-          spotifyClientId = cfg.client_id;
-          spotifyRedirectUriValue = cfg.redirect_uri || '';
-        }
-
-        const codeVerifier = randomString(96);
-        const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-        sessionStorage.setItem(SPOTIFY_VERIFIER_KEY, codeVerifier);
-
-        const params = new URLSearchParams({
-          response_type: 'code',
-          client_id: spotifyClientId,
-          scope: SPOTIFY_SCOPES.join(' '),
-          redirect_uri: spotifyRedirectUri(),
-          code_challenge_method: 'S256',
-          code_challenge: codeChallenge
-        });
-
-        window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+        setStatus('Spotify login is disabled on this page. Stay here to keep browsing updates.');
       }
 
       async function completeSpotifyAuthIfNeeded() {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const error = params.get('error');
+        const hasSpotifyAuthParams = params.has('code') || params.has('error') || params.has('state');
 
-        if (error) {
-          setStatus(`Spotify login failed: ${error}`);
-          return;
+        if (hasSpotifyAuthParams) {
+          window.history.replaceState({}, document.title, spotifyRedirectUri());
+          setStatus('Spotify auth redirects are disabled on this page.');
         }
-
-        if (!code) return;
-
-        const verifier = sessionStorage.getItem(SPOTIFY_VERIFIER_KEY);
-
-        if (!verifier) {
-          setStatus('Spotify auth verifier missing. Please log in again.');
-          return;
-        }
-
-        if (!spotifyClientId) {
-          const cfg = await fetchSpotifyClientConfig();
-          spotifyClientId = cfg.client_id;
-          spotifyRedirectUriValue = cfg.redirect_uri || '';
-        }
-
-        const payload = new URLSearchParams({
-          grant_type: 'authorization_code',
-          code,
-          redirect_uri: spotifyRedirectUri(),
-          client_id: spotifyClientId,
-          code_verifier: verifier
-        });
-
-        const response = await fetch('https://accounts.spotify.com/api/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: payload.toString()
-        });
-
-        if (!response.ok) {
-          setStatus('Spotify token exchange failed.');
-          return;
-        }
-
-        const data = await response.json();
-
-        saveSpotifyToken({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-          scope: data.scope || SPOTIFY_SCOPES.join(' '),
-          expires_at: Date.now() + (Number(data.expires_in || 0) * 1000)
-        });
-
-        try {
-          const meResponse = await fetch('https://api.spotify.com/v1/me', {
-            headers: { Authorization: `Bearer ${data.access_token}` }
-          });
-          if (meResponse.ok) saveSpotifyProfile(await meResponse.json());
-        } catch (error) {
-          console.warn('Unable to load Spotify profile after login.', error);
-        }
-
-        sessionStorage.removeItem(SPOTIFY_VERIFIER_KEY);
-        window.history.replaceState({}, document.title, spotifyRedirectUri());
-        setStatus('Spotify connected.');
       }
 
       async function spotifyApi(path, init = {}) {
@@ -1493,10 +1414,13 @@
       function bindAlbumInteractions() {
         albumBtnEl.addEventListener('dblclick', function (event) {
           event.preventDefault();
+          event.stopPropagation();
           queueCurrentTrack();
         });
 
-        albumBtnEl.addEventListener('touchend', function () {
+        albumBtnEl.addEventListener('touchend', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
           const now = Date.now();
 
           if (now - lastTapAt < 350) {
@@ -1644,24 +1568,33 @@
         }
       }
 
-      loginBtnEl.addEventListener('click', function () {
+      loginBtnEl.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
         if (loginBtnEl.classList.contains('library-mode')) {
-          window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
+          setStatus('Spotify profile links are disabled on this page.');
           return;
         }
 
         withSpotifyAuth(queueCurrentTrack);
       });
 
-      loveBtnEl.addEventListener('click', function () {
+      loveBtnEl.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
         likeCurrentTrack();
       });
 
-      queueSearchBtn.addEventListener('click', function () {
+      queueSearchBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
         searchTracks();
       });
 
-      queueLoginBtn.addEventListener('click', function () {
+      queueLoginBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
         withSpotifyAuth(async function () {
           updateAuthUi();
           await refreshUserQueue();
@@ -1685,6 +1618,8 @@
       });
 
       queueResultsEl.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
         const button = event.target.closest('button[data-track-id]');
         if (!button) return;
 
