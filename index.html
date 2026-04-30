@@ -369,9 +369,13 @@
       min-height: 30px;
       touch-action: manipulation;
       cursor: pointer;
+      text-decoration: none;
     }
 
     .dj-love-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid #bbb;
       background: #fff;
       color: #333;
@@ -416,6 +420,9 @@
 
     .dj-login-btn,
     .dj-queue-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: none;
       background: #111;
       color: #fff;
@@ -1556,8 +1563,6 @@
             uri: data.track.uri || '',
             name: data.track.name || ''
           };
-
-          }
 
 
           if (isPlaying) {
