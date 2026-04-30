@@ -461,7 +461,36 @@
       padding-top: 0.9rem;
     }
     .spotify-links { display:flex; gap:0.45rem; flex-wrap:wrap; }
-    .spotify-links a { text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+    .spotify-links a {
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition: background-color 170ms ease, color 170ms ease, transform 170ms ease, border-color 170ms ease;
+      position: relative;
+      overflow: visible;
+    }
+    .spotify-links a.spotify-library-press {
+      background: #1DB954;
+      border-color: #1DB954;
+      color: #fff;
+      transform: scale(0.97);
+    }
+    .spotify-links a.spotify-play-invert {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+    .spotify-note {
+      position: absolute;
+      pointer-events: none;
+      font-size: 0.78rem;
+      line-height: 1;
+      color: #555;
+      opacity: 0;
+      transform: translate3d(0, 0, 0);
+      transition: transform 400ms ease-out, opacity 400ms ease-out;
+    }
 
     .queue-master p {
       margin: 0 0 0.6rem;
@@ -835,8 +864,8 @@
 
     <div class="queue-master">
       <div class="spotify-links">
-        <a class="dj-queue-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">Follow me</a>
-        <a class="dj-queue-btn" href="updates.html#spotify">Tune in!</a>
+        <a id="spotify-library-link" class="dj-queue-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">My Library!</a>
+        <a id="spotify-play-link" class="dj-queue-btn" href="updates.html#spotify">Play Music!</a>
       </div>
     </div>
   </section>
@@ -1054,6 +1083,9 @@
 
       const SPOTIFY_PROFILE_IMAGE = "/assets/adina-spotify-profile.png";
       const SPOTIFY_PROFILE_URL = "https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93";
+      const spotifyLibraryLinkEl = document.getElementById('spotify-library-link');
+      const spotifyPlayLinkEl = document.getElementById('spotify-play-link');
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       function setStatus(message) {
         statusEl.textContent = message || '';
@@ -1851,6 +1883,66 @@
       loveBtnEl.addEventListener('click', function () {
         likeCurrentTrack();
       });
+
+      function navigateAnchor(anchorEl) {
+        if (!anchorEl) return;
+        if (anchorEl.target === '_blank') {
+          window.open(anchorEl.href, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        window.location.href = anchorEl.href;
+      }
+
+      function spawnSpotifyNotes(anchorEl) {
+        const noteCount = 2 + Math.floor(Math.random() * 3);
+
+        for (let i = 0; i < noteCount; i += 1) {
+          const note = document.createElement('span');
+          note.className = 'spotify-note';
+          note.textContent = Math.random() > 0.5 ? '♪' : '♫';
+          note.style.left = `${15 + Math.random() * 70}%`;
+          note.style.top = `${45 + Math.random() * 35}%`;
+          anchorEl.appendChild(note);
+
+          requestAnimationFrame(function () {
+            note.style.opacity = '0.9';
+            note.style.transform = `translate3d(${(Math.random() - 0.5) * 8}px, -20px, 0)`;
+          });
+
+          setTimeout(function () {
+            note.remove();
+          }, 430);
+        }
+      }
+
+      if (spotifyLibraryLinkEl) {
+        spotifyLibraryLinkEl.addEventListener('click', function (event) {
+          event.preventDefault();
+          if (prefersReducedMotion) {
+            navigateAnchor(spotifyLibraryLinkEl);
+            return;
+          }
+          spotifyLibraryLinkEl.classList.add('spotify-library-press');
+          setTimeout(function () {
+            navigateAnchor(spotifyLibraryLinkEl);
+          }, 250);
+        });
+      }
+
+      if (spotifyPlayLinkEl) {
+        spotifyPlayLinkEl.addEventListener('click', function (event) {
+          event.preventDefault();
+          if (prefersReducedMotion) {
+            navigateAnchor(spotifyPlayLinkEl);
+            return;
+          }
+          spotifyPlayLinkEl.classList.add('spotify-play-invert');
+          spawnSpotifyNotes(spotifyPlayLinkEl);
+          setTimeout(function () {
+            navigateAnchor(spotifyPlayLinkEl);
+          }, 300);
+        });
+      }
 
       if (queueUiEnabled) {
         queueSearchBtn.addEventListener('click', function () {
