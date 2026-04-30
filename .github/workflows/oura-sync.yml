@@ -48,7 +48,6 @@ jobs:
           if [[ "$STEPS" == "0" ]]
           then
             echo "Resolved Oura steps is 0. Debugging daily_activity response shape..."
-            echo "Input window: start_date=${START_DATE}, end_date=${END_DATE}"
             echo "Per-row key summary:"
             printf '%s' "$ACTIVITY_JSON" | jq -c '
               (.data // [])
