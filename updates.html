@@ -993,7 +993,7 @@
       }
 
       function spotifyRedirectUri() {
-        return spotifyRedirectUriValue || `${window.location.origin}/`;
+        return spotifyRedirectUriValue || `${window.location.origin}${window.location.pathname}`;
       }
 
       function loadSpotifyToken() {
