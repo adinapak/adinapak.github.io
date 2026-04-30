@@ -835,6 +835,7 @@
       const userQueueResultsEl = document.getElementById('user-queue-results');
 
       const SPOTIFY_TOKEN_KEY = 'spotifyUserTokenV2';
+      const SPOTIFY_PROFILE_KEY = 'spotifyUserProfileV1';
       const SPOTIFY_VERIFIER_KEY = 'spotifyCodeVerifierV2';
       const SPOTIFY_SCOPES = [
         'user-read-playback-state',
@@ -1024,6 +1025,14 @@
         updateAuthUi();
       }
 
+      function saveSpotifyProfile(profile) {
+        if (!profile || !profile.id) return;
+        localStorage.setItem(SPOTIFY_PROFILE_KEY, JSON.stringify({
+          id: profile.id,
+          display_name: profile.display_name || ''
+        }));
+      }
+
       function updateAuthUi() {
         const token = loadSpotifyToken();
         queueLoginLabel.textContent = token ? 'Connected ✓' : 'Connect Spotify';
@@ -1086,6 +1095,7 @@
         const updated = {
           access_token: data.access_token,
           refresh_token: data.refresh_token || token.refresh_token,
+          scope: data.scope || token.scope || '',
           expires_at: Date.now() + (Number(data.expires_in || 0) * 1000)
         };
 
@@ -1169,8 +1179,18 @@
         saveSpotifyToken({
           access_token: data.access_token,
           refresh_token: data.refresh_token,
+          scope: data.scope || SPOTIFY_SCOPES.join(' '),
           expires_at: Date.now() + (Number(data.expires_in || 0) * 1000)
         });
+
+        try {
+          const meResponse = await fetch('https://api.spotify.com/v1/me', {
+            headers: { Authorization: `Bearer ${data.access_token}` }
+          });
+          if (meResponse.ok) saveSpotifyProfile(await meResponse.json());
+        } catch (error) {
+          console.warn('Unable to load Spotify profile after login.', error);
+        }
 
         sessionStorage.removeItem(SPOTIFY_VERIFIER_KEY);
         window.history.replaceState({}, document.title, spotifyRedirectUri());
@@ -1616,8 +1636,8 @@
           } else if (error.code === 401) {
             clearSpotifyToken();
             setStatus(getQueueFriendlyError(error));
-          } else if (error.message === 'insufficient_scope') {
-            setStatus('Spotify connection is missing queue permissions. Reconnect to continue.');
+          } else {
+            setStatus(getQueueFriendlyError(error));
           }
         } finally {
           pendingQueuedTrackIds.delete(trackId);
@@ -2128,6 +2148,7 @@
             return true;
           }
 
+          console.error('Failed to persist score to Supabase.', result.error);
           boardSourceMsg.textContent = "Leaderboard connection unavailable.";
         }
 
