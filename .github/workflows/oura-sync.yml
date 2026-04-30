@@ -18,12 +18,13 @@ jobs:
           set -euo pipefail
 
           TODAY="$(date -u +%F)"
+          YESTERDAY="$(date -u -d "yesterday" +%F)"
           NOW_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
           ACTIVITY_RESPONSE_AND_STATUS="$(curl -sS \
             -w "\n%{http_code}" \
             -H "Authorization: Bearer ${OURA_ACCESS_TOKEN}" \
-            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${TODAY}&end_date=${TODAY}")"
+            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${YESTERDAY}&end_date=${TODAY}")"
 
           ACTIVITY_STATUS="${ACTIVITY_RESPONSE_AND_STATUS##*$'\n'}"
           ACTIVITY_JSON="${ACTIVITY_RESPONSE_AND_STATUS%$'\n'*}"
@@ -35,7 +36,12 @@ jobs:
             exit 1
           fi
 
-          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r '.data[0].steps // 0')"
+          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r '[.data[]? | .steps // .contributors.steps // empty] | last // 0')"
+
+          if [ "$STEPS" = "0" ]; then
+            echo "Resolved steps is 0. Oura response shape debug:"
+            printf '%s' "$ACTIVITY_JSON" | jq -c '{data_count: ((.data // []) | length), latest_keys: ((.data[-1]? // {}) | keys), latest_has_steps: ((.data[-1]? // {}) | has("steps")), latest_contributor_keys: ((.data[-1]?.contributors // {}) | keys), latest_contributor_steps: (.data[-1]?.contributors?.steps // null)}'
+          fi
 
           if ! [[ "$STEPS" =~ ^[0-9]+$ ]]; then
             echo "Expected numeric step count, got: $STEPS"
