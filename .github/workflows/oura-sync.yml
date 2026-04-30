@@ -29,45 +29,24 @@ jobs:
           ACTIVITY_STATUS="${ACTIVITY_RESPONSE_AND_STATUS##*$'\n'}"
           ACTIVITY_JSON="${ACTIVITY_RESPONSE_AND_STATUS%$'\n'*}"
 
-          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
+          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]
+          then
             echo "Oura daily_activity request failed with HTTP status: ${ACTIVITY_STATUS}"
             echo "Response body:"
             printf '%s\n' "$ACTIVITY_JSON"
             exit 1
           fi
 
-          SELECTED_ROW="$(printf '%s' "$ACTIVITY_JSON" | jq -c --arg end_date "$END_DATE" '
-            (.data // []) as $rows
-            | (
-                $rows
-                | map(
-                    | ._resolved_steps = (
-                        if (.steps | type) == "number" then .steps
-                        elif ((.contributors // {}) | has("steps")) and ((.contributors.steps | type) == "number") then .contributors.steps
-                        else null
-                        end
-                      )
-                  )
-              ) as $mapped
-            | (
-                $mapped
-                | map(select((.day // .date // "") == $end_date and (._resolved_steps != null) and (._resolved_steps > 0)))
-                | first
-              ) // (
-                $mapped
-                | map(select(._resolved_steps != null))
-                | last
-              ) // {}
-          ')"
+          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r '[.data[]? | .steps? // .contributors.steps? // empty] | map(select(type == "number")) | last // 0')"
 
-          STEPS="$(printf '%s' "$SELECTED_ROW" | jq -r '._resolved_steps // 0')"
-
-          if ! [[ "$STEPS" =~ ^[0-9]+$ ]]; then
+          if ! [[ "$STEPS" =~ ^[0-9]+$ ]]
+          then
             echo "Expected numeric step count, got: $STEPS"
             exit 1
           fi
 
-          if [[ "$STEPS" == "0" ]]; then
+          if [[ "$STEPS" == "0" ]]
+          then
             echo "Resolved Oura steps is 0. Debugging daily_activity response shape..."
             echo "Input window: start_date=${START_DATE}, end_date=${END_DATE}"
             echo "Per-row key summary:"
@@ -76,12 +55,10 @@ jobs:
               | map({
                   day: (.day // .date // null),
                   keys: (keys | sort),
-                  top_level_steps: (.steps // null),
+                  steps: (.steps // null),
                   contributor_steps: (.contributors.steps // null)
                 })
             '
-            echo "Selected row:"
-            printf '%s\n' "$SELECTED_ROW" | jq -c '. as $r | ($r | del(._resolved_steps)) + {resolved_steps: ($r._resolved_steps // 0)}'
           fi
 
           BODY="$(jq -nc \
