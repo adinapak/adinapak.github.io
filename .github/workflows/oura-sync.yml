@@ -41,7 +41,6 @@ jobs:
             | (
                 $rows
                 | map(
-                    . as $row
                     | ._resolved_steps = (
                         if (.steps | type) == "number" then .steps
                         elif ((.contributors // {}) | has("steps")) and ((.contributors.steps | type) == "number") then .contributors.steps
