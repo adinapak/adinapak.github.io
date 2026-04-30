@@ -450,11 +450,15 @@
     }
 
     .dj-status {
-      min-height: 20px;
+      min-height: 0;
       font-size: 0.78rem;
       color: #666;
       font-style: italic;
-      margin: 8px 0 0;
+      margin: 6px 0 0;
+    }
+
+    .dj-status:empty {
+      display: none;
     }
 
     .queue-master {
