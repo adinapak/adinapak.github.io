@@ -1588,10 +1588,18 @@
             return;
           }
 
-          isPlaying = !!(data && data.is_playing && data.item);
+          const hasPlaybackData = !!(data && typeof data === 'object');
+          const item = hasPlaybackData && data.item && typeof data.item === 'object' ? data.item : null;
+          const device = hasPlaybackData && data.device && typeof data.device === 'object' ? data.device : null;
+          const hasActiveDevice = !!(device && (device.id || device.is_active));
+          const hasTrack = !!item;
+          const playingFlag = data?.is_playing === true;
 
-          if (isPlaying) {
-            const item = data.item;
+          isPlaying = playingFlag && hasTrack && hasActiveDevice;
+
+          if (isPlaying && item) {
+            const artists = Array.isArray(item.artists) ? item.artists : [];
+            const images = Array.isArray(item.album?.images) ? item.album.images : [];
             progressMs = Number(data.progress_ms || 0);
             durationMs = Number(item.duration_ms || 1);
             currentTrack = {
@@ -1603,12 +1611,12 @@
             widgetEl.classList.remove('paused', 'idle');
 
             trackEl.textContent = item.name || 'Unknown track';
-            artistEl.textContent = (item.artists || []).map((artist) => artist.name).filter(Boolean).join(', ');
+            artistEl.textContent = artists.map((artist) => artist?.name).filter(Boolean).join(', ') || 'Unknown artist';
 
             elapsedEl.textContent = formatMs(progressMs);
             durationEl.textContent = formatMs(durationMs);
 
-            const albumArt = item.album?.images?.[0]?.url;
+            const albumArt = images[0]?.url || images[1]?.url || images[2]?.url || '';
             albumArtEl.hidden = false;
             albumArtEl.src = albumArt || SPOTIFY_PROFILE_IMAGE;
             renderProgress();
@@ -1628,6 +1636,7 @@
             renderProgress();
           }
         } catch (error) {
+          console.error('Spotify now-playing request failed.', error);
           setIdleState('Unable to reach now playing endpoint.');
         }
       }
