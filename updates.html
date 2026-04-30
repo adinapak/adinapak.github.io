@@ -25,7 +25,90 @@
       color: #1a1a1a;
       line-height: 1.65;
     }
+.top-nav {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+box-sizing: border-box;
+z-index: 1000;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px 20px;
+padding: 12px 24px;
+font-size: 0.98rem;
+background: rgba(255,255,255,0.85);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border-bottom: 1px solid #ddd;
+color: #444;
+flex-wrap: wrap;
+}
 
+.top-nav-links,
+.top-nav-pages {
+display: flex;
+align-items: center;
+gap: 0.28rem;
+flex-wrap: wrap;
+}
+
+.top-nav a {
+color: #111;
+text-decoration: none;
+font-style: normal;
+}
+
+.top-nav-pages a {
+border-bottom: 1px solid #bbb;
+}
+
+.top-nav .nav-sep,
+.top-nav .slash-sep {
+font-style: italic;
+}
+
+.top-nav-contact:nth-of-type(1):hover {
+color: #000;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(2):hover {
+color: #0077b5;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(3):hover {
+color: #EA4335;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(4):hover {
+background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+font-weight: 700;
+}
+
+@media (max-width: 640px) {
+.top-nav {
+padding: 10px 18px;
+font-size: 0.78rem;
+gap: 8px;
+}
+
+.top-nav-pages {
+justify-content: flex-end;
+}
+}
+
+hr {
+border: none;
+border-top: 1px solid #ddd;
+margin: 0 0 28px;
+}
     #root {
       max-width: 680px;
       margin: 64px auto;
