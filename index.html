@@ -1,1066 +1,1067 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Adina Pak</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="favicon.svg">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
-
-  <style>
-    body {
-      font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
-      background: #fdfdfd;
-      color: #1a1a1a;
-      line-height: 1.65;
-      max-width: 680px;
-      margin: 64px auto;
-      padding: 52px 24px 80px;
-    }
-
-    @media (max-width: 640px) {
-      body {
-        margin: 36px auto;
-        padding: 44px 18px 60px;
-      }
-    }
-
-    h1 {
-      font-weight: 400;
-      font-size: 2.1rem;
-      letter-spacing: 0.01em;
-      margin-bottom: 18px;
-      color: #111;
-      text-align: center;
-    }
-
-    .top-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px 20px;
-      padding: 12px 24px;
-      font-size: 0.98rem;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid #ddd;
-      color: #444;
-      flex-wrap: wrap;
-    }
-
-    .top-nav-links,
-    .top-nav-pages {
-      display: flex;
-      align-items: center;
-      gap: 0.28rem;
-      flex-wrap: wrap;
-    }
-
-    .top-nav a {
-      color: #111;
-      text-decoration: none;
-      font-style: normal;
-    }
-
-    .top-nav-pages a {
-      border-bottom: 1px solid #bbb;
-    }
-
-    .top-nav .nav-sep,
-    .top-nav .slash-sep {
-      font-style: italic;
-    }
-
-    .top-nav-contact:nth-of-type(1):hover {
-      color: #000;
-      font-weight: 700;
-    }
-
-    .top-nav-contact:nth-of-type(2):hover {
-      color: #0077b5;
-      font-weight: 700;
-    }
-
-    .top-nav-contact:nth-of-type(3):hover {
-      color: #EA4335;
-      font-weight: 700;
-    }
-
-    .top-nav-contact:nth-of-type(4):hover {
-      background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-    }
-
-    @media (max-width: 640px) {
-      .top-nav {
-        padding: 10px 18px;
-        font-size: 0.78rem;
-        gap: 8px;
-      }
-
-      .top-nav-pages {
-        justify-content: flex-end;
-      }
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 0 0 28px;
-    }
-
-    .proof-title {
-      position: relative;
-      text-align: center;
-      margin: 54px 0 34px;
-    }
-
-    .proof-title h1 {
-      font-size: clamp(1.85rem, 5vw, 2.45rem);
-      font-weight: 400;
-      letter-spacing: 0;
-      margin: 0 0 26px;
-      color: #000;
-    }
-
-    .proof-title p {
-      font-size: clamp(1.05rem, 3vw, 1.45rem);
-      line-height: 1.35;
-      margin: 0 0 14px;
-      color: #000;
-      font-style: normal;
-    }
-
-    .date-proof {
-      position: relative;
-      display: inline-block;
-      text-align: center;
-      margin: 0 auto 18px;
-    }
-
-    .date-counter {
-      font: inherit;
-      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
-      color: #000;
-      background: transparent;
-      border: 0;
-      padding: 0;
-      cursor: help;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .date-proof-panel {
-      position: absolute;
-      top: 50%;
-      width: clamp(210px, 18vw, 300px);
-      padding: 12px 14px;
-      border: 1px solid #ddd;
-      background: rgba(255,255,255,0.96);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.06);
-      border-radius: 3px;
-      text-align: left;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      z-index: 30;
-      transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
-    }
-
-    .date-proof-left {
-      right: calc(100% + 64px);
-      transform: translateY(-50%) translateX(6px);
-    }
-
-    .date-proof-right {
-      left: calc(100% + 64px);
-      transform: translateY(-50%) translateX(-6px);
-    }
-
-    .date-proof:hover .date-proof-panel,
-    .date-proof:focus-within .date-proof-panel,
-    .date-proof.open .date-proof-panel {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    .date-proof:hover .date-proof-left,
-    .date-proof:focus-within .date-proof-left,
-    .date-proof.open .date-proof-left {
-      transform: translateY(-50%) translateX(0);
-    }
-
-    .date-proof:hover .date-proof-right,
-    .date-proof:focus-within .date-proof-right,
-    .date-proof.open .date-proof-right {
-      transform: translateY(-50%) translateX(0);
-    }
-
-    .date-proof-panel p,
-    .date-proof-panel li {
-      font-size: 0.84rem;
-      line-height: 1.45;
-      color: #333;
-      margin: 0 0 8px;
-      font-style: normal;
-    }
-
-    .date-proof-panel p:last-child,
-    .date-proof-panel li:last-child {
-      margin-bottom: 0;
-    }
-
-    .date-proof-panel ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .date-notes-toggle {
-      font: inherit;
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #777;
-      background: transparent;
-      border: 0;
-      padding: 0;
-      margin: 0 0 8px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 980px) {
-      .date-proof-panel {
-        top: calc(100% + 10px);
-        left: 50%;
-        right: auto;
-        width: min(340px, calc(100vw - 36px));
-        transform: translateX(-50%) translateY(-4px);
-      }
-
-      .date-proof-left {
-        z-index: 31;
-      }
-
-      .date-proof-right {
-        margin-top: 118px;
-        z-index: 30;
-      }
-
-      .date-proof:hover .date-proof-panel,
-      .date-proof:focus-within .date-proof-panel,
-      .date-proof.open .date-proof-panel {
-        transform: translateX(-50%) translateY(0);
-      }
-
-      .date-proof-right ul {
-        display: none;
-      }
-
-      .date-proof-right.open ul {
-        display: block;
-      }
-    }
-
-    .dj-widget {
-      margin-top: 1rem;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(0,0,0,0.07);
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
-      padding: 16px 20px;
-      max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .dj-widget h3 {
-      text-align: left;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #999;
-      font-weight: 400;
-      margin-bottom: 12px;
-    }
-
-    .dj-now-playing {
-      display: grid;
-      grid-template-columns: 48px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 12px;
-      min-height: 48px;
-    }
-
-    .dj-cover-btn {
-      border: 0;
-      background: transparent;
-      padding: 0;
-      width: 48px;
-      height: 48px;
-      border-radius: 3px;
-      overflow: hidden;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .dj-cover {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      display: block;
-      background: #eee;
-      border-radius: 3px;
-    }
-
-    .dj-track-wrap {
-      min-width: 0;
-      display: grid;
-      gap: 2px;
-    }
-
-    .dj-track,
-    .dj-artist {
-      margin: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
-    }
-
-    .dj-track {
-      font-size: 0.92rem;
-      font-weight: 600;
-    }
-
-    .dj-artist {
-      font-size: 0.8rem;
-      color: #666;
-      font-style: italic;
-    }
-
-    .dj-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dj-love-btn,
-    .dj-login-btn,
-    .dj-queue-btn {
-      font-family: inherit;
-      font-size: 0.78rem;
-      padding: 5px 12px;
-      border-radius: 2px;
-      line-height: 1;
-      min-height: 30px;
-      touch-action: manipulation;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .dj-love-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #bbb;
-      background: #fff;
-      color: #333;
-      position: relative;
-      transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
-    }
-
-    .dj-love-btn:disabled {
-      opacity: 0.7;
-      cursor: wait;
-    }
-
-    .dj-love-btn.liked {
-      background: #ff4fa2;
-      border-color: #ff4fa2;
-      color: #fff;
-    }
-
-    .heart-flutter {
-      position: absolute;
-      right: -10px;
-      top: -12px;
-      font-size: 1rem;
-      pointer-events: none;
-      opacity: 0;
-      animation: heartFlutter 760ms ease-out forwards;
-    }
-
-    @keyframes heartFlutter {
-      0% {
-        opacity: 0;
-        transform: translateY(0) scale(0.6) rotate(-8deg);
-      }
-      20% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(-22px) scale(1.05) rotate(10deg);
-      }
-    }
-
-    .dj-login-btn,
-    .dj-queue-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background: #111;
-      color: #fff;
-    }
-
-    .dj-login-btn.library-mode {
-      background: #fff;
-      color: #111;
-      border: 1px solid #bbb;
-    }
-
-    .dj-progress {
-      width: 100%;
-      margin-top: 10px;
-      height: 2px;
-    }
-
-    .dj-times {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      color: #aaa;
-      margin-top: 4px;
-      min-height: 18px;
-    }
-
-    .dj-status {
-      min-height: 0;
-      font-size: 0.78rem;
-      color: #666;
-      font-style: italic;
-      margin: 6px 0 0;
-    }
-
-    .dj-status:empty {
-      display: none;
-    }
-
-    .queue-master {
-      margin-top: 1rem;
-      border-top: 1px dashed #d9d9d9;
-      padding-top: 0.9rem;
-    }
-    .spotify-links { display:flex; gap:0.45rem; flex-wrap:wrap; }
-    .spotify-links a {
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      transition: background-color 170ms ease, color 170ms ease, transform 170ms ease, border-color 170ms ease;
-      position: relative;
-      overflow: visible;
-    }
-    .spotify-links a.spotify-library-press {
-      background: #1DB954;
-      border-color: #1DB954;
-      color: #fff;
-      transform: scale(0.97);
-    }
-    .spotify-links a.spotify-play-invert {
-      background: #111;
-      color: #fff;
-      border-color: #111;
-    }
-    .spotify-note {
-      position: absolute;
-      pointer-events: none;
-      font-size: 0.78rem;
-      line-height: 1;
-      color: #555;
-      opacity: 0;
-      transform: translate3d(0, 0, 0);
-      transition: transform 400ms ease-out, opacity 400ms ease-out;
-    }
-
-    .queue-master p {
-      margin: 0 0 0.6rem;
-      font-size: 0.85rem;
-      color: #444;
-    }
-
-    .queue-master-controls {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    .queue-master-input-row {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 0.4rem;
-      align-items: center;
-    }
-
-    .queue-master-input {
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 2px;
-      padding: 0.38rem 0.45rem;
-      font: inherit;
-      font-size: 0.82rem;
-    }
-
-    .queue-master-connect-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.28rem;
-    }
-
-    .queue-master-connect-icon {
-      font-size: 0.92rem;
-      line-height: 1;
-      color: inherit;
-    }
-
-    .queue-master-connect-btn.connected .queue-master-connect-icon {
-      color: #1DB954;
-    }
-
-    @media (max-width: 560px) {
-      .queue-master-input-row {
-        grid-template-columns: minmax(0, 1fr) auto;
-      }
-
-      .queue-master-connect-btn {
-        grid-column: 1 / -1;
-        justify-self: start;
-      }
-    }
-
-    .queue-master-results {
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .queue-master-item {
-      display: grid;
-      grid-template-columns: 38px minmax(0, 1fr) auto;
-      gap: 0.45rem;
-      align-items: center;
-      font-size: 0.8rem;
-      padding: 0.32rem 0.1rem;
-      border-bottom: 1px dotted #ececec;
-    }
-
-    .queue-master-cover {
-      width: 38px;
-      height: 38px;
-      object-fit: cover;
-      border-radius: 2px;
-      background: #f0f0f0;
-    }
-
-    .queue-master-meta {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .queue-master-title {
-      font-weight: 600;
-    }
-
-    .queue-master-sub {
-      font-size: 0.74rem;
-      color: #666;
-    }
-
-    .queue-list {
-      margin-top: 0.35rem;
-      border-top: 1px dotted #ececec;
-      padding-top: 0.45rem;
-    }
-
-    .queue-list h4 {
-      margin: 0 0 0.35rem;
-      font-size: 0.78rem;
-      color: #777;
-      font-weight: 600;
-    }
-
-    .surprise-overlay {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      pointer-events: none;
-      background: radial-gradient(circle at center, rgba(30,215,96,0.35), rgba(0,0,0,0.6));
-      color: #fff;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      font-weight: 700;
-      text-align: center;
-      padding: 2rem;
-      animation: flashIn 250ms ease-out;
-      font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
-    }
-
-    .surprise-overlay.show {
-      display: flex;
-    }
-
-
-
-    .oura-widget {
-      margin: 14px auto 0;
-      max-width: 560px;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(0,0,0,0.07);
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
-      padding: 16px 20px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .oura-header,
-    .oura-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-    }
-
-    .oura-header {
-      margin-bottom: 0.7rem;
-    }
-
-
-    .oura-brand {
-      display: flex;
-      align-items: center;
-    }
-
-    .oura-label {
-      margin: 0;
-      font-size: 0.72rem;
-      color: #999;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      font-weight: 400;
-    }
-
-    .oura-main {
-      justify-content: flex-start;
-    }
-
-    .oura-metrics {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.9rem 1.2rem;
-      width: 100%;
-      align-items: start;
-    }
-
-    .oura-metric {
-      min-width: 0;
-      text-align: center;
-    }
-
-    .oura-steps-value {
-      margin: 0;
-      font-size: clamp(1.9rem, 5vw, 2.3rem);
-      font-weight: 650;
-      line-height: 1;
-      letter-spacing: -0.02em;
-      color: #101010;
-      text-align: center;
-    }
-
-    .oura-steps-label {
-      margin: 0.18rem 0 0;
-      font-size: 0.8rem;
-      color: #666;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-style: italic;
-      text-align: center;
-    }
-
-    .oura-steps-meta {
-      margin: 0.8rem 0 0;
-      font-size: 0.74rem;
-      color: #666;
-      display: flex;
-      justify-content: center;
-      align-items: baseline;
-      gap: 0.35rem;
-      text-align: center;
-    }
-
-
-    .site-footer {
-      margin: 40px 0 0;
-      text-align: center;
-      font-size: 0.75rem;
-      color: #999;
-    }
-
-    .email-mini-player {
-      display: none;
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      width: min(320px, calc(100vw - 40px));
-      background: #000;
-      z-index: 2000;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .email-mini-player.open {
-      display: block;
-    }
-
-    .email-mini-player iframe {
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      height: auto;
-      border: 0;
-    }
-
-    .email-mini-player-close {
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      z-index: 1;
-      border: 0;
-      background: rgba(0, 0, 0, 0.72);
-      color: #fff;
-      font: inherit;
-      font-size: 20px;
-      line-height: 1;
-      cursor: pointer;
-      padding: 2px 7px 4px;
-    }
-
-    @keyframes flashIn {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adina Pak</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="favicon.svg">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
+
+<style>
+body {
+font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
+background: #fdfdfd;
+color: #1a1a1a;
+line-height: 1.65;
+max-width: 680px;
+margin: 64px auto;
+padding: 52px 24px 80px;
+}
+
+@media (max-width: 640px) {
+body {
+margin: 36px auto;
+padding: 44px 18px 60px;
+}
+}
+
+h1 {
+font-weight: 400;
+font-size: 2.1rem;
+letter-spacing: 0.01em;
+margin-bottom: 18px;
+color: #111;
+text-align: center;
+}
+
+.top-nav {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+box-sizing: border-box;
+z-index: 1000;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px 20px;
+padding: 12px 24px;
+font-size: 0.98rem;
+background: rgba(255,255,255,0.85);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border-bottom: 1px solid #ddd;
+color: #444;
+flex-wrap: wrap;
+}
+
+.top-nav-links,
+.top-nav-pages {
+display: flex;
+align-items: center;
+gap: 0.28rem;
+flex-wrap: wrap;
+}
+
+.top-nav a {
+color: #111;
+text-decoration: none;
+font-style: normal;
+}
+
+.top-nav-pages a {
+border-bottom: 1px solid #bbb;
+}
+
+.top-nav .nav-sep,
+.top-nav .slash-sep {
+font-style: italic;
+}
+
+.top-nav-contact:nth-of-type(1):hover {
+color: #000;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(2):hover {
+color: #0077b5;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(3):hover {
+color: #EA4335;
+font-weight: 700;
+}
+
+.top-nav-contact:nth-of-type(4):hover {
+background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+font-weight: 700;
+}
+
+@media (max-width: 640px) {
+.top-nav {
+padding: 10px 18px;
+font-size: 0.78rem;
+gap: 8px;
+}
+
+.top-nav-pages {
+justify-content: flex-end;
+}
+}
+
+hr {
+border: none;
+border-top: 1px solid #ddd;
+margin: 0 0 28px;
+}
+
+.proof-title {
+position: relative;
+text-align: center;
+margin: 54px 0 34px;
+}
+
+.proof-title h1 {
+font-size: clamp(1.85rem, 5vw, 2.45rem);
+font-weight: 400;
+letter-spacing: 0;
+margin: 0 0 26px;
+color: #000;
+}
+
+.proof-title p {
+font-size: clamp(1.05rem, 3vw, 1.45rem);
+line-height: 1.35;
+margin: 0 0 14px;
+color: #000;
+font-style: normal;
+}
+
+.date-proof {
+position: relative;
+display: inline-block;
+text-align: center;
+margin: 0 auto 18px;
+}
+
+.date-counter {
+font: inherit;
+font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+color: #000;
+background: transparent;
+border: 0;
+padding: 0;
+cursor: help;
+font-variant-numeric: tabular-nums;
+}
+
+.date-proof-panel {
+position: absolute;
+top: 50%;
+width: clamp(210px, 18vw, 300px);
+padding: 12px 14px;
+border: 1px solid #ddd;
+background: rgba(255,255,255,0.96);
+box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+border-radius: 3px;
+text-align: left;
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+z-index: 30;
+transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+}
+
+.date-proof-left {
+right: calc(100% + 64px);
+transform: translateY(-50%) translateX(6px);
+}
+
+.date-proof-right {
+left: calc(100% + 64px);
+transform: translateY(-50%) translateX(-6px);
+}
+
+.date-proof:hover .date-proof-panel,
+.date-proof:focus-within .date-proof-panel,
+.date-proof.open .date-proof-panel {
+opacity: 1;
+visibility: visible;
+pointer-events: auto;
+}
+
+.date-proof:hover .date-proof-left,
+.date-proof:focus-within .date-proof-left,
+.date-proof.open .date-proof-left {
+transform: translateY(-50%) translateX(0);
+}
+
+.date-proof:hover .date-proof-right,
+.date-proof:focus-within .date-proof-right,
+.date-proof.open .date-proof-right {
+transform: translateY(-50%) translateX(0);
+}
+
+.date-proof-panel p,
+.date-proof-panel li {
+font-size: 0.84rem;
+line-height: 1.45;
+color: #333;
+margin: 0 0 8px;
+font-style: normal;
+}
+
+.date-proof-panel p:last-child,
+.date-proof-panel li:last-child {
+margin-bottom: 0;
+}
+
+.date-proof-panel ul {
+margin: 0;
+padding-left: 18px;
+}
+
+.date-notes-toggle {
+font: inherit;
+font-size: 0.76rem;
+text-transform: uppercase;
+letter-spacing: 1px;
+color: #777;
+background: transparent;
+border: 0;
+padding: 0;
+margin: 0 0 8px;
+cursor: pointer;
+}
+
+@media (max-width: 980px) {
+.date-proof-panel {
+top: calc(100% + 10px);
+left: 50%;
+right: auto;
+width: min(340px, calc(100vw - 36px));
+transform: translateX(-50%) translateY(-4px);
+}
+
+.date-proof-left {
+z-index: 31;
+}
+
+.date-proof-right {
+margin-top: 118px;
+z-index: 30;
+}
+
+.date-proof:hover .date-proof-panel,
+.date-proof:focus-within .date-proof-panel,
+.date-proof.open .date-proof-panel {
+transform: translateX(-50%) translateY(0);
+}
+
+.date-proof-right ul {
+display: none;
+}
+
+.date-proof-right.open ul {
+display: block;
+}
+}
+
+.dj-widget {
+margin-top: 1rem;
+background: rgba(255,255,255,0.72);
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
+border: 1px solid rgba(0,0,0,0.07);
+border-radius: 4px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+padding: 16px 20px;
+max-width: 560px;
+margin-left: auto;
+margin-right: auto;
+}
+
+.dj-widget h3 {
+text-align: left;
+font-size: 0.72rem;
+text-transform: uppercase;
+letter-spacing: 1.2px;
+color: #999;
+font-weight: 400;
+margin-bottom: 12px;
+}
+
+.dj-now-playing {
+display: grid;
+grid-template-columns: 48px minmax(0, 1fr) auto;
+align-items: center;
+gap: 12px;
+min-height: 48px;
+}
+
+.dj-cover-btn {
+border: 0;
+background: transparent;
+padding: 0;
+width: 48px;
+height: 48px;
+border-radius: 3px;
+overflow: hidden;
+cursor: pointer;
+touch-action: manipulation;
+}
+
+.dj-cover {
+width: 48px;
+height: 48px;
+object-fit: cover;
+display: block;
+background: #eee;
+border-radius: 3px;
+}
+
+.dj-track-wrap {
+min-width: 0;
+display: grid;
+gap: 2px;
+}
+
+.dj-track,
+.dj-artist {
+margin: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
+}
+
+.dj-track {
+font-size: 0.92rem;
+font-weight: 600;
+}
+
+.dj-artist {
+font-size: 0.8rem;
+color: #666;
+font-style: italic;
+}
+
+.dj-actions {
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.dj-love-btn,
+.dj-login-btn,
+.dj-queue-btn {
+font-family: inherit;
+font-size: 0.78rem;
+padding: 5px 12px;
+border-radius: 2px;
+line-height: 1;
+min-height: 30px;
+touch-action: manipulation;
+cursor: pointer;
+text-decoration: none;
+}
+
+.dj-love-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border: 1px solid #bbb;
+background: #fff;
+color: #333;
+position: relative;
+transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.dj-love-btn:disabled {
+opacity: 0.7;
+cursor: wait;
+}
+
+.dj-love-btn.liked {
+background: #ff4fa2;
+border-color: #ff4fa2;
+color: #fff;
+}
+
+.heart-flutter {
+position: absolute;
+right: -10px;
+top: -12px;
+font-size: 1rem;
+pointer-events: none;
+opacity: 0;
+animation: heartFlutter 760ms ease-out forwards;
+}
+
+@keyframes heartFlutter {
+0% {
+opacity: 0;
+transform: translateY(0) scale(0.6) rotate(-8deg);
+}
+20% {
+opacity: 1;
+}
+100% {
+opacity: 0;
+transform: translateY(-22px) scale(1.05) rotate(10deg);
+}
+}
+
+.dj-login-btn,
+.dj-queue-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border: none;
+background: #111;
+color: #fff;
+}
+
+.dj-login-btn.library-mode {
+background: #fff;
+color: #111;
+border: 1px solid #bbb;
+}
+
+.dj-progress {
+width: 100%;
+margin-top: 10px;
+height: 2px;
+}
+
+.dj-times {
+display: flex;
+justify-content: space-between;
+font-size: 0.7rem;
+color: #aaa;
+margin-top: 4px;
+min-height: 18px;
+}
+
+.dj-status {
+min-height: 0;
+font-size: 0.78rem;
+color: #666;
+font-style: italic;
+margin: 6px 0 0;
+}
+
+.dj-status:empty {
+display: none;
+}
+
+.queue-master {
+margin-top: 1rem;
+border-top: 1px dashed #d9d9d9;
+padding-top: 0.9rem;
+}
+.spotify-links { display:flex; gap:0.45rem; flex-wrap:wrap; }
+.spotify-links a {
+text-decoration:none;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+transition: background-color 170ms ease, color 170ms ease, transform 170ms ease, border-color 170ms ease;
+position: relative;
+overflow: visible;
+}
+.spotify-links a.spotify-library-press {
+background: #1DB954;
+border-color: #1DB954;
+color: #fff;
+transform: scale(0.97);
+}
+.spotify-links a.spotify-play-invert {
+background: #111;
+color: #fff;
+border-color: #111;
+}
+.spotify-note {
+position: absolute;
+pointer-events: none;
+font-size: 0.78rem;
+line-height: 1;
+color: #555;
+opacity: 0;
+transform: translate3d(0, 0, 0);
+transition: transform 400ms ease-out, opacity 400ms ease-out;
+}
+
+.queue-master p {
+margin: 0 0 0.6rem;
+font-size: 0.85rem;
+color: #444;
+}
+
+.queue-master-controls {
+display: grid;
+gap: 0.5rem;
+}
+
+.queue-master-input-row {
+display: grid;
+grid-template-columns: auto minmax(0, 1fr) auto;
+gap: 0.4rem;
+align-items: center;
+}
+
+.queue-master-input {
+width: 100%;
+border: 1px solid #ccc;
+border-radius: 2px;
+padding: 0.38rem 0.45rem;
+font: inherit;
+font-size: 0.82rem;
+}
+
+.queue-master-connect-btn {
+display: inline-flex;
+align-items: center;
+gap: 0.28rem;
+}
+
+.queue-master-connect-icon {
+font-size: 0.92rem;
+line-height: 1;
+color: inherit;
+}
+
+.queue-master-connect-btn.connected .queue-master-connect-icon {
+color: #1DB954;
+}
+
+@media (max-width: 560px) {
+.queue-master-input-row {
+grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.queue-master-connect-btn {
+grid-column: 1 / -1;
+justify-self: start;
+}
+}
+
+.queue-master-results {
+display: grid;
+gap: 0.35rem;
+}
+
+.queue-master-item {
+display: grid;
+grid-template-columns: 38px minmax(0, 1fr) auto;
+gap: 0.45rem;
+align-items: center;
+font-size: 0.8rem;
+padding: 0.32rem 0.1rem;
+border-bottom: 1px dotted #ececec;
+}
+
+.queue-master-cover {
+width: 38px;
+height: 38px;
+object-fit: cover;
+border-radius: 2px;
+background: #f0f0f0;
+}
+
+.queue-master-meta {
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.queue-master-title {
+font-weight: 600;
+}
+
+.queue-master-sub {
+font-size: 0.74rem;
+color: #666;
+}
+
+.queue-list {
+margin-top: 0.35rem;
+border-top: 1px dotted #ececec;
+padding-top: 0.45rem;
+}
+
+.queue-list h4 {
+margin: 0 0 0.35rem;
+font-size: 0.78rem;
+color: #777;
+font-weight: 600;
+}
+
+.surprise-overlay {
+position: fixed;
+inset: 0;
+display: none;
+align-items: center;
+justify-content: center;
+z-index: 999;
+pointer-events: none;
+background: radial-gradient(circle at center, rgba(30,215,96,0.35), rgba(0,0,0,0.6));
+color: #fff;
+font-size: clamp(1.2rem, 3vw, 2rem);
+font-weight: 700;
+text-align: center;
+padding: 2rem;
+animation: flashIn 250ms ease-out;
+font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
+}
+
+.surprise-overlay.show {
+display: flex;
+}
+
+
+
+.oura-widget {
+margin: 14px auto 0;
+max-width: 560px;
+background: rgba(255,255,255,0.72);
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
+border: 1px solid rgba(0,0,0,0.07);
+border-radius: 4px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+padding: 16px 20px;
+margin-left: auto;
+margin-right: auto;
+}
+
+.oura-header,
+.oura-main {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 0.8rem;
+}
+
+.oura-header {
+margin-bottom: 0.7rem;
+}
+
+
+.oura-brand {
+display: flex;
+align-items: center;
+}
+
+.oura-label {
+margin: 0;
+font-size: 0.72rem;
+color: #999;
+letter-spacing: 1.2px;
+text-transform: uppercase;
+font-weight: 400;
+}
+
+.oura-main {
+justify-content: flex-start;
+}
+
+.oura-metrics {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 0.9rem 1.2rem;
+width: 100%;
+align-items: start;
+}
+
+.oura-metric {
+min-width: 0;
+text-align: center;
+}
+
+.oura-steps-value {
+margin: 0;
+font-size: clamp(1.9rem, 5vw, 2.3rem);
+font-weight: 650;
+line-height: 1;
+letter-spacing: -0.02em;
+color: #101010;
+text-align: center;
+}
+
+.oura-steps-label {
+margin: 0.18rem 0 0;
+font-size: 0.8rem;
+color: #666;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+font-style: italic;
+text-align: center;
+}
+
+.oura-steps-meta {
+margin: 0.8rem 0 0;
+font-size: 0.74rem;
+color: #666;
+display: flex;
+justify-content: center;
+align-items: baseline;
+gap: 0.35rem;
+text-align: center;
+}
+
+
+.site-footer {
+margin: 40px 0 0;
+text-align: center;
+font-size: 0.75rem;
+color: #999;
+}
+
+.email-mini-player {
+display: none;
+position: fixed;
+right: 20px;
+bottom: 20px;
+width: min(320px, calc(100vw - 40px));
+background: #000;
+z-index: 2000;
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+border-radius: 6px;
+overflow: hidden;
+}
+
+.email-mini-player.open {
+display: block;
+}
+
+.email-mini-player iframe {
+display: block;
+width: 100%;
+aspect-ratio: 16 / 9;
+height: auto;
+border: 0;
+}
+
+.email-mini-player-close {
+position: absolute;
+top: 4px;
+right: 6px;
+z-index: 1;
+border: 0;
+background: rgba(0, 0, 0, 0.72);
+color: #fff;
+font: inherit;
+font-size: 20px;
+line-height: 1;
+cursor: pointer;
+padding: 2px 7px 4px;
+}
+
+@keyframes flashIn {
+from {
+opacity: 0;
+transform: scale(0.96);
+}
+
+to {
+opacity: 1;
+transform: scale(1);
+}
+}
+</style>
 </head>
 
 <body>
-  <div class="top-nav" aria-label="Primary">
-    <div class="top-nav-links">
-      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
-      <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a>
-      <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="#email-video" id="email-video-link">Email</a>
-      <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>
-    </div>
-    <div class="top-nav-pages">
-      <a href="principles.html">Principles</a>
-      <span class="nav-sep">|</span>
-      <a href="updates.html">Sandbox</a>
-    </div>
-  </div>
+<div class="top-nav" aria-label="Primary">
+<div class="top-nav-links">
+<a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
+<span class="slash-sep">/</span>
+<a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank">LinkedIn</a>
+<span class="slash-sep">/</span>
+<a class="top-nav-contact" href="#email-video" id="email-video-link">Email</a>
+<span class="slash-sep">/</span>
+<a class="top-nav-contact" href="https://benaysanimals.com/pigeons/" target="_blank">Snail Mail</a>
+</div>
+<div class="top-nav-pages">
+<a href="principles.html">Principles</a>
+<span class="nav-sep">|</span>
+<a href="updates.html">Sandbox</a>
+</div>
+</div>
 
-  <div id="email-mini-player" class="email-mini-player" aria-hidden="true">
-    <button id="email-mini-player-close" class="email-mini-player-close" type="button" aria-label="Close video">×</button>
-    <iframe
-      src="https://www.youtube.com/embed/s6maxxDCVC4?si=TLVotlMwVHmCXcMC"
-      title="YouTube video player"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen>
-    </iframe>
-  </div>
+<div id="email-mini-player" class="email-mini-player" aria-hidden="true">
+<button id="email-mini-player-close" class="email-mini-player-close" type="button" aria-label="Close video">×</button>
+<iframe
+src="https://www.youtube.com/embed/s6maxxDCVC4?si=TLVotlMwVHmCXcMC"
+title="YouTube video player"
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+referrerpolicy="strict-origin-when-cross-origin"
+allowfullscreen>
+</iframe>
+</div>
 
-  <header class="proof-title">
-    <h1>Proof of Online Existence</h1>
-    <p>Adina Pak</p>
-    <div class="date-proof" id="dateProof">
-      <button class="date-counter" id="dateCounterToggle" type="button" aria-expanded="false" aria-controls="dateProofLeft dateProofRight">
-        <span id="dateSeconds">0</span> seconds
-      </button>
+<header class="proof-title">
+<h1>Proof of Online Existence</h1>
+<p>Adina Pak</p>
+<div class="date-proof" id="dateProof">
+<button class="date-counter" id="dateCounterToggle" type="button" aria-expanded="false" aria-controls="dateProofLeft dateProofRight">
+<span id="dateSeconds">0</span> seconds
+</button>
 
-      <aside class="date-proof-panel date-proof-left" id="dateProofLeft">
-        <p>
-          That is, since I had a <span id="dateTypeLabel">Medjool</span> date.
-        </p>
-        <p>
-          I’d normally put the date published here if this were a proof, but why not put proof of the last date...the one I ate?
-        </p>
-      </aside>
+<aside class="date-proof-panel date-proof-left" id="dateProofLeft">
+<p>
+That is, since I had a <span id="dateTypeLabel">Medjool</span> date.
+</p>
+<p>
+I’d normally put the date published here if this were a proof, but why not put proof of the last date...the one I ate?
+</p>
+</aside>
 
-      <aside class="date-proof-panel date-proof-right" id="dateProofRight">
-        <button class="date-notes-toggle" type="button" aria-expanded="true">
-          Date notes
-        </button>
-        <ul>
-          <li><strong>Medjool</strong> + cashews + flaky salt</li>
-          <li><strong>Deglet Noor</strong> + frozen, eaten like caramel</li>
-          <li><strong>Barhi</strong> = straightup </li>
-          <li><strong>Ajwa</strong>...well, looking to try! </li>
-        </ul>
-      </aside>
-    </div>
-  </header>
+<aside class="date-proof-panel date-proof-right" id="dateProofRight">
+<button class="date-notes-toggle" type="button" aria-expanded="true">
+Date notes
+</button>
+<ul>
+<li><strong>Medjool</strong> + cashews + flaky salt</li>
+<li><strong>Deglet Noor</strong> + frozen, eaten like caramel</li>
+<li><strong>Barhi</strong> = straightup </li>
+<li><strong>Ajwa</strong>...well, looking to try! </li>
+</ul>
+</aside>
+</div>
+</header>
 
-  <hr>
+<hr>
 
-  <section class="dj-widget" aria-live="polite">
-    <h3>On my airwaves!</h3>
+<section class="dj-widget" aria-live="polite">
+<h3>On my airwaves!</h3>
 
-    <div class="dj-now-playing">
-      <button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Queue current track">
-        <img id="dj-album-art" class="dj-cover" alt="Current album art" src="/assets/adina-spotify-profile.png">
-      </button>
+<div class="dj-now-playing">
+<button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Open in Spotify"><img id="dj-album-art" class="dj-cover" alt="Current album art" src="/assets/adina-spotify-profile.png">
+</button>
 
-      <div class="dj-track-wrap">
-        <p id="dj-track" class="dj-track">If you're seeing this...</p>
-        <p id="dj-artist" class="dj-artist">I'm paused...come back later!</p>
-      </div>
+<div class="dj-track-wrap">
+<p id="dj-track" class="dj-track">If you're seeing this...</p>
+<p id="dj-artist" class="dj-artist">I'm paused...come back later!</p>
+</div>
 
-      <div class="dj-actions">
-        <a id="dj-library-btn" class="dj-love-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">My Library</a>
-        <a id="dj-play-btn" class="dj-login-btn" href="updates.html#spotify">Play Music!</a>
-      </div>
-    </div>
+<div class="dj-actions">
+<a id="dj-library-btn" class="dj-love-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">My Library</a>
+<a id="dj-play-btn" class="dj-login-btn" href="updates.html#spotify">Play Music!</a>
+</div>
+</div>
 
-    <progress id="dj-progress" class="dj-progress" max="1" value="0"></progress>
+<progress id="dj-progress" class="dj-progress" max="1" value="0"></progress>
 
-    <div class="dj-times">
-      <span id="dj-elapsed">0:00</span>
-      <span id="dj-duration">0:00</span>
-    </div>
+<div class="dj-times">
+<span id="dj-elapsed">0:00</span>
+<span id="dj-duration">0:00</span>
+</div>
 
-    <p id="dj-status" class="dj-status" role="status"></p>
-  </section>
+<p id="dj-status" class="dj-status" role="status"></p>
+</section>
 
-  <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
-    <div class="oura-header">
-      <div class="oura-brand">
-  <p class="oura-label" style="font-style: normal;">Wrapped around my finger...</p>
-      </div>
-    </div>
-    <div class="oura-main">
-      <div class="oura-metrics">
-        <div class="oura-metric">
-  <p id="oura-steps-value" class="oura-steps-value" style="font-style: normal;">—</p>
-          <p class="oura-steps-label">steps today</p>
-        </div>
-        <div class="oura-metric">
+<section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
+<div class="oura-header">
+<div class="oura-brand">
+<p class="oura-label" style="font-style: normal;">Wrapped around my finger...</p>
+</div>
+</div>
+<div class="oura-main">
+<div class="oura-metrics">
+<div class="oura-metric">
+<p id="oura-steps-value" class="oura-steps-value" style="font-style: normal;">—</p>
+<p class="oura-steps-label">steps today</p>
+</div>
+<div class="oura-metric">
 <p id="oura-747s-value" class="oura-steps-value" style="font-style: normal;">—</p>
-          <p class="oura-steps-label">Boeing 747 Laps</p>
-        </div>
-        <div class="oura-metric">
+<p class="oura-steps-label">Boeing 747 Laps</p>
+</div>
+<div class="oura-metric">
 <p id="oura-force-value" class="oura-steps-value" style="font-style: normal;">—</p>
-          <p class="oura-steps-label">N of Step-Force</p>
-        </div>
-      </div>
-    </div>
-  </section>
-    <p id="oura-steps-meta" class="oura-steps-meta"><span>OURA</span><span aria-hidden="true">·</span><span id="oura-last-updated">last updated ...</span></p>
+<p class="oura-steps-label">N of Step-Force</p>
+</div>
+</div>
+</div>
+</section>
+<p id="oura-steps-meta" class="oura-steps-meta"><span>OURA</span><span aria-hidden="true">·</span><span id="oura-last-updated">last updated ...</span></p>
 
-  <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
-    🎉 TWINNEMMMM
-  </div>
+<div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
+🎉 TWINNEMMMM
+</div>
 
-  <!-- <footer class="site-footer">Stack [<i>vanilla HTML (mostly), some CSS, a lil JS </i>] Infra [<i>Vercel + Supabase </i>] Typeset [<i>Computer Modern </i>]</footer> -->
+<!-- <footer class="site-footer">Stack [<i>vanilla HTML (mostly), some CSS, a lil JS </i>] Infra [<i>Vercel + Supabase </i>] Typeset [<i>Computer Modern </i>]</footer> -->
 
-  <script src="supabase-config.js"></script>
+<script src="supabase-config.js"></script>
 
-  <script>
-    (function () {
-      const dateSecondsEl = document.getElementById("dateSeconds");
-      const dateProof = document.getElementById("dateProof");
-      const dateCounterToggle = document.getElementById("dateCounterToggle");
-      const dateNotesToggle = document.querySelector(".date-notes-toggle");
-      const dateProofRight = document.getElementById("dateProofRight");
+<script>
+(function () {
+const dateSecondsEl = document.getElementById("dateSeconds");
+const dateProof = document.getElementById("dateProof");
+const dateCounterToggle = document.getElementById("dateCounterToggle");
+const dateNotesToggle = document.querySelector(".date-notes-toggle");
+const dateProofRight = document.getElementById("dateProofRight");
 
-      if (!dateSecondsEl) return;
+if (!dateSecondsEl) return;
 
-      const birthTime = new Date("2005-07-19T06:48:00-08:00");
+const birthTime = new Date("2005-07-19T06:48:00-08:00");
 
-      function updateExistenceCounter() {
-        const seconds = Math.max(0, (Date.now() - birthTime.getTime()) / 1000);
-        const wholeSeconds = Math.floor(seconds);
-        dateSecondsEl.textContent = wholeSeconds.toLocaleString();
-      }
+function updateExistenceCounter() {
+const seconds = Math.max(0, (Date.now() - birthTime.getTime()) / 1000);
+const wholeSeconds = Math.floor(seconds);
+dateSecondsEl.textContent = wholeSeconds.toLocaleString();
+}
 
-      if (dateCounterToggle && dateProof) {
-        dateCounterToggle.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const isOpen = dateProof.classList.toggle("open");
-          dateCounterToggle.setAttribute("aria-expanded", String(isOpen));
-        });
-      }
+if (dateCounterToggle && dateProof) {
+dateCounterToggle.addEventListener("click", (event) => {
+event.stopPropagation();
+const isOpen = dateProof.classList.toggle("open");
+dateCounterToggle.setAttribute("aria-expanded", String(isOpen));
+});
+}
 
-      if (dateNotesToggle && dateProofRight) {
-        dateNotesToggle.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const isOpen = dateProofRight.classList.toggle("open");
-          dateNotesToggle.setAttribute("aria-expanded", String(isOpen));
-        });
-      }
+if (dateNotesToggle && dateProofRight) {
+dateNotesToggle.addEventListener("click", (event) => {
+event.stopPropagation();
+const isOpen = dateProofRight.classList.toggle("open");
+dateNotesToggle.setAttribute("aria-expanded", String(isOpen));
+});
+}
 
-      document.addEventListener("click", (event) => {
-        if (!dateProof || dateProof.contains(event.target)) return;
-        dateProof.classList.remove("open");
-        if (dateCounterToggle) dateCounterToggle.setAttribute("aria-expanded", "false");
-      });
+document.addEventListener("click", (event) => {
+if (!dateProof || dateProof.contains(event.target)) return;
+dateProof.classList.remove("open");
+if (dateCounterToggle) dateCounterToggle.setAttribute("aria-expanded", "false");
+});
 
-      updateExistenceCounter();
-      window.setInterval(updateExistenceCounter, 250);
-    })();
-  </script>
-
-
-
-  <script>
-    (function () {
-      const emailLink = document.getElementById('email-video-link');
-      const miniPlayer = document.getElementById('email-mini-player');
-      const closeButton = document.getElementById('email-mini-player-close');
-
-      if (!emailLink || !miniPlayer || !closeButton) return;
-
-      emailLink.addEventListener('click', function (event) {
-        event.preventDefault();
-        miniPlayer.classList.add('open');
-        miniPlayer.setAttribute('aria-hidden', 'false');
-      });
-
-      closeButton.addEventListener('click', function () {
-        miniPlayer.classList.remove('open');
-        miniPlayer.setAttribute('aria-hidden', 'true');
-      });
-    })();
-  </script>
+updateExistenceCounter();
+window.setInterval(updateExistenceCounter, 250);
+})();
+</script>
 
 
-  <script>
-    (function () {
-      const stepsEl = document.getElementById('oura-steps-value');
-      const traversedEl = document.getElementById('oura-747s-value');
-      const forceEl = document.getElementById('oura-force-value');
-      const metaEl = document.getElementById('oura-steps-meta');
-      const metaUpdatedEl = document.getElementById('oura-last-updated');
-      if (!stepsEl || !traversedEl || !forceEl || !metaEl || !metaUpdatedEl) return;
 
-      function setLiveState() {}
+<script>
+(function () {
+const emailLink = document.getElementById('email-video-link');
+const miniPlayer = document.getElementById('email-mini-player');
+const closeButton = document.getElementById('email-mini-player-close');
 
-      function formatUpdatedTime(occurredAt) {
-        if (!occurredAt) return 'last updated just now';
-        const date = new Date(occurredAt);
-        if (Number.isNaN(date.getTime())) return 'last updated recently';
-        return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-      }
+if (!emailLink || !miniPlayer || !closeButton) return;
 
-      function formatCumulativeForce(forceNewtons) {
-        if (forceNewtons < 1000) return `${Math.round(forceNewtons)}`;
-        if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k`;
-        return `${(forceNewtons / 1000000).toFixed(1)}M`;
-      }
+emailLink.addEventListener('click', function (event) {
+event.preventDefault();
+miniPlayer.classList.add('open');
+miniPlayer.setAttribute('aria-hidden', 'false');
+});
 
-      async function loadOuraSteps() {
-        const url = window.SUPABASE_URL;
-        const anon = window.SUPABASE_ANON_KEY;
+closeButton.addEventListener('click', function () {
+miniPlayer.classList.remove('open');
+miniPlayer.setAttribute('aria-hidden', 'true');
+});
+})();
+</script>
 
-        stepsEl.textContent = 'Loading…';
-        metaEl.firstElementChild.textContent = 'OURA';
-        metaUpdatedEl.textContent = 'Loading latest step sync…';
-        setLiveState('loading');
 
-        if (!url || !anon) {
-          stepsEl.textContent = '—';
-          traversedEl.textContent = '—';
-          forceEl.textContent = '—';
-          metaEl.firstElementChild.textContent = 'OURA';
-          metaUpdatedEl.textContent = 'Supabase client config missing.';
-          setLiveState('offline');
-          return;
-        }
+<script>
+(function () {
+const stepsEl = document.getElementById('oura-steps-value');
+const traversedEl = document.getElementById('oura-747s-value');
+const forceEl = document.getElementById('oura-force-value');
+const metaEl = document.getElementById('oura-steps-meta');
+const metaUpdatedEl = document.getElementById('oura-last-updated');
+if (!stepsEl || !traversedEl || !forceEl || !metaEl || !metaUpdatedEl) return;
 
-        try {
-          const endpoint = `${url}/rest/v1/activity_feed?source=eq.oura&visibility=eq.public&order=occurred_at.desc&limit=1`;
-          const response = await fetch(endpoint, {
-            headers: {
-              apikey: anon,
-              Authorization: `Bearer ${anon}`
-            },
-            cache: 'no-store'
-          });
+function setLiveState() {}
 
-          if (!response.ok) throw new Error('failed');
+function formatUpdatedTime(occurredAt) {
+if (!occurredAt) return 'last updated just now';
+const date = new Date(occurredAt);
+if (Number.isNaN(date.getTime())) return 'last updated recently';
+return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+}
 
-          const rows = await response.json();
-          const row = Array.isArray(rows) ? rows[0] : null;
-          if (!row) {
-            stepsEl.textContent = '—';
-            traversedEl.textContent = '—';
-            forceEl.textContent = '—';
-            metaEl.firstElementChild.textContent = 'OURA';
-            metaUpdatedEl.textContent = 'No Oura step data yet.';
-            setLiveState('offline');
-            return;
-          }
+function formatCumulativeForce(forceNewtons) {
+if (forceNewtons < 1000) return `${Math.round(forceNewtons)}`;
+if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k`;
+return `${(forceNewtons / 1000000).toFixed(1)}M`;
+}
 
-          const steps = Number(row?.metadata?.steps ?? 0);
-          const safeSteps = Number.isFinite(steps) ? steps : 0;
-          const traversed747 = (safeSteps * 0.00047 * 5280) / 231;
-          const cumulativeForce = safeSteps * 511;
-          stepsEl.textContent = safeSteps.toLocaleString();
-          traversedEl.textContent = traversed747.toFixed(1);
-          forceEl.textContent = formatCumulativeForce(cumulativeForce);
-          metaEl.firstElementChild.textContent = 'OURA';
-          metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
-          setLiveState('live');
-        } catch (error) {
-          stepsEl.textContent = '—';
-          traversedEl.textContent = '—';
-          forceEl.textContent = '—';
-          metaEl.firstElementChild.textContent = 'OURA';
-          metaUpdatedEl.textContent = 'Oura steps unavailable right now.';
-          setLiveState('offline');
-        }
-      }
+async function loadOuraSteps() {
+const url = window.SUPABASE_URL;
+const anon = window.SUPABASE_ANON_KEY;
 
-      loadOuraSteps();
-    })();
-  <script>
+stepsEl.textContent = 'Loading…';
+metaEl.firstElementChild.textContent = 'OURA';
+metaUpdatedEl.textContent = 'Loading latest step sync…';
+setLiveState('loading');
+
+if (!url || !anon) {
+stepsEl.textContent = '—';
+traversedEl.textContent = '—';
+forceEl.textContent = '—';
+metaEl.firstElementChild.textContent = 'OURA';
+metaUpdatedEl.textContent = 'Supabase client config missing.';
+setLiveState('offline');
+return;
+}
+
+try {
+const endpoint = `${url}/rest/v1/activity_feed?source=eq.oura&visibility=eq.public&order=occurred_at.desc&limit=1`;
+const response = await fetch(endpoint, {
+headers: {
+apikey: anon,
+Authorization: `Bearer ${anon}`
+},
+cache: 'no-store'
+});
+
+if (!response.ok) throw new Error('failed');
+
+const rows = await response.json();
+const row = Array.isArray(rows) ? rows[0] : null;
+if (!row) {
+stepsEl.textContent = '—';
+traversedEl.textContent = '—';
+forceEl.textContent = '—';
+metaEl.firstElementChild.textContent = 'OURA';
+metaUpdatedEl.textContent = 'No Oura step data yet.';
+setLiveState('offline');
+return;
+}
+
+const steps = Number(row?.metadata?.steps ?? 0);
+const safeSteps = Number.isFinite(steps) ? steps : 0;
+const traversed747 = (safeSteps * 0.00047 * 5280) / 231;
+const cumulativeForce = safeSteps * 511;
+stepsEl.textContent = safeSteps.toLocaleString();
+traversedEl.textContent = traversed747.toFixed(1);
+forceEl.textContent = formatCumulativeForce(cumulativeForce);
+metaEl.firstElementChild.textContent = 'OURA';
+metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
+setLiveState('live');
+} catch (error) {
+stepsEl.textContent = '—';
+traversedEl.textContent = '—';
+forceEl.textContent = '—';
+metaEl.firstElementChild.textContent = 'OURA';
+metaUpdatedEl.textContent = 'Oura steps unavailable right now.';
+setLiveState('offline');
+}
+}
+
+loadOuraSteps();
+})();
+</script>
+
+<script>
   (function () {
     const albumArtEl = document.getElementById('dj-album-art');
     const albumBtnEl = document.getElementById('dj-album-btn');
@@ -1070,24 +1071,34 @@
     const elapsedEl = document.getElementById('dj-elapsed');
     const durationEl = document.getElementById('dj-duration');
     const statusEl = document.getElementById('dj-status');
+    const widgetEl = document.querySelector('.dj-widget');
 
     if (!albumArtEl || !trackEl || !artistEl || !progressEl || !elapsedEl || !durationEl || !statusEl) {
       return;
     }
 
-    const PROFILE_IMAGE = '/assets/adina-spotify-profile.png';
-    const PROFILE_URL = 'https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93';
+    const SPOTIFY_PROFILE_IMAGE = '/assets/adina-spotify-profile.png';
+    const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93';
 
+    let currentTrackUrl = SPOTIFY_PROFILE_URL;
     let progressMs = 0;
     let durationMs = 1;
     let isPlaying = false;
-    let currentTrackUrl = PROFILE_URL;
+    let lastLivePlaybackAt = 0;
 
     function formatMs(ms) {
       const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function formatAway(ms) {
+      const minutes = Math.floor((ms || 0) / 60000);
+      const hours = Math.floor(minutes / 60);
+      const rem = minutes % 60;
+      if (hours > 0) return `${hours}h ${rem}m away`;
+      return `${Math.max(minutes, 0)}m away`;
     }
 
     function renderProgress() {
@@ -1097,61 +1108,91 @@
       durationEl.textContent = formatMs(durationMs);
     }
 
-    function renderFallback() {
+    function setStatus(message) {
+      statusEl.textContent = message || '';
+    }
+
+    function setFallbackState() {
       isPlaying = false;
       progressMs = 0;
       durationMs = 1;
-      currentTrackUrl = PROFILE_URL;
+      currentTrackUrl = SPOTIFY_PROFILE_URL;
 
-      albumArtEl.hidden = false;
-      albumArtEl.src = PROFILE_IMAGE;
+      if (widgetEl) {
+        widgetEl.classList.add('paused');
+        widgetEl.classList.remove('idle');
+      }
+
       trackEl.textContent = "If you're seeing this...";
       artistEl.textContent = "I'm paused...come back later!";
-      statusEl.textContent = '';
-      renderProgress();
+      albumArtEl.hidden = false;
+      albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
+
+      if (lastLivePlaybackAt) {
+        elapsedEl.textContent = formatAway(Date.now() - lastLivePlaybackAt);
+        durationEl.textContent = 'minutes since';
+        progressEl.max = 1;
+        progressEl.value = 0;
+      } else {
+        renderProgress();
+      }
+
+      setStatus('');
     }
 
-    function readTrackUrl(track) {
+    function getTrackUrl(item) {
       return (
-        track?.external_urls?.spotify ||
-        track?.external_url ||
-        track?.spotify_url ||
-        track?.url ||
-        PROFILE_URL
+        item?.external_urls?.spotify ||
+        item?.external_url ||
+        item?.spotify_url ||
+        item?.url ||
+        SPOTIFY_PROFILE_URL
       );
     }
 
     function renderNowPlaying(data) {
-      const track = data?.item || data?.track || data;
+      const item = data && typeof data === 'object' && data.item && typeof data.item === 'object'
+        ? data.item
+        : null;
 
-      if (!data || data.is_playing === false || !track) {
-        renderFallback();
+      const device = data && typeof data === 'object' && data.device && typeof data.device === 'object'
+        ? data.device
+        : null;
+
+      const hasActiveDevice = !device || Boolean(device.id || device.is_active);
+      const hasTrack = Boolean(item);
+      const playingFlag = data?.is_playing === true;
+
+      if (!playingFlag || !hasTrack || !hasActiveDevice) {
+        setFallbackState();
         return;
       }
 
-      const name = track.name || data.title || data.name;
-      const artists = Array.isArray(track.artists)
-        ? track.artists.map((artist) => artist.name).join(', ')
-        : (data.artist || data.artists || '');
+      const artists = Array.isArray(item.artists) ? item.artists : [];
+      const images = Array.isArray(item.album?.images) ? item.album.images : [];
 
-      const image =
-        track.album?.images?.[0]?.url ||
-        track.image ||
-        data.album_art ||
-        data.image ||
-        PROFILE_IMAGE;
-
-      progressMs = data.progress_ms || data.progress || 0;
-      durationMs = track.duration_ms || data.duration_ms || data.duration || 1;
+      progressMs = Number(data.progress_ms || 0);
+      durationMs = Number(item.duration_ms || 1);
       isPlaying = true;
-      currentTrackUrl = readTrackUrl(track);
+      lastLivePlaybackAt = Date.now();
+      currentTrackUrl = getTrackUrl(item);
 
+      if (widgetEl) {
+        widgetEl.classList.remove('paused', 'idle');
+      }
+
+      trackEl.textContent = item.name || 'Unknown track';
+      artistEl.textContent = artists
+        .map((artist) => artist?.name)
+        .filter(Boolean)
+        .join(', ') || 'Unknown artist';
+
+      const albumArt = images[0]?.url || images[1]?.url || images[2]?.url || SPOTIFY_PROFILE_IMAGE;
       albumArtEl.hidden = false;
-      albumArtEl.src = image;
-      trackEl.textContent = name || 'Unknown track';
-      artistEl.textContent = artists || '';
-      statusEl.textContent = '';
+      albumArtEl.src = albumArt;
+
       renderProgress();
+      setStatus('');
     }
 
     async function fetchNowPlaying() {
@@ -1159,20 +1200,23 @@
         const response = await fetch('/api/now-playing', { cache: 'no-store' });
 
         if (!response.ok) {
-          throw new Error(`now-playing failed: ${response.status}`);
+          setFallbackState();
+          setStatus('Unable to load playback right now.');
+          return;
         }
 
         const data = await response.json();
         renderNowPlaying(data);
       } catch (error) {
-        console.error(error);
-        statusEl.textContent = 'Could not load Spotify status.';
+        console.error('Spotify now-playing request failed.', error);
+        setFallbackState();
+        setStatus('Unable to reach now playing endpoint.');
       }
     }
 
     if (albumBtnEl) {
       albumBtnEl.addEventListener('click', function () {
-        window.open(currentTrackUrl || PROFILE_URL, '_blank', 'noopener,noreferrer');
+        window.open(currentTrackUrl || SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
       });
     }
 
@@ -1183,8 +1227,9 @@
     }, 1000);
 
     fetchNowPlaying();
-    window.setInterval(fetchNowPlaying, 15000);
+    window.setInterval(fetchNowPlaying, 10000);
   })();
 </script>
+
 </body>
 </html>
