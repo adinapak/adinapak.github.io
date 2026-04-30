@@ -845,6 +845,9 @@ Date notes
 
 <div class="dj-now-playing">
 <button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Open current track on Spotify">
+  <img id="dj-album-art" class="dj-cover" alt="Current album art" src="/assets/adina-spotify-profile.png">
+</button>  
+</button>
   
 </button>
 
@@ -1136,33 +1139,29 @@ loadOuraSteps();
       return SPOTIFY_PROFILE_URL;
     }
 
-    function renderNowPlaying(data) {
-      const track = data && typeof data === 'object' && data.track && typeof data.track === 'object'
-        ? data.track
-        : null;
+function renderNowPlaying(data) {
+  const track = data && typeof data === 'object' && data.track && typeof data.track === 'object'
+    ? data.track
+    : null;
 
-      if (data?.is_playing !== true || !track) {
-        setFallbackState('');
-        return;
-      }
+  if (data?.is_playing !== true || !track) {
+    setFallbackState('');
+    return;
+  }
 
-      progressMs = Number(data.progress_ms || 0);
-      durationMs = Number(data.duration_ms || 1);
-      isPlaying = true;
-      currentTrackUrl = getTrackUrl(track);
+  progressMs = Number(data.progress_ms || 0);
+  durationMs = Number(data.duration_ms || 1);
+  isPlaying = true;
+  currentTrackUrl = getTrackUrl(track);
 
-      if (widgetEl) {
-        widgetEl.classList.remove('paused', 'idle');
-      }
+  trackEl.textContent = track.name || 'Unknown track';
+  artistEl.textContent = track.artist || 'Unknown artist';
+  albumArtEl.hidden = false;
+  albumArtEl.src = track.album_art_url || SPOTIFY_PROFILE_IMAGE;
 
-      trackEl.textContent = track.name || 'Unknown track';
-      artistEl.textContent = track.artist || 'Unknown artist';
-      albumArtEl.hidden = false;
-      albumArtEl.src = track.album_art_url || SPOTIFY_PROFILE_IMAGE;
-
-      renderProgress();
-      setStatus('');
-    }
+  renderProgress();
+  setStatus('');
+}
 
     async function fetchNowPlaying() {
       try {
