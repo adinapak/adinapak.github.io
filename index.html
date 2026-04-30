@@ -669,15 +669,16 @@
     }
 
     .oura-metrics {
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.9rem 1.2rem;
+      width: 100%;
+      align-items: start;
     }
 
     .oura-metric {
-      flex: 1 1 150px;
       min-width: 0;
+      text-align: center;
     }
 
     .oura-steps-value {
@@ -687,6 +688,7 @@
       line-height: 1;
       letter-spacing: -0.02em;
       color: #101010;
+      text-align: center;
     }
 
     .oura-steps-label {
@@ -696,12 +698,17 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
       font-style: italic;
+      text-align: center;
     }
 
     .oura-steps-meta {
       margin: 0.8rem 0 0;
       font-size: 0.74rem;
       color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
     }
 
 
@@ -879,7 +886,7 @@
         </div>
       </div>
     </div>
-    <p id="oura-steps-meta" class="oura-steps-meta">Loading latest step sync…</p>
+    <p id="oura-steps-meta" class="oura-steps-meta"><span>Pedometry via Oura</span><span id="oura-last-updated">last updated ...</span></p>
   </section>
 
   <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
@@ -965,15 +972,16 @@
       const traversedEl = document.getElementById('oura-747s-value');
       const forceEl = document.getElementById('oura-force-value');
       const metaEl = document.getElementById('oura-steps-meta');
-      if (!stepsEl || !traversedEl || !forceEl || !metaEl) return;
+      const metaUpdatedEl = document.getElementById('oura-last-updated');
+      if (!stepsEl || !traversedEl || !forceEl || !metaEl || !metaUpdatedEl) return;
 
       function setLiveState() {}
 
       function formatUpdatedTime(occurredAt) {
-        if (!occurredAt) return 'Pedometry via Oura · last updated just now';
+        if (!occurredAt) return 'last updated just now';
         const date = new Date(occurredAt);
-        if (Number.isNaN(date.getTime())) return 'Pedometry via Oura · last updated recently';
-        return `Pedometry via Oura · last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+        if (Number.isNaN(date.getTime())) return 'last updated recently';
+        return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
       }
 
       function formatCumulativeForce(forceNewtons) {
@@ -987,14 +995,16 @@
         const anon = window.SUPABASE_ANON_KEY;
 
         stepsEl.textContent = 'Loading…';
-        metaEl.textContent = 'Loading latest step sync…';
+        metaEl.firstElementChild.textContent = 'Pedometry via Oura';
+        metaUpdatedEl.textContent = 'Loading latest step sync…';
         setLiveState('loading');
 
         if (!url || !anon) {
           stepsEl.textContent = '—';
           traversedEl.textContent = '—';
           forceEl.textContent = '—';
-          metaEl.textContent = 'Supabase client config missing.';
+          metaEl.firstElementChild.textContent = 'Pedometry via Oura';
+          metaUpdatedEl.textContent = 'Supabase client config missing.';
           setLiveState('offline');
           return;
         }
@@ -1017,7 +1027,8 @@
             stepsEl.textContent = '—';
             traversedEl.textContent = '—';
             forceEl.textContent = '—';
-            metaEl.textContent = 'No Oura step data yet.';
+            metaEl.firstElementChild.textContent = 'Pedometry via Oura';
+            metaUpdatedEl.textContent = 'No Oura step data yet.';
             setLiveState('offline');
             return;
           }
@@ -1029,13 +1040,15 @@
           stepsEl.textContent = safeSteps.toLocaleString();
           traversedEl.textContent = traversed747.toFixed(1);
           forceEl.textContent = formatCumulativeForce(cumulativeForce);
-          metaEl.textContent = formatUpdatedTime(row?.occurred_at);
+          metaEl.firstElementChild.textContent = 'Pedometry via Oura';
+          metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
           setLiveState('live');
         } catch (error) {
           stepsEl.textContent = '—';
           traversedEl.textContent = '—';
           forceEl.textContent = '—';
-          metaEl.textContent = 'Oura steps unavailable right now.';
+          metaEl.firstElementChild.textContent = 'Pedometry via Oura';
+          metaUpdatedEl.textContent = 'Oura steps unavailable right now.';
           setLiveState('offline');
         }
       }
