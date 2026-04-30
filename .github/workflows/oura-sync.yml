@@ -36,24 +36,29 @@ jobs:
             exit 1
           fi
 
-          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r --arg today "$TODAY" '[.data[]? | select((.day // .date // .activity_date) == $today) | .steps // .contributors.steps // empty] | last // 0')"
+          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r --arg today "$TODAY" '
+            (
+              [.data[]? | select((.day // .date // .activity_date // "") == $today) | (.steps // .contributors.steps // empty)]
+              +
+              [.data[]? | (.steps // .contributors.steps // empty)]
+            ) | first // 0
+          ')"
 
-          if [ "$STEPS" = "0" ]; then
-            echo "Resolved steps is 0. Oura response shape debug:"
-            printf '%s' "$ACTIVITY_JSON" | jq -c --arg today "$TODAY" '{
-              today: $today,
-              data_count: ((.data // []) | length),
-              dates: [.data[]? | (.day // .date // .activity_date // "no-date")],
-              latest: (.data[-1]? // {}),
-              latest_keys: ((.data[-1]? // {}) | keys),
-              latest_has_steps: ((.data[-1]? // {}) | has("steps")),
-              latest_contributor_keys: ((.data[-1]?.contributors // {}) | keys),
-              latest_contributor_steps: (.data[-1]?.contributors?.steps // null)
-            }'
-          fi
+          echo "Resolved Oura steps for ${TODAY}: ${STEPS}"
+          printf '%s' "$ACTIVITY_JSON" | jq -c --arg today "$TODAY" '{
+            today: $today,
+            data_count: ((.data // []) | length),
+            dates: [.data[]? | (.day // .date // .activity_date // "no-date")],
+            steps_seen: [.data[]? | (.steps // .contributors.steps // null)]
+          }'
 
           if ! [[ "$STEPS" =~ ^[0-9]+$ ]]; then
             echo "Expected numeric step count, got: $STEPS"
+            exit 1
+          fi
+
+          if [ "$STEPS" = "0" ]; then
+            echo "Resolved steps is 0. Refusing to overwrite Supabase with 0."
             exit 1
           fi
 
