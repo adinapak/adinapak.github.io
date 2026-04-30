@@ -19,9 +19,28 @@ jobs:
 
           TODAY="$(date -u +%F)"
 
-          ACTIVITY_JSON="$(curl -fsS \
+          ACTIVITY_RESPONSE_FILE="$(mktemp)"
+          trap 'rm -f "$ACTIVITY_RESPONSE_FILE"' EXIT
+
+          if ! ACTIVITY_STATUS="$(curl -sS \
+            -o "$ACTIVITY_RESPONSE_FILE" \
+            -w "%{http_code}" \
             -H "Authorization: Bearer ${OURA_ACCESS_TOKEN}" \
-            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${TODAY}&end_date=${TODAY}")"
+            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${TODAY}&end_date=${TODAY}")"; then
+            echo "Oura daily_activity request failed before receiving a valid HTTP response."
+            echo "Response body (if any):"
+            cat "$ACTIVITY_RESPONSE_FILE"
+            exit 1
+          fi
+
+          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
+            echo "Oura daily_activity request failed with HTTP status: $ACTIVITY_STATUS"
+            echo "Response body:"
+            cat "$ACTIVITY_RESPONSE_FILE"
+            exit 1
+          fi
+
+          ACTIVITY_JSON="$(cat "$ACTIVITY_RESPONSE_FILE")"
 
           STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r '.data[0].steps // 0')"
 
