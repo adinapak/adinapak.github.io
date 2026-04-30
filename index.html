@@ -1570,40 +1570,32 @@
             return;
           }
 
-          if (!data.track) {
-            setIdleState("If you're seeing this...");
-            artistEl.textContent = "I'm paused...come back later!";
-            return;
-          }
-
-          isPlaying = !!data.is_playing;
-          progressMs = Number(data.progress_ms || 0);
-          durationMs = Number(data.duration_ms || 1);
-          currentTrack = {
-            id: data.track.id || '',
-            uri: data.track.uri || '',
-            name: data.track.name || ''
-          };
-
+          isPlaying = !!(data && data.is_playing && data.item);
 
           if (isPlaying) {
+            const item = data.item;
+            progressMs = Number(data.progress_ms || 0);
+            durationMs = Number(item.duration_ms || 1);
+            currentTrack = {
+              id: item.id || '',
+              uri: item.uri || '',
+              name: item.name || ''
+            };
             lastLivePlaybackAt = Date.now();
             widgetEl.classList.remove('paused', 'idle');
 
-            trackEl.textContent = data.track.name || 'Unknown track';
-            artistEl.textContent = data.track.artist || '';
+            trackEl.textContent = item.name || 'Unknown track';
+            artistEl.textContent = (item.artists || []).map((artist) => artist.name).filter(Boolean).join(', ');
 
             elapsedEl.textContent = formatMs(progressMs);
             durationEl.textContent = formatMs(durationMs);
 
-            if (data.track.album_art_url) {
-              albumArtEl.src = data.track.album_art_url;
-              albumArtEl.hidden = false;
-            } else {
-              albumArtEl.hidden = false;
-              albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
-            }
+            const albumArt = item.album?.images?.[0]?.url;
+            albumArtEl.hidden = false;
+            albumArtEl.src = albumArt || SPOTIFY_PROFILE_IMAGE;
+            renderProgress();
           } else {
+            currentTrack = { id: '', uri: '', name: '' };
             widgetEl.classList.add('paused');
             widgetEl.classList.remove('idle');
 
@@ -1615,14 +1607,7 @@
             const awayMs = lastLivePlaybackAt ? Date.now() - lastLivePlaybackAt : 0;
             elapsedEl.textContent = formatAway(awayMs);
             durationEl.textContent = 'minutes since';
-          }
-
-          renderProgress();
-
-          if (!isPlaying) {
-            const awayMs = lastLivePlaybackAt ? Date.now() - lastLivePlaybackAt : 0;
-            elapsedEl.textContent = formatAway(awayMs);
-            durationEl.textContent = 'minutes since';
+            renderProgress();
           }
         } catch (error) {
           setIdleState('Unable to reach now playing endpoint.');
