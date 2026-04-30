@@ -591,37 +591,146 @@
 
 
     .oura-widget {
-      margin-top: 0.7rem;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(0,0,0,0.07);
-      border-radius: 4px;
-      padding: 10px 14px;
+      margin: 0.95rem auto 0;
       max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      padding: 1rem 1.1rem 0.95rem;
+      backdrop-filter: blur(4px);
     }
 
-    .oura-widget h4 {
-      margin: 0 0 4px;
-      font-size: 0.68rem;
+    .oura-header,
+    .oura-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+
+    .oura-header {
+      margin-bottom: 0.7rem;
+    }
+
+    .oura-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .oura-ring {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #111;
+      border-radius: 50%;
+      box-sizing: border-box;
+      opacity: 0.85;
+    }
+
+    .oura-label {
+      margin: 0;
+      font-size: 0.74rem;
+      color: #666;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      letter-spacing: 1.1px;
-      color: #999;
-      font-weight: 400;
+    }
+
+    .oura-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      color: #666;
+    }
+
+    .oura-live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #35c66a;
+      box-shadow: 0 0 0 3px rgba(53, 198, 106, 0.14);
+    }
+
+    .oura-live-dot.loading {
+      background: #929292;
+      box-shadow: 0 0 0 3px rgba(146, 146, 146, 0.14);
+    }
+
+    .oura-live-dot.offline {
+      background: #d06d6d;
+      box-shadow: 0 0 0 3px rgba(208, 109, 109, 0.14);
     }
 
     .oura-steps-value {
       margin: 0;
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: clamp(1.9rem, 5vw, 2.3rem);
+      font-weight: 650;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: #101010;
+    }
+
+    .oura-steps-label {
+      margin: 0.18rem 0 0;
+      font-size: 0.8rem;
+      color: #666;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .oura-steps-meta {
-      margin: 2px 0 0;
-      font-size: 0.76rem;
+      margin: 0.8rem 0 0;
+      font-size: 0.74rem;
       color: #666;
-      font-style: italic;
     }
+
+    .oura-battery {
+      display: none;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .oura-battery.show {
+      display: inline-flex;
+    }
+
+    .oura-battery-bar {
+      width: 26px;
+      height: 12px;
+      border: 1px solid #777;
+      border-radius: 3px;
+      position: relative;
+      box-sizing: border-box;
+      padding: 1px;
+      background: #fff;
+    }
+
+    .oura-battery-bar::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: -3px;
+      width: 2px;
+      height: 4px;
+      border-radius: 1px;
+      background: #777;
+    }
+
+    .oura-battery-fill {
+      display: block;
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      background: #7fbf84;
+    }
+
+    .oura-battery.high .oura-battery-fill { background: #6bbf75; }
+    .oura-battery.medium .oura-battery-fill { background: #e3b14f; }
+    .oura-battery.low .oura-battery-fill { background: #dc6a6a; }
 
     .site-footer {
       margin: 40px 0 0;
@@ -800,9 +909,26 @@
   </section>
 
   <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
-    <h4>Oura today</h4>
-    <p id="oura-steps-value" class="oura-steps-value">Loading steps…</p>
-    <p id="oura-steps-meta" class="oura-steps-meta"></p>
+    <div class="oura-header">
+      <div class="oura-brand">
+        <span class="oura-ring" aria-hidden="true"></span>
+        <p class="oura-label">data from: Oura</p>
+      </div>
+      <span id="oura-live-status" class="oura-live"><span id="oura-live-dot" class="oura-live-dot loading" aria-hidden="true"></span><span id="oura-live-text">loading</span></span>
+    </div>
+    <div class="oura-main">
+      <div>
+        <p id="oura-steps-value" class="oura-steps-value">—</p>
+        <p class="oura-steps-label">steps today</p>
+      </div>
+      <div id="oura-battery" class="oura-battery" aria-label="Oura battery level">
+        <span class="oura-battery-bar" aria-hidden="true">
+          <span id="oura-battery-fill" class="oura-battery-fill"></span>
+        </span>
+        <span id="oura-battery-text"></span>
+      </div>
+    </div>
+    <p id="oura-steps-meta" class="oura-steps-meta">Loading latest step sync…</p>
   </section>
 
   <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
@@ -886,15 +1012,61 @@
     (function () {
       const stepsEl = document.getElementById('oura-steps-value');
       const metaEl = document.getElementById('oura-steps-meta');
-      if (!stepsEl || !metaEl) return;
+      const batteryEl = document.getElementById('oura-battery');
+      const batteryFillEl = document.getElementById('oura-battery-fill');
+      const batteryTextEl = document.getElementById('oura-battery-text');
+      const liveDotEl = document.getElementById('oura-live-dot');
+      const liveTextEl = document.getElementById('oura-live-text');
+      if (!stepsEl || !metaEl || !batteryEl || !batteryFillEl || !batteryTextEl || !liveDotEl || !liveTextEl) return;
+
+      function setLiveState(state) {
+        liveDotEl.classList.remove('loading', 'offline');
+        if (state === 'loading') {
+          liveDotEl.classList.add('loading');
+          liveTextEl.textContent = 'loading';
+          return;
+        }
+        if (state === 'offline') {
+          liveDotEl.classList.add('offline');
+          liveTextEl.textContent = 'offline';
+          return;
+        }
+        liveTextEl.textContent = 'live';
+      }
+
+      function setBattery(percent) {
+        batteryEl.classList.remove('show', 'high', 'medium', 'low');
+        batteryFillEl.style.width = '0%';
+        batteryTextEl.textContent = '';
+
+        if (!Number.isFinite(percent)) return;
+        const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+        const level = clamped >= 67 ? 'high' : clamped >= 34 ? 'medium' : 'low';
+        batteryEl.classList.add('show', level);
+        batteryFillEl.style.width = `${clamped}%`;
+        batteryTextEl.textContent = `${clamped}%`;
+      }
+
+      function formatUpdatedTime(occurredAt) {
+        if (!occurredAt) return 'last updated just now';
+        const date = new Date(occurredAt);
+        if (Number.isNaN(date.getTime())) return 'last updated recently';
+        return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+      }
 
       async function loadOuraSteps() {
         const url = window.SUPABASE_URL;
         const anon = window.SUPABASE_ANON_KEY;
 
+        stepsEl.textContent = 'Loading…';
+        metaEl.textContent = 'Loading latest step sync…';
+        setBattery(null);
+        setLiveState('loading');
+
         if (!url || !anon) {
-          stepsEl.textContent = 'Oura steps unavailable.';
+          stepsEl.textContent = '—';
           metaEl.textContent = 'Supabase client config missing.';
+          setLiveState('offline');
           return;
         }
 
@@ -912,14 +1084,23 @@
 
           const rows = await response.json();
           const row = Array.isArray(rows) ? rows[0] : null;
-          const steps = Number(row?.metadata?.steps ?? 0);
-          const date = row?.metadata?.date || '';
+          if (!row) {
+            stepsEl.textContent = '—';
+            metaEl.textContent = 'No Oura step data yet.';
+            setLiveState('offline');
+            return;
+          }
 
-          stepsEl.textContent = `${steps.toLocaleString()} steps`;
-          metaEl.textContent = date ? `Synced for ${date}` : 'Synced from activity feed';
+          const steps = Number(row?.metadata?.steps ?? 0);
+          stepsEl.textContent = Number.isFinite(steps) ? steps.toLocaleString() : '0';
+          metaEl.textContent = formatUpdatedTime(row?.occurred_at);
+          setBattery(Number(row?.metadata?.battery_percent));
+          setLiveState('live');
         } catch (error) {
-          stepsEl.textContent = 'No Oura step sync yet.';
-          metaEl.textContent = 'Waiting for next scheduled sync.';
+          stepsEl.textContent = '—';
+          metaEl.textContent = 'Oura steps unavailable right now.';
+          setBattery(null);
+          setLiveState('offline');
         }
       }
 
