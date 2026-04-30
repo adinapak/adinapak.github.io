@@ -18,6 +18,7 @@ jobs:
           set -euo pipefail
 
           TODAY="$(date -u +%F)"
+          NOW_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
           ACTIVITY_RESPONSE_AND_STATUS="$(curl -sS \
             -w "\n%{http_code}" \
@@ -43,20 +44,23 @@ jobs:
 
           BODY="$(jq -nc \
             --arg date "$TODAY" \
+            --arg occurred_at "$NOW_UTC" \
             --arg body "${STEPS} steps" \
             --argjson steps "$STEPS" \
             '{
               source: "oura",
+              activity_date: $date,
               title: "Today’s steps",
               body: $body,
               icon: "steps",
+              occurred_at: $occurred_at,
               visibility: "public",
               metadata: { steps: $steps, date: $date }
             }')"
 
-          curl -fsS -X POST "${SUPABASE_URL}/rest/v1/activity_feed" \
+          curl -fsS -X POST "${SUPABASE_URL}/rest/v1/activity_feed?on_conflict=source,activity_date" \
             -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: resolution=merge-duplicates" \
+            -H "Prefer: resolution=merge-duplicates,return=representation" \
             -d "$BODY"
