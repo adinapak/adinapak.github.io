@@ -9,7 +9,7 @@ jobs:
   sync-oura:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch today's Oura steps and upsert to Supabase
+      - name: Fetch Oura daily activity and post to Supabase
         env:
           OURA_ACCESS_TOKEN: ${{ secrets.OURA_ACCESS_TOKEN }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -17,81 +17,93 @@ jobs:
         run: |
           set -euo pipefail
 
-          TODAY="$(date -u +%F)"
+          START_DATE="$(date -u -d "yesterday" +%F)"
+          END_DATE="$(date -u +%F)"
+          NOW_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
           ACTIVITY_RESPONSE_AND_STATUS="$(curl -sS \
             -w "\n%{http_code}" \
             -H "Authorization: Bearer ${OURA_ACCESS_TOKEN}" \
-            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${TODAY}&end_date=${TODAY}")"; then
-            echo "Oura daily_activity request failed before receiving a valid HTTP response."
-            echo "Response body (if any):"
-            cat "$ACTIVITY_RESPONSE_FILE"
-            exit 1
-          fi
-
-          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
-            echo "Oura daily_activity request failed with HTTP status: $ACTIVITY_STATUS"
-            echo "Response body:"
-            cat "$ACTIVITY_RESPONSE_FILE"
-            exit 1
-          fi
-
-          ACTIVITY_JSON="$(cat "$ACTIVITY_RESPONSE_FILE")"
-
-          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
-            echo "Oura daily_activity request failed with HTTP status: $ACTIVITY_STATUS"
-            echo "Response body:"
-            cat "$ACTIVITY_RESPONSE_FILE"
-            rm -f "$ACTIVITY_RESPONSE_FILE"
-            exit 1
-          fi
-
-          ACTIVITY_JSON="$(cat "$ACTIVITY_RESPONSE_FILE")"
-          rm -f "$ACTIVITY_RESPONSE_FILE"
+            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${START_DATE}&end_date=${END_DATE}")"
 
           ACTIVITY_STATUS="${ACTIVITY_RESPONSE_AND_STATUS##*$'\n'}"
           ACTIVITY_JSON="${ACTIVITY_RESPONSE_AND_STATUS%$'\n'*}"
 
           if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
-            echo "Oura daily_activity request failed with HTTP status: $ACTIVITY_STATUS"
+            echo "Oura daily_activity request failed with HTTP status: ${ACTIVITY_STATUS}"
             echo "Response body:"
             printf '%s\n' "$ACTIVITY_JSON"
             exit 1
           fi
 
-          ACTIVITY_STATUS="${ACTIVITY_RESPONSE_AND_STATUS##*$'\n'}"
-          ACTIVITY_JSON="${ACTIVITY_RESPONSE_AND_STATUS%$'\n'*}"
+          SELECTED_ROW="$(printf '%s' "$ACTIVITY_JSON" | jq -c --arg end_date "$END_DATE" '
+            (.data // []) as $rows
+            | (
+                $rows
+                | map(
+                    . as $row
+                    | ._resolved_steps = (
+                        if (.steps | type) == "number" then .steps
+                        elif ((.contributors // {}) | has("steps")) and ((.contributors.steps | type) == "number") then .contributors.steps
+                        else null
+                        end
+                      )
+                  )
+              ) as $mapped
+            | (
+                $mapped
+                | map(select((.day // .date // "") == $end_date and (._resolved_steps != null) and (._resolved_steps > 0)))
+                | first
+              ) // (
+                $mapped
+                | map(select(._resolved_steps != null))
+                | last
+              ) // {}
+          ')"
 
-          if ! [[ "$ACTIVITY_STATUS" =~ ^2[0-9][0-9]$ ]]; then
-            echo "Oura daily_activity request failed with HTTP status: $ACTIVITY_STATUS"
-            echo "Response body:"
-            printf '%s\n' "$ACTIVITY_JSON"
-            exit 1
-          fi
-
-          STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r '.data[0].steps // 0')"
+          STEPS="$(printf '%s' "$SELECTED_ROW" | jq -r '._resolved_steps // 0')"
 
           if ! [[ "$STEPS" =~ ^[0-9]+$ ]]; then
             echo "Expected numeric step count, got: $STEPS"
             exit 1
           fi
 
+          if [[ "$STEPS" == "0" ]]; then
+            echo "Resolved Oura steps is 0. Debugging daily_activity response shape..."
+            echo "Input window: start_date=${START_DATE}, end_date=${END_DATE}"
+            echo "Per-row key summary:"
+            printf '%s' "$ACTIVITY_JSON" | jq -c '
+              (.data // [])
+              | map({
+                  day: (.day // .date // null),
+                  keys: (keys | sort),
+                  top_level_steps: (.steps // null),
+                  contributor_steps: (.contributors.steps // null)
+                })
+            '
+            echo "Selected row:"
+            printf '%s\n' "$SELECTED_ROW" | jq -c '. as $r | ($r | del(._resolved_steps)) + {resolved_steps: ($r._resolved_steps // 0)}'
+          fi
+
           BODY="$(jq -nc \
-            --arg date "$TODAY" \
+            --arg date "$END_DATE" \
+            --arg occurred_at "$NOW_UTC" \
             --arg body "${STEPS} steps" \
             --argjson steps "$STEPS" \
             '{
               source: "oura",
+              activity_date: $date,
               title: "Today’s steps",
               body: $body,
               icon: "steps",
+              occurred_at: $occurred_at,
               visibility: "public",
               metadata: { steps: $steps, date: $date }
             }')"
 
-          curl -fsS -X POST "${SUPABASE_URL}/rest/v1/activity_feed" \
+          curl -fsS -X POST "${SUPABASE_URL}/rest/v1/activity_feed?on_conflict=source,activity_date" \
             -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: resolution=merge-duplicates" \
+            -H "Prefer: resolution=merge-duplicates,return=representation" \
             -d "$BODY"
