@@ -358,11 +358,6 @@
       gap: 6px;
     }
 
-    .dj-widget.paused .dj-love-btn,
-    .dj-widget.idle .dj-love-btn {
-      display: none;
-    }
-
     .dj-love-btn,
     .dj-login-btn,
     .dj-queue-btn {
@@ -848,8 +843,8 @@
       </div>
 
       <div class="dj-actions">
-        <button id="dj-love-btn" class="dj-love-btn" type="button">I love it!</button>
-        <button id="dj-login-btn" class="dj-login-btn" type="button">Add to Queue</button>
+        <a id="dj-library-btn" class="dj-love-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">My Library</a>
+        <a id="dj-play-btn" class="dj-login-btn" href="updates.html#spotify">Play Music!</a>
       </div>
     </div>
 
@@ -861,13 +856,6 @@
     </div>
 
     <p id="dj-status" class="dj-status" role="status"></p>
-
-    <div class="queue-master">
-      <div class="spotify-links">
-        <a id="spotify-library-link" class="dj-queue-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">My Library!</a>
-        <a id="spotify-play-link" class="dj-queue-btn" href="updates.html#spotify">Play Music!</a>
-      </div>
-    </div>
   </section>
 
   <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
@@ -1038,8 +1026,6 @@
       const progressEl = document.getElementById('dj-progress');
       const elapsedEl = document.getElementById('dj-elapsed');
       const durationEl = document.getElementById('dj-duration');
-      const loveBtnEl = document.getElementById('dj-love-btn');
-      const loginBtnEl = document.getElementById('dj-login-btn');
       const statusEl = document.getElementById('dj-status');
       const surpriseOverlay = document.getElementById('surpriseOverlay');
       const widgetEl = document.querySelector('.dj-widget');
@@ -1077,51 +1063,18 @@
       let lastTapAt = 0;
       let lastLivePlaybackAt = 0;
       let searchDebounce = null;
-      let likedTrackId = '';
 
       const pendingQueuedTrackIds = new Set();
 
       const SPOTIFY_PROFILE_IMAGE = "/assets/adina-spotify-profile.png";
-      const SPOTIFY_PROFILE_URL = "https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93";
-      const spotifyLibraryLinkEl = document.getElementById('spotify-library-link');
-      const spotifyPlayLinkEl = document.getElementById('spotify-play-link');
+      const spotifyLibraryLinkEl = document.getElementById('dj-library-btn');
+      const spotifyPlayLinkEl = document.getElementById('dj-play-btn');
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       function setStatus(message) {
         statusEl.textContent = message || '';
       }
 
-      function setLoveButtonLikedState() {
-        loveBtnEl.classList.add('liked');
-        loveBtnEl.textContent = 'Added to Liked Songs';
-      }
-
-      function resetLoveButton() {
-        loveBtnEl.classList.remove('liked');
-        loveBtnEl.textContent = 'I love it!';
-      }
-
-      function renderLoveButton() {
-        const isLikedCurrentTrack = !!(likedTrackId && currentTrack?.id && likedTrackId === currentTrack.id);
-
-        if (isLikedCurrentTrack) {
-          setLoveButtonLikedState();
-          return;
-        }
-
-        resetLoveButton();
-      }
-
-      function showFloatingHeartAnimation() {
-        const heartEl = document.createElement('span');
-        heartEl.className = 'heart-flutter';
-        heartEl.textContent = '💗';
-        loveBtnEl.appendChild(heartEl);
-
-        window.setTimeout(() => {
-          heartEl.remove();
-        }, 780);
-      }
 
       function formatMs(ms) {
         const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
@@ -1160,7 +1113,6 @@
         progressMs = 0;
         durationMs = 1;
         currentTrack = null;
-        likedTrackId = '';
 
         widgetEl.classList.add('idle');
         widgetEl.classList.remove('paused');
@@ -1170,11 +1122,8 @@
         albumArtEl.hidden = false;
         albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
 
-        loginBtnEl.textContent = "My Spotify Library!";
-        loginBtnEl.classList.add('library-mode');
 
         renderProgress();
-        renderLoveButton();
       }
 
       function randomString(length) {
@@ -1532,8 +1481,6 @@
           }
         }
 
-        loginBtnEl.textContent = 'Queued ✓';
-        loginBtnEl.disabled = true;
         setStatus('');
 
         (async function () {
@@ -1556,16 +1503,6 @@
           }
         })();
       }
-
-      async function saveTrackToLikedSongs(trackId) {
-        const accessToken = await refreshSpotifyTokenIfNeeded();
-
-        if (!accessToken) {
-          const authError = new Error('Spotify login required.');
-          authError.code = 'NO_AUTH';
-          throw authError;
-        }
-
         const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${encodeURIComponent(trackId)}`, {
           method: 'PUT',
           headers: {
@@ -1594,41 +1531,6 @@
         throw err;
       }
 
-      async function likeCurrentTrack() {
-        if (!currentTrack?.id) {
-          setStatus('No active track to like right now.');
-          return;
-        }
-
-        const trackId = currentTrack.id;
-
-        likedTrackId = trackId;
-        setLoveButtonLikedState();
-        showFloatingHeartAnimation();
-        setStatus('Added to Liked Songs.');
-        loveBtnEl.disabled = true;
-
-        try {
-          await saveTrackToLikedSongs(trackId);
-        } catch (error) {
-          const message = String(error?.message || '').toLowerCase();
-          const reason = String(error?.reason || '').toLowerCase();
-          const isAuthScopeError = error?.code === 'NO_AUTH' || error?.code === 401 || error?.code === 403 || reason.includes('insufficient_scope') || message.includes('insufficient client scope') || message.includes('insufficient scope');
-
-          if (isAuthScopeError) {
-            if (error?.code === 401 || error?.code === 403 || reason.includes('insufficient_scope') || message.includes('insufficient client scope') || message.includes('insufficient scope')) {
-              clearSpotifyToken();
-            }
-
-            await beginSpotifyAuth();
-            return;
-          }
-
-          console.warn('Liked songs request failed silently.', error);
-        } finally {
-          loveBtnEl.disabled = false;
-        }
-      }
 
       async function fetchNowPlaying() {
         try {
@@ -1649,29 +1551,18 @@
           isPlaying = !!data.is_playing;
           progressMs = Number(data.progress_ms || 0);
           durationMs = Number(data.duration_ms || 1);
-
-          const previousTrackId = currentTrack?.id || '';
-
           currentTrack = {
             id: data.track.id || '',
             uri: data.track.uri || '',
             name: data.track.name || ''
           };
 
-          if (!currentTrack.id || currentTrack.id !== previousTrackId) {
-            if (!currentTrack.id || currentTrack.id !== likedTrackId) {
-              likedTrackId = '';
-            }
           }
 
-          renderLoveButton();
 
           if (isPlaying) {
             lastLivePlaybackAt = Date.now();
             widgetEl.classList.remove('paused', 'idle');
-
-            loginBtnEl.textContent = 'Add to Queue';
-            loginBtnEl.classList.remove('library-mode');
 
             trackEl.textContent = data.track.name || 'Unknown track';
             artistEl.textContent = data.track.artist || '';
@@ -1870,19 +1761,6 @@
           pendingQueuedTrackIds.delete(trackId);
         }
       }
-
-      loginBtnEl.addEventListener('click', function () {
-        if (loginBtnEl.classList.contains('library-mode')) {
-          window.open(SPOTIFY_PROFILE_URL, '_blank', 'noopener,noreferrer');
-          return;
-        }
-
-        withSpotifyAuth(queueCurrentTrack);
-      });
-
-      loveBtnEl.addEventListener('click', function () {
-        likeCurrentTrack();
-      });
 
       function navigateAnchor(anchorEl) {
         if (!anchorEl) return;
