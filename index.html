@@ -860,22 +860,22 @@
   <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
     <div class="oura-header">
       <div class="oura-brand">
-        <p class="oura-label">Wrapped around my finger...</p>
+  <p class="oura-label" style="font-style: normal;">Wrapped around my finger...</p>
       </div>
     </div>
     <div class="oura-main">
       <div class="oura-metrics">
         <div class="oura-metric">
-        <p id="oura-steps-value" class="oura-steps-value">—</p>
-        <p class="oura-steps-label">steps today</p>
+  <p id="oura-steps-value" class="oura-steps-value" style="font-style: normal;">—</p>
+          <p class="oura-steps-label">steps today</p>
         </div>
         <div class="oura-metric">
-          <p id="oura-747s-value" class="oura-steps-value">—</p>
-          <p class="oura-steps-label">747s traversed</p>
+<p id="oura-747s-value" class="oura-steps-value" style="font-style: normal;">—</p>
+          <p class="oura-steps-label">Boeing 747 Laps</p>
         </div>
         <div class="oura-metric">
-          <p id="oura-force-value" class="oura-steps-value">—</p>
-          <p class="oura-steps-label">step-weight force</p>
+<p id="oura-force-value" class="oura-steps-value" style="font-style: normal;">—</p>
+          <p class="oura-steps-label">N of Step-Force</p>
         </div>
       </div>
     </div>
@@ -977,9 +977,9 @@
       }
 
       function formatCumulativeForce(forceNewtons) {
-        if (forceNewtons < 1000) return `${Math.round(forceNewtons)} N`;
-        if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k N`;
-        return `${(forceNewtons / 1000000).toFixed(1)}M N`;
+        if (forceNewtons < 1000) return `${Math.round(forceNewtons)}`;
+        if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k`;
+        return `${(forceNewtons / 1000000).toFixed(1)}M`;
       }
 
       async function loadOuraSteps() {
