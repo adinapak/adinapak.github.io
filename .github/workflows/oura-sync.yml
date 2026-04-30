@@ -1,0 +1,63 @@
+name: Oura Step Sync
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-oura:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install curl and jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Refresh Oura token
+        id: token
+        run: |
+          RESPONSE=$(curl -s -X POST https://api.ouraring.com/oauth/token \
+            -u "${OURA_CLIENT_ID}:${OURA_CLIENT_SECRET}" \
+            -d grant_type=refresh_token \
+            -d refresh_token=${OURA_REFRESH_TOKEN})
+          echo "$RESPONSE" > token.json
+          ACCESS_TOKEN=$(jq -r '.access_token' token.json)
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+        env:
+          OURA_CLIENT_ID: ${{ secrets.OURA_CLIENT_ID }}
+          OURA_CLIENT_SECRET: ${{ secrets.OURA_CLIENT_SECRET }}
+          OURA_REFRESH_TOKEN: ${{ secrets.OURA_REFRESH_TOKEN }}
+
+      - name: Fetch steps
+        id: steps
+        run: |
+          TODAY=$(date +%F)
+          RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://api.ouraring.com/v2/usercollection/daily_activity?start_date=$TODAY&end_date=$TODAY")
+          echo "$RESPONSE" > activity.json
+          STEPS=$(jq -r '.data[0].steps' activity.json)
+          echo "steps=$STEPS" >> $GITHUB_OUTPUT
+
+        env:
+          ACCESS_TOKEN: ${{ steps.token.outputs.access_token }}
+
+      - name: Upsert to Supabase
+        run: |
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          BODY=$(printf '{"source":"oura","title":"Today''s steps","body":"%s steps","icon":"steps","visibility":"public","metadata":{"steps":%s,"date":"%s"}}' "$STEPS" "$STEPS" "$TODAY")
+
+          curl -s -X POST "$SUPABASE_URL/rest/v1/activity_feed" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: resolution=merge-duplicates" \
+            -d "$BODY"
+
+        env:
+          STEPS: ${{ steps.steps.outputs.steps }}
+          TODAY: $(date +%F)
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
