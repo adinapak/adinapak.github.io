@@ -460,6 +460,8 @@
       border-top: 1px dashed #d9d9d9;
       padding-top: 0.9rem;
     }
+    .spotify-links { display:flex; gap:0.45rem; flex-wrap:wrap; }
+    .spotify-links a { text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
 
     .queue-master p {
       margin: 0 0 0.6rem;
@@ -832,26 +834,9 @@
     <p id="dj-status" class="dj-status" role="status"></p>
 
     <div class="queue-master">
-      <h4>Control your own queue here!</h4>
-      <p>Login then enter your songs below to add to your queue...or tune in to mine!</p>
-
-      <div class="queue-master-controls">
-        <div class="queue-master-input-row">
-          <button id="queue-login-btn" class="dj-queue-btn queue-master-connect-btn" type="button">
-            <span class="queue-master-connect-icon" aria-hidden="true">◉</span>
-            <span id="queue-login-label">Connect Spotify</span>
-          </button>
-
-          <input id="queue-search-input" class="queue-master-input" type="search" placeholder="Search any song" aria-label="Search songs to queue">
-          <button id="queue-search-btn" class="dj-love-btn" type="button">Search</button>
-        </div>
-
-        <div id="queue-results" class="queue-master-results" aria-live="polite"></div>
-
-        <div class="queue-list">
-          <h4>Your queue</h4>
-          <div id="user-queue-results" class="queue-master-results" aria-live="polite"></div>
-        </div>
+      <div class="spotify-links">
+        <a class="dj-queue-btn" href="https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93" target="_blank" rel="noreferrer noopener">Follow me</a>
+        <a class="dj-queue-btn" href="updates.html#spotify">Tune in!</a>
       </div>
     </div>
   </section>
@@ -861,7 +846,6 @@
       <div class="oura-brand">
         <p class="oura-label">data from: Oura</p>
       </div>
-      <span id="oura-live-status" class="oura-live"><span id="oura-live-dot" class="oura-live-dot loading" aria-hidden="true"></span><span id="oura-live-text">loading</span></span>
     </div>
     <div class="oura-main">
       <div>
@@ -953,24 +937,9 @@
     (function () {
       const stepsEl = document.getElementById('oura-steps-value');
       const metaEl = document.getElementById('oura-steps-meta');
-      const liveDotEl = document.getElementById('oura-live-dot');
-      const liveTextEl = document.getElementById('oura-live-text');
-      if (!stepsEl || !metaEl || !liveDotEl || !liveTextEl) return;
+      if (!stepsEl || !metaEl) return;
 
-      function setLiveState(state) {
-        liveDotEl.classList.remove('loading', 'offline');
-        if (state === 'loading') {
-          liveDotEl.classList.add('loading');
-          liveTextEl.textContent = 'loading';
-          return;
-        }
-        if (state === 'offline') {
-          liveDotEl.classList.add('offline');
-          liveTextEl.textContent = 'offline';
-          return;
-        }
-        liveTextEl.textContent = 'live';
-      }
+      function setLiveState() {}
 
       function formatUpdatedTime(occurredAt) {
         if (!occurredAt) return 'last updated just now';
@@ -1051,6 +1020,7 @@
       const queueLoginLabel = document.getElementById('queue-login-label');
       const queueResultsEl = document.getElementById('queue-results');
       const userQueueResultsEl = document.getElementById('user-queue-results');
+      const queueUiEnabled = Boolean(queueSearchInput && queueSearchBtn && queueLoginBtn && queueLoginLabel && queueResultsEl && userQueueResultsEl);
 
       const SPOTIFY_TOKEN_KEY = 'spotifyUserTokenV2';
       const SPOTIFY_PROFILE_KEY = 'spotifyUserProfileV1';
@@ -1253,6 +1223,7 @@
       }
 
       function updateAuthUi() {
+        if (!queueUiEnabled) return;
         const token = loadSpotifyToken();
         queueLoginLabel.textContent = token ? 'Connected ✓' : 'Connect Spotify';
         queueLoginBtn.classList.toggle('connected', !!token);
@@ -1738,6 +1709,7 @@
       }
 
       function renderSearchResults(items) {
+        if (!queueUiEnabled) return;
         if (!items.length) {
           queueResultsEl.innerHTML = '';
           return;
@@ -1764,6 +1736,7 @@
       }
 
       function renderUserQueue(items) {
+        if (!queueUiEnabled) return;
         if (!items.length) {
           userQueueResultsEl.innerHTML = '';
           return;
@@ -1787,6 +1760,7 @@
       }
 
       async function searchTracks() {
+        if (!queueUiEnabled) return;
         const query = queueSearchInput.value.trim();
 
         if (!query) {
@@ -1802,6 +1776,7 @@
       }
 
       async function refreshUserQueue() {
+        if (!queueUiEnabled) return;
         await withSpotifyAuth(async () => {
           const res = await spotifyApi('/v1/me/player/queue');
           renderUserQueue(res?.queue || []);
@@ -1809,6 +1784,7 @@
       }
 
       async function queueTrackId(trackId) {
+        if (!queueUiEnabled) return;
         if (!trackId || pendingQueuedTrackIds.has(trackId)) return;
 
         pendingQueuedTrackIds.add(trackId);
@@ -1876,39 +1852,41 @@
         likeCurrentTrack();
       });
 
-      queueSearchBtn.addEventListener('click', function () {
-        searchTracks();
-      });
-
-      queueLoginBtn.addEventListener('click', function () {
-        withSpotifyAuth(async function () {
-          updateAuthUi();
-          await refreshUserQueue();
-          setStatus('Spotify connected. You can stay right here and queue songs.');
-        });
-      });
-
-      queueSearchInput.addEventListener('input', function () {
-        clearTimeout(searchDebounce);
-
-        searchDebounce = setTimeout(function () {
-          if (!queueSearchInput.value.trim()) renderSearchResults([]);
-        }, 220);
-      });
-
-      queueSearchInput.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
+      if (queueUiEnabled) {
+        queueSearchBtn.addEventListener('click', function () {
           searchTracks();
-        }
-      });
+        });
 
-      queueResultsEl.addEventListener('click', function (event) {
-        const button = event.target.closest('button[data-track-id]');
-        if (!button) return;
+        queueLoginBtn.addEventListener('click', function () {
+          withSpotifyAuth(async function () {
+            updateAuthUi();
+            await refreshUserQueue();
+            setStatus('Spotify connected. You can stay right here and queue songs.');
+          });
+        });
 
-        queueTrackId(button.getAttribute('data-track-id'));
-      });
+        queueSearchInput.addEventListener('input', function () {
+          clearTimeout(searchDebounce);
+
+          searchDebounce = setTimeout(function () {
+            if (!queueSearchInput.value.trim()) renderSearchResults([]);
+          }, 220);
+        });
+
+        queueSearchInput.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            searchTracks();
+          }
+        });
+
+        queueResultsEl.addEventListener('click', function (event) {
+          const button = event.target.closest('button[data-track-id]');
+          if (!button) return;
+
+          queueTrackId(button.getAttribute('data-track-id'));
+        });
+      }
 
       bindAlbumInteractions();
 
