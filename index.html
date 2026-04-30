@@ -1500,7 +1500,7 @@
       }
 
       async function queueCurrentTrack() {
-        if (!currentTrack?.uri) return;
+        if (!queueUiEnabled || !currentTrack?.uri) return;
 
         const trackId = currentTrack.id || '';
 
@@ -1549,6 +1549,16 @@
           }
         })();
       }
+
+      async function saveTrackToLikedSongs(trackId) {
+        const accessToken = await refreshSpotifyTokenIfNeeded();
+
+        if (!accessToken) {
+          const authError = new Error('Spotify login required.');
+          authError.code = 'NO_AUTH';
+          throw authError;
+        }
+
         const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${encodeURIComponent(trackId)}`, {
           method: 'PUT',
           headers: {
@@ -1576,7 +1586,6 @@
         err.reason = reason;
         throw err;
       }
-
 
       async function fetchNowPlaying() {
         try {
