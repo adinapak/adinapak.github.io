@@ -652,6 +652,16 @@
       box-shadow: 0 0 0 3px rgba(53, 198, 106, 0.14);
     }
 
+    .oura-live-dot.loading {
+      background: #929292;
+      box-shadow: 0 0 0 3px rgba(146, 146, 146, 0.14);
+    }
+
+    .oura-live-dot.offline {
+      background: #d06d6d;
+      box-shadow: 0 0 0 3px rgba(208, 109, 109, 0.14);
+    }
+
     .oura-steps-value {
       margin: 0;
       font-size: clamp(1.9rem, 5vw, 2.3rem);
@@ -904,7 +914,7 @@
         <span class="oura-ring" aria-hidden="true"></span>
         <p class="oura-label">data from: Oura</p>
       </div>
-      <span class="oura-live"><span class="oura-live-dot" aria-hidden="true"></span>live</span>
+      <span id="oura-live-status" class="oura-live"><span id="oura-live-dot" class="oura-live-dot loading" aria-hidden="true"></span><span id="oura-live-text">loading</span></span>
     </div>
     <div class="oura-main">
       <div>
@@ -1005,7 +1015,24 @@
       const batteryEl = document.getElementById('oura-battery');
       const batteryFillEl = document.getElementById('oura-battery-fill');
       const batteryTextEl = document.getElementById('oura-battery-text');
-      if (!stepsEl || !metaEl || !batteryEl || !batteryFillEl || !batteryTextEl) return;
+      const liveDotEl = document.getElementById('oura-live-dot');
+      const liveTextEl = document.getElementById('oura-live-text');
+      if (!stepsEl || !metaEl || !batteryEl || !batteryFillEl || !batteryTextEl || !liveDotEl || !liveTextEl) return;
+
+      function setLiveState(state) {
+        liveDotEl.classList.remove('loading', 'offline');
+        if (state === 'loading') {
+          liveDotEl.classList.add('loading');
+          liveTextEl.textContent = 'loading';
+          return;
+        }
+        if (state === 'offline') {
+          liveDotEl.classList.add('offline');
+          liveTextEl.textContent = 'offline';
+          return;
+        }
+        liveTextEl.textContent = 'live';
+      }
 
       function setBattery(percent) {
         batteryEl.classList.remove('show', 'high', 'medium', 'low');
@@ -1034,10 +1061,12 @@
         stepsEl.textContent = 'Loading…';
         metaEl.textContent = 'Loading latest step sync…';
         setBattery(null);
+        setLiveState('loading');
 
         if (!url || !anon) {
           stepsEl.textContent = '—';
           metaEl.textContent = 'Supabase client config missing.';
+          setLiveState('offline');
           return;
         }
 
@@ -1058,6 +1087,7 @@
           if (!row) {
             stepsEl.textContent = '—';
             metaEl.textContent = 'No Oura step data yet.';
+            setLiveState('offline');
             return;
           }
 
@@ -1065,10 +1095,12 @@
           stepsEl.textContent = Number.isFinite(steps) ? steps.toLocaleString() : '0';
           metaEl.textContent = formatUpdatedTime(row?.occurred_at);
           setBattery(Number(row?.metadata?.battery_percent));
+          setLiveState('live');
         } catch (error) {
           stepsEl.textContent = '—';
           metaEl.textContent = 'Oura steps unavailable right now.';
           setBattery(null);
+          setLiveState('offline');
         }
       }
 
