@@ -657,36 +657,27 @@
 
     .oura-label {
       margin: 0;
-      font-size: 0.74rem;
-      color: #666;
-      letter-spacing: 0.08em;
+      font-size: 0.72rem;
+      color: #999;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
+      font-weight: 400;
     }
 
-    .oura-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.68rem;
-      color: #666;
+    .oura-main {
+      justify-content: flex-start;
     }
 
-    .oura-live-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #35c66a;
-      box-shadow: 0 0 0 3px rgba(53, 198, 106, 0.14);
+    .oura-metrics {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem 1.2rem;
     }
 
-    .oura-live-dot.loading {
-      background: #929292;
-      box-shadow: 0 0 0 3px rgba(146, 146, 146, 0.14);
-    }
-
-    .oura-live-dot.offline {
-      background: #d06d6d;
-      box-shadow: 0 0 0 3px rgba(208, 109, 109, 0.14);
+    .oura-metric {
+      flex: 1 1 150px;
+      min-width: 0;
     }
 
     .oura-steps-value {
@@ -704,6 +695,7 @@
       color: #666;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      font-style: italic;
     }
 
     .oura-steps-meta {
@@ -868,13 +860,23 @@
   <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
     <div class="oura-header">
       <div class="oura-brand">
-        <p class="oura-label">data from: Oura</p>
+        <p class="oura-label">Wrapped around my finger...</p>
       </div>
     </div>
     <div class="oura-main">
-      <div>
+      <div class="oura-metrics">
+        <div class="oura-metric">
         <p id="oura-steps-value" class="oura-steps-value">—</p>
         <p class="oura-steps-label">steps today</p>
+        </div>
+        <div class="oura-metric">
+          <p id="oura-747s-value" class="oura-steps-value">—</p>
+          <p class="oura-steps-label">747s traversed</p>
+        </div>
+        <div class="oura-metric">
+          <p id="oura-force-value" class="oura-steps-value">—</p>
+          <p class="oura-steps-label">step-weight force</p>
+        </div>
       </div>
     </div>
     <p id="oura-steps-meta" class="oura-steps-meta">Loading latest step sync…</p>
@@ -960,16 +962,24 @@
   <script>
     (function () {
       const stepsEl = document.getElementById('oura-steps-value');
+      const traversedEl = document.getElementById('oura-747s-value');
+      const forceEl = document.getElementById('oura-force-value');
       const metaEl = document.getElementById('oura-steps-meta');
-      if (!stepsEl || !metaEl) return;
+      if (!stepsEl || !traversedEl || !forceEl || !metaEl) return;
 
       function setLiveState() {}
 
       function formatUpdatedTime(occurredAt) {
-        if (!occurredAt) return 'last updated just now';
+        if (!occurredAt) return 'Pedometry via Oura · last updated just now';
         const date = new Date(occurredAt);
-        if (Number.isNaN(date.getTime())) return 'last updated recently';
-        return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+        if (Number.isNaN(date.getTime())) return 'Pedometry via Oura · last updated recently';
+        return `Pedometry via Oura · last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+      }
+
+      function formatCumulativeForce(forceNewtons) {
+        if (forceNewtons < 1000) return `${Math.round(forceNewtons)} N`;
+        if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k N`;
+        return `${(forceNewtons / 1000000).toFixed(1)}M N`;
       }
 
       async function loadOuraSteps() {
@@ -982,6 +992,8 @@
 
         if (!url || !anon) {
           stepsEl.textContent = '—';
+          traversedEl.textContent = '—';
+          forceEl.textContent = '—';
           metaEl.textContent = 'Supabase client config missing.';
           setLiveState('offline');
           return;
@@ -1003,17 +1015,26 @@
           const row = Array.isArray(rows) ? rows[0] : null;
           if (!row) {
             stepsEl.textContent = '—';
+            traversedEl.textContent = '—';
+            forceEl.textContent = '—';
             metaEl.textContent = 'No Oura step data yet.';
             setLiveState('offline');
             return;
           }
 
           const steps = Number(row?.metadata?.steps ?? 0);
-          stepsEl.textContent = Number.isFinite(steps) ? steps.toLocaleString() : '0';
+          const safeSteps = Number.isFinite(steps) ? steps : 0;
+          const traversed747 = (safeSteps * 0.00047 * 5280) / 231;
+          const cumulativeForce = safeSteps * 511;
+          stepsEl.textContent = safeSteps.toLocaleString();
+          traversedEl.textContent = traversed747.toFixed(1);
+          forceEl.textContent = formatCumulativeForce(cumulativeForce);
           metaEl.textContent = formatUpdatedTime(row?.occurred_at);
           setLiveState('live');
         } catch (error) {
           stepsEl.textContent = '—';
+          traversedEl.textContent = '—';
+          forceEl.textContent = '—';
           metaEl.textContent = 'Oura steps unavailable right now.';
           setLiveState('offline');
         }
