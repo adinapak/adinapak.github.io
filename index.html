@@ -591,14 +591,17 @@
 
 
     .oura-widget {
-      margin: 0.95rem auto 0;
+      margin: 14px auto 0;
       max-width: 560px;
-      background: rgba(255, 255, 255, 0.76);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 14px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-      padding: 1rem 1.1rem 0.95rem;
-      backdrop-filter: blur(4px);
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+      padding: 16px 20px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .oura-header,
@@ -613,19 +616,10 @@
       margin-bottom: 0.7rem;
     }
 
+
     .oura-brand {
       display: flex;
       align-items: center;
-      gap: 0.55rem;
-    }
-
-    .oura-ring {
-      width: 14px;
-      height: 14px;
-      border: 2px solid #111;
-      border-radius: 50%;
-      box-sizing: border-box;
-      opacity: 0.85;
     }
 
     .oura-label {
@@ -685,52 +679,6 @@
       color: #666;
     }
 
-    .oura-battery {
-      display: none;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.72rem;
-      color: #666;
-      white-space: nowrap;
-    }
-
-    .oura-battery.show {
-      display: inline-flex;
-    }
-
-    .oura-battery-bar {
-      width: 26px;
-      height: 12px;
-      border: 1px solid #777;
-      border-radius: 3px;
-      position: relative;
-      box-sizing: border-box;
-      padding: 1px;
-      background: #fff;
-    }
-
-    .oura-battery-bar::after {
-      content: "";
-      position: absolute;
-      top: 3px;
-      right: -3px;
-      width: 2px;
-      height: 4px;
-      border-radius: 1px;
-      background: #777;
-    }
-
-    .oura-battery-fill {
-      display: block;
-      height: 100%;
-      border-radius: 2px;
-      width: 0%;
-      background: #7fbf84;
-    }
-
-    .oura-battery.high .oura-battery-fill { background: #6bbf75; }
-    .oura-battery.medium .oura-battery-fill { background: #e3b14f; }
-    .oura-battery.low .oura-battery-fill { background: #dc6a6a; }
 
     .site-footer {
       margin: 40px 0 0;
@@ -911,7 +859,6 @@
   <section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
     <div class="oura-header">
       <div class="oura-brand">
-        <span class="oura-ring" aria-hidden="true"></span>
         <p class="oura-label">data from: Oura</p>
       </div>
       <span id="oura-live-status" class="oura-live"><span id="oura-live-dot" class="oura-live-dot loading" aria-hidden="true"></span><span id="oura-live-text">loading</span></span>
@@ -920,12 +867,6 @@
       <div>
         <p id="oura-steps-value" class="oura-steps-value">—</p>
         <p class="oura-steps-label">steps today</p>
-      </div>
-      <div id="oura-battery" class="oura-battery" aria-label="Oura battery level">
-        <span class="oura-battery-bar" aria-hidden="true">
-          <span id="oura-battery-fill" class="oura-battery-fill"></span>
-        </span>
-        <span id="oura-battery-text"></span>
       </div>
     </div>
     <p id="oura-steps-meta" class="oura-steps-meta">Loading latest step sync…</p>
@@ -1012,12 +953,9 @@
     (function () {
       const stepsEl = document.getElementById('oura-steps-value');
       const metaEl = document.getElementById('oura-steps-meta');
-      const batteryEl = document.getElementById('oura-battery');
-      const batteryFillEl = document.getElementById('oura-battery-fill');
-      const batteryTextEl = document.getElementById('oura-battery-text');
       const liveDotEl = document.getElementById('oura-live-dot');
       const liveTextEl = document.getElementById('oura-live-text');
-      if (!stepsEl || !metaEl || !batteryEl || !batteryFillEl || !batteryTextEl || !liveDotEl || !liveTextEl) return;
+      if (!stepsEl || !metaEl || !liveDotEl || !liveTextEl) return;
 
       function setLiveState(state) {
         liveDotEl.classList.remove('loading', 'offline');
@@ -1034,19 +972,6 @@
         liveTextEl.textContent = 'live';
       }
 
-      function setBattery(percent) {
-        batteryEl.classList.remove('show', 'high', 'medium', 'low');
-        batteryFillEl.style.width = '0%';
-        batteryTextEl.textContent = '';
-
-        if (!Number.isFinite(percent)) return;
-        const clamped = Math.max(0, Math.min(100, Math.round(percent)));
-        const level = clamped >= 67 ? 'high' : clamped >= 34 ? 'medium' : 'low';
-        batteryEl.classList.add('show', level);
-        batteryFillEl.style.width = `${clamped}%`;
-        batteryTextEl.textContent = `${clamped}%`;
-      }
-
       function formatUpdatedTime(occurredAt) {
         if (!occurredAt) return 'last updated just now';
         const date = new Date(occurredAt);
@@ -1060,7 +985,6 @@
 
         stepsEl.textContent = 'Loading…';
         metaEl.textContent = 'Loading latest step sync…';
-        setBattery(null);
         setLiveState('loading');
 
         if (!url || !anon) {
@@ -1094,12 +1018,10 @@
           const steps = Number(row?.metadata?.steps ?? 0);
           stepsEl.textContent = Number.isFinite(steps) ? steps.toLocaleString() : '0';
           metaEl.textContent = formatUpdatedTime(row?.occurred_at);
-          setBattery(Number(row?.metadata?.battery_percent));
           setLiveState('live');
         } catch (error) {
           stepsEl.textContent = '—';
           metaEl.textContent = 'Oura steps unavailable right now.';
-          setBattery(null);
           setLiveState('offline');
         }
       }
