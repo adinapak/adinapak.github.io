@@ -844,7 +844,8 @@ Date notes
 <h3>On my airwaves!</h3>
 
 <div class="dj-now-playing">
-<button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Open in Spotify"><img id="dj-album-art" class="dj-cover" alt="Current album art" src="/assets/adina-spotify-profile.png">
+<button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Open current track on Spotify">
+  
 </button>
 
 <div class="dj-track-wrap">
@@ -1061,7 +1062,7 @@ loadOuraSteps();
 })();
 </script>
 
-<script>
+  <script>
   (function () {
     const albumArtEl = document.getElementById('dj-album-art');
     const albumBtnEl = document.getElementById('dj-album-btn');
@@ -1084,21 +1085,12 @@ loadOuraSteps();
     let progressMs = 0;
     let durationMs = 1;
     let isPlaying = false;
-    let lastLivePlaybackAt = 0;
 
     function formatMs(ms) {
       const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       return `${minutes}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    function formatAway(ms) {
-      const minutes = Math.floor((ms || 0) / 60000);
-      const hours = Math.floor(minutes / 60);
-      const rem = minutes % 60;
-      if (hours > 0) return `${hours}h ${rem}m away`;
-      return `${Math.max(minutes, 0)}m away`;
     }
 
     function renderProgress() {
@@ -1112,7 +1104,7 @@ loadOuraSteps();
       statusEl.textContent = message || '';
     }
 
-    function setFallbackState() {
+    function setFallbackState(message) {
       isPlaying = false;
       progressMs = 0;
       durationMs = 1;
@@ -1128,68 +1120,45 @@ loadOuraSteps();
       albumArtEl.hidden = false;
       albumArtEl.src = SPOTIFY_PROFILE_IMAGE;
 
-      if (lastLivePlaybackAt) {
-        elapsedEl.textContent = formatAway(Date.now() - lastLivePlaybackAt);
-        durationEl.textContent = 'minutes since';
-        progressEl.max = 1;
-        progressEl.value = 0;
-      } else {
-        renderProgress();
-      }
-
-      setStatus('');
+      renderProgress();
+      setStatus(message || '');
     }
 
-    function getTrackUrl(item) {
-      return (
-        item?.external_urls?.spotify ||
-        item?.external_url ||
-        item?.spotify_url ||
-        item?.url ||
-        SPOTIFY_PROFILE_URL
-      );
+    function getTrackUrl(track) {
+      if (track?.uri && track.uri.startsWith('spotify:track:')) {
+        return `https://open.spotify.com/track/${track.uri.replace('spotify:track:', '')}`;
+      }
+
+      if (track?.id) {
+        return `https://open.spotify.com/track/${track.id}`;
+      }
+
+      return SPOTIFY_PROFILE_URL;
     }
 
     function renderNowPlaying(data) {
-      const item = data && typeof data === 'object' && data.item && typeof data.item === 'object'
-        ? data.item
+      const track = data && typeof data === 'object' && data.track && typeof data.track === 'object'
+        ? data.track
         : null;
 
-      const device = data && typeof data === 'object' && data.device && typeof data.device === 'object'
-        ? data.device
-        : null;
-
-      const hasActiveDevice = !device || Boolean(device.id || device.is_active);
-      const hasTrack = Boolean(item);
-      const playingFlag = data?.is_playing === true;
-
-      if (!playingFlag || !hasTrack || !hasActiveDevice) {
-        setFallbackState();
+      if (data?.is_playing !== true || !track) {
+        setFallbackState('');
         return;
       }
 
-      const artists = Array.isArray(item.artists) ? item.artists : [];
-      const images = Array.isArray(item.album?.images) ? item.album.images : [];
-
       progressMs = Number(data.progress_ms || 0);
-      durationMs = Number(item.duration_ms || 1);
+      durationMs = Number(data.duration_ms || 1);
       isPlaying = true;
-      lastLivePlaybackAt = Date.now();
-      currentTrackUrl = getTrackUrl(item);
+      currentTrackUrl = getTrackUrl(track);
 
       if (widgetEl) {
         widgetEl.classList.remove('paused', 'idle');
       }
 
-      trackEl.textContent = item.name || 'Unknown track';
-      artistEl.textContent = artists
-        .map((artist) => artist?.name)
-        .filter(Boolean)
-        .join(', ') || 'Unknown artist';
-
-      const albumArt = images[0]?.url || images[1]?.url || images[2]?.url || SPOTIFY_PROFILE_IMAGE;
+      trackEl.textContent = track.name || 'Unknown track';
+      artistEl.textContent = track.artist || 'Unknown artist';
       albumArtEl.hidden = false;
-      albumArtEl.src = albumArt;
+      albumArtEl.src = track.album_art_url || SPOTIFY_PROFILE_IMAGE;
 
       renderProgress();
       setStatus('');
@@ -1200,8 +1169,7 @@ loadOuraSteps();
         const response = await fetch('/api/now-playing', { cache: 'no-store' });
 
         if (!response.ok) {
-          setFallbackState();
-          setStatus('Unable to load playback right now.');
+          setFallbackState('Unable to load playback right now.');
           return;
         }
 
@@ -1209,8 +1177,7 @@ loadOuraSteps();
         renderNowPlaying(data);
       } catch (error) {
         console.error('Spotify now-playing request failed.', error);
-        setFallbackState();
-        setStatus('Unable to reach now playing endpoint.');
+        setFallbackState('Unable to reach now playing endpoint.');
       }
     }
 
@@ -1230,6 +1197,7 @@ loadOuraSteps();
     window.setInterval(fetchNowPlaying, 10000);
   })();
 </script>
+  
 
 </body>
 </html>
