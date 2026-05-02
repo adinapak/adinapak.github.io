@@ -1947,29 +1947,29 @@ margin: 0 0 28px;
       }
 
       function createAdditionProblem() {
-        const useHardRange = Math.random() < 0.35;
-        const a = randomInt(useHardRange ? 40 : 2, useHardRange ? 199 : 100);
-        const b = randomInt(useHardRange ? 40 : 2, useHardRange ? 199 : 100);
+        const a = randomInt(2, 100);
+        const b = randomInt(2, 100);
         return { text: `${a} + ${b} =`, answer: a + b };
       }
 
       function createSubtractionProblem() {
-        const answer = randomInt(2, 100);
-        const b = randomInt(2, 100);
-        const a = answer + b;
-        return { text: `${a} − ${b} =`, answer };
+        let a = randomInt(2, 100);
+        let b = randomInt(2, 100);
+        if (b > a) [a, b] = [b, a];
+        return { text: `${a} − ${b} =`, answer: a - b };
       }
 
       function createMultiplicationProblem() {
-        const useHardFactor = Math.random() < 0.25;
-        const a = randomInt(2, useHardFactor ? 20 : 12);
-        const b = randomInt(2, 100);
-        return { text: `${a} × ${b} =`, answer: a * b };
+        // Keep one factor small to mirror classic Zetamac pacing and avoid large×large products.
+        const small = randomInt(2, 12);
+        const large = randomInt(2, 100);
+        return { text: `${small} × ${large} =`, answer: small * large };
       }
 
       function createDivisionProblem() {
-        const divisor = randomInt(2, 12);
-        const answer = randomInt(2, 100);
+        // Generate from answer/divisor so division always has integer results like classic Zetamac.
+        const answer = randomInt(2, 12);
+        const divisor = randomInt(2, 100);
         const dividend = divisor * answer;
         return { text: `${dividend} ÷ ${divisor} =`, answer };
       }
