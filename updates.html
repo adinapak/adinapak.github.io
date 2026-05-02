@@ -2412,7 +2412,34 @@ margin: 0 0 28px;
       const ctx = canvas.getContext('2d');
       let latest = null;
       let motion = null;
-      let scene = { id: 'dream', label: 'dreamscape', source: 'fallback' };
+      const sceneMemoryCache = new Map();
+      const sceneStorageKey = 'synesthetic-scene-cache-v1';
+      const allowedSceneIds = new Set(['club', 'field', 'stage', 'lounge', 'dream']);
+      let scene = {
+        id: 'dream',
+        label: 'dreamscape',
+        source: 'deterministic fallback',
+        palette: ['#a78bfa', '#0f0f1a', '#e9ddff'],
+        lighting: 'glow',
+        motionMood: 'floaty'
+      };
+      function loadSceneStorageCache() {
+        try {
+          const raw = localStorage.getItem(sceneStorageKey);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') return;
+          Object.entries(parsed).forEach(function ([trackId, value]) {
+            if (trackId && value && typeof value === 'object') sceneMemoryCache.set(trackId, value);
+          });
+        } catch (error) {}
+      }
+      function saveSceneStorageCache() {
+        try {
+          const obj = Object.fromEntries(sceneMemoryCache.entries());
+          localStorage.setItem(sceneStorageKey, JSON.stringify(obj));
+        } catch (error) {}
+      }
       function hashTrackId(trackId) {
         let h = 2166136261;
         for (let i = 0; i < trackId.length; i += 1) { h ^= trackId.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -2431,13 +2458,13 @@ margin: 0 0 28px;
         const text = `${name} ${artist}`;
 
         if (text.includes('house') || text.includes('techno') || text.includes('club')) {
-          return { id: 'club', label: 'warehouse club', source: 'keyword' };
+          return { id: 'club', label: 'warehouse club', source: 'deterministic fallback', lighting: 'strobe', motionMood: 'elastic', palette: ['#141018', '#7d5fff', '#f6f1ff'] };
         }
         if (text.includes('country') || text.includes('road') || text.includes('cowboy')) {
-          return { id: 'field', label: 'open field', source: 'keyword' };
+          return { id: 'field', label: 'open field', source: 'deterministic fallback', lighting: 'sunwash', motionMood: 'swaying', palette: ['#8fd8ff', '#69c46f', '#f4ffd8'] };
         }
         if (text.includes('jazz') || text.includes('blues')) {
-          return { id: 'lounge', label: 'late-night lounge', source: 'keyword' };
+          return { id: 'lounge', label: 'late-night lounge', source: 'deterministic fallback', lighting: 'candle', motionMood: 'smooth', palette: ['#2c1a1a', '#0d0a0a', '#e6b17e'] };
         }
 
         const h = hash(id);
@@ -2449,28 +2476,77 @@ margin: 0 0 28px;
           { id: 'dream', label: 'dreamscape' }
         ];
         const inferred = scenes[h % scenes.length];
-        return { ...inferred, source: 'seeded metadata' };
+        const fallbackById = {
+          club: { lighting: 'strobe', motionMood: 'elastic', palette: ['#141018', '#7d5fff', '#f6f1ff'] },
+          field: { lighting: 'sunwash', motionMood: 'swaying', palette: ['#8fd8ff', '#69c46f', '#f4ffd8'] },
+          stage: { lighting: 'spotlight', motionMood: 'punchy', palette: ['#111111', '#ffe8a8', '#f6f1ff'] },
+          lounge: { lighting: 'candle', motionMood: 'smooth', palette: ['#2c1a1a', '#0d0a0a', '#e6b17e'] },
+          dream: { lighting: 'glow', motionMood: 'floaty', palette: ['#a78bfa', '#0f0f1a', '#e9ddff'] }
+        };
+        return { ...inferred, ...fallbackById[inferred.id], source: 'deterministic fallback' };
+      }
+      function sanitizeScenePayload(payload, source) {
+        if (!payload || typeof payload !== 'object') return null;
+        if (!allowedSceneIds.has(payload.sceneId)) return null;
+        const palette = Array.isArray(payload.palette) ? payload.palette.filter(function (c) { return typeof c === 'string'; }).slice(0, 3) : [];
+        if (palette.length < 2) return null;
+        return {
+          id: payload.sceneId,
+          label: String(payload.sceneLabel || payload.sceneId),
+          source,
+          palette,
+          lighting: String(payload.lighting || 'ambient'),
+          motionMood: String(payload.motionMood || 'steady')
+        };
+      }
+      async function maybeHydrateSceneFromLLM(track) {
+        const trackId = track?.id;
+        if (!trackId) return;
+        const cached = sceneMemoryCache.get(trackId);
+        if (cached) {
+          scene = cached;
+          return;
+        }
+        try {
+          const response = await fetch('/api/synesthetic-scene', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trackId: String(track.id || ''),
+              trackName: String(track.name || ''),
+              artist: String(track.artist || '')
+            })
+          });
+          if (!response.ok) return;
+          const payload = await response.json();
+          const inferred = sanitizeScenePayload(payload, 'LLM');
+          if (!inferred) return;
+          sceneMemoryCache.set(trackId, inferred);
+          saveSceneStorageCache();
+          if (latest?.track?.id === trackId) scene = inferred;
+        } catch (error) {}
       }
       function synDrawScene(renderCtx, currentScene, t, w, h) {
+        const palette = currentScene?.palette || ['#a78bfa', '#0f0f1a', '#e9ddff'];
         switch (currentScene.id) {
           case 'club':
-            renderCtx.fillStyle = '#0a0a0a';
+            renderCtx.fillStyle = palette[0] || '#0a0a0a';
             renderCtx.fillRect(0, 0, w, h);
             for (let i = 0; i < 5; i += 1) {
               const x = (i / 5) * w;
               const offset = Math.sin(t * 2 + i) * 20;
-              renderCtx.fillStyle = 'rgba(255,255,255,0.1)';
+              renderCtx.fillStyle = (currentScene.lighting === 'strobe') ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)';
               renderCtx.fillRect(x + offset, 0, 4, h);
             }
             break;
           case 'field':
-            renderCtx.fillStyle = '#87ceeb';
+            renderCtx.fillStyle = palette[0] || '#87ceeb';
             renderCtx.fillRect(0, 0, w, h / 2);
-            renderCtx.fillStyle = '#2e7d32';
+            renderCtx.fillStyle = palette[1] || '#2e7d32';
             renderCtx.fillRect(0, h / 2, w, h / 2);
             break;
           case 'stage':
-            renderCtx.fillStyle = '#111';
+            renderCtx.fillStyle = palette[0] || '#111';
             renderCtx.fillRect(0, 0, w, h);
             renderCtx.beginPath();
             renderCtx.moveTo((w / 2) - 40, 0);
@@ -2478,13 +2554,13 @@ margin: 0 0 28px;
             renderCtx.lineTo((w / 2) + 120, h);
             renderCtx.lineTo((w / 2) - 120, h);
             renderCtx.closePath();
-            renderCtx.fillStyle = 'rgba(255,255,200,0.15)';
+            renderCtx.fillStyle = (currentScene.lighting === 'spotlight') ? 'rgba(255,255,200,0.28)' : 'rgba(255,255,200,0.15)';
             renderCtx.fill();
             break;
           case 'lounge': {
             const grad = renderCtx.createLinearGradient(0, 0, 0, h);
-            grad.addColorStop(0, '#2c1a1a');
-            grad.addColorStop(1, '#0d0a0a');
+            grad.addColorStop(0, palette[0] || '#2c1a1a');
+            grad.addColorStop(1, palette[1] || '#0d0a0a');
             renderCtx.fillStyle = grad;
             renderCtx.fillRect(0, 0, w, h);
             break;
@@ -2492,8 +2568,8 @@ margin: 0 0 28px;
           case 'dream':
           default: {
             const grad = renderCtx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, w);
-            grad.addColorStop(0, '#a78bfa');
-            grad.addColorStop(1, '#0f0f1a');
+            grad.addColorStop(0, palette[0] || '#a78bfa');
+            grad.addColorStop(1, palette[1] || '#0f0f1a');
             renderCtx.fillStyle = grad;
             renderCtx.fillRect(0, 0, w, h);
             break;
@@ -2511,17 +2587,21 @@ margin: 0 0 28px;
           `<div><strong>seed:</strong> ${motion?.seed ?? '—'}</div>`,
           `<div><strong>bpm (synthetic):</strong> ${motion?.bpm ?? '—'}</div>`,
           `<div><strong>motion style:</strong> ${motion?.style ?? '—'}</div>`,
+          `<div><strong>motion mood:</strong> ${scene?.motionMood ?? '—'}</div>`,
+          `<div><strong>lighting:</strong> ${scene?.lighting ?? '—'}</div>`,
           `<div><strong>scene:</strong> ${scene?.label ?? '—'}</div>`,
           `<div><strong>scene source:</strong> ${scene?.source ?? '—'}</div>`,
           `<div><strong>state:</strong> ${stateLabel}</div>`,
           '<div><strong>note:</strong> uses Spotify playback metadata, not raw audio</div>',
-          '<div><strong>background:</strong> local procedural</div>'
+          '<div><strong>background:</strong> local procedural canvas</div>'
         ].join('');
       }
+      loadSceneStorageCache();
       window.addEventListener('adina:spotify-state', function (event) {
         latest = event.detail || null;
         motion = latest?.track?.id ? deriveMotion(hashTrackId(String(latest.track.id))) : null;
         scene = synInferScene(latest?.track || null);
+        if (latest?.track?.id) maybeHydrateSceneFromLLM(latest.track);
       });
       function draw() {
         const width = canvas.clientWidth || canvas.width;
