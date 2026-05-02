@@ -2412,13 +2412,93 @@ margin: 0 0 28px;
       const ctx = canvas.getContext('2d');
       let latest = null;
       let motion = null;
+      let scene = { id: 'dream', label: 'dreamscape', source: 'fallback' };
       function hashTrackId(trackId) {
         let h = 2166136261;
         for (let i = 0; i < trackId.length; i += 1) { h ^= trackId.charCodeAt(i); h = Math.imul(h, 16777619); }
         return h >>> 0;
       }
+      function hash(value) {
+        return hashTrackId(String(value || 'none'));
+      }
       function deriveMotion(seed) {
         return { seed, bpm: 90 + (seed % 61), style: ['bounce', 'orbit', 'wiggle'][seed % 3], amplitude: 10 + ((seed >>> 8) % 20) };
+      }
+      function synInferScene(track) {
+        const name = (track?.name || '').toLowerCase();
+        const artist = (track?.artist || '').toLowerCase();
+        const id = track?.id || 'none';
+        const text = `${name} ${artist}`;
+
+        if (text.includes('house') || text.includes('techno') || text.includes('club')) {
+          return { id: 'club', label: 'warehouse club', source: 'keyword' };
+        }
+        if (text.includes('country') || text.includes('road') || text.includes('cowboy')) {
+          return { id: 'field', label: 'open field', source: 'keyword' };
+        }
+        if (text.includes('jazz') || text.includes('blues')) {
+          return { id: 'lounge', label: 'late-night lounge', source: 'keyword' };
+        }
+
+        const h = hash(id);
+        const scenes = [
+          { id: 'club', label: 'warehouse club' },
+          { id: 'field', label: 'open field' },
+          { id: 'stage', label: 'stage spotlight' },
+          { id: 'lounge', label: 'small lounge' },
+          { id: 'dream', label: 'dreamscape' }
+        ];
+        const inferred = scenes[h % scenes.length];
+        return { ...inferred, source: 'seeded metadata' };
+      }
+      function synDrawScene(renderCtx, currentScene, t, w, h) {
+        switch (currentScene.id) {
+          case 'club':
+            renderCtx.fillStyle = '#0a0a0a';
+            renderCtx.fillRect(0, 0, w, h);
+            for (let i = 0; i < 5; i += 1) {
+              const x = (i / 5) * w;
+              const offset = Math.sin(t * 2 + i) * 20;
+              renderCtx.fillStyle = 'rgba(255,255,255,0.1)';
+              renderCtx.fillRect(x + offset, 0, 4, h);
+            }
+            break;
+          case 'field':
+            renderCtx.fillStyle = '#87ceeb';
+            renderCtx.fillRect(0, 0, w, h / 2);
+            renderCtx.fillStyle = '#2e7d32';
+            renderCtx.fillRect(0, h / 2, w, h / 2);
+            break;
+          case 'stage':
+            renderCtx.fillStyle = '#111';
+            renderCtx.fillRect(0, 0, w, h);
+            renderCtx.beginPath();
+            renderCtx.moveTo((w / 2) - 40, 0);
+            renderCtx.lineTo((w / 2) + 40, 0);
+            renderCtx.lineTo((w / 2) + 120, h);
+            renderCtx.lineTo((w / 2) - 120, h);
+            renderCtx.closePath();
+            renderCtx.fillStyle = 'rgba(255,255,200,0.15)';
+            renderCtx.fill();
+            break;
+          case 'lounge': {
+            const grad = renderCtx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, '#2c1a1a');
+            grad.addColorStop(1, '#0d0a0a');
+            renderCtx.fillStyle = grad;
+            renderCtx.fillRect(0, 0, w, h);
+            break;
+          }
+          case 'dream':
+          default: {
+            const grad = renderCtx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, w);
+            grad.addColorStop(0, '#a78bfa');
+            grad.addColorStop(1, '#0f0f1a');
+            renderCtx.fillStyle = grad;
+            renderCtx.fillRect(0, 0, w, h);
+            break;
+          }
+        }
       }
       function liveProgressMs() {
         if (!latest) return 0;
@@ -2431,20 +2511,24 @@ margin: 0 0 28px;
           `<div><strong>seed:</strong> ${motion?.seed ?? '—'}</div>`,
           `<div><strong>bpm (synthetic):</strong> ${motion?.bpm ?? '—'}</div>`,
           `<div><strong>motion style:</strong> ${motion?.style ?? '—'}</div>`,
+          `<div><strong>scene:</strong> ${scene?.label ?? '—'}</div>`,
+          `<div><strong>scene source:</strong> ${scene?.source ?? '—'}</div>`,
           `<div><strong>state:</strong> ${stateLabel}</div>`,
-          '<div><strong>note:</strong> uses Spotify playback metadata, not raw audio</div>'
+          '<div><strong>note:</strong> uses Spotify playback metadata, not raw audio</div>',
+          '<div><strong>background:</strong> local procedural</div>'
         ].join('');
       }
       window.addEventListener('adina:spotify-state', function (event) {
         latest = event.detail || null;
         motion = latest?.track?.id ? deriveMotion(hashTrackId(String(latest.track.id))) : null;
+        scene = synInferScene(latest?.track || null);
       });
       function draw() {
         const width = canvas.clientWidth || canvas.width;
         const height = canvas.clientHeight || canvas.height;
         if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = '#f9fbff'; ctx.fillRect(0, 0, width, height);
+        synDrawScene(ctx, scene, performance.now() / 1000, width, height);
         if (!latest || !motion || !latest.track) {
           ctx.fillStyle = '#777'; ctx.font = 'italic 15px "Computer Modern Serif", Georgia, serif'; ctx.fillText('waiting', (width / 2) - 24, height / 2);
           setTrace('waiting'); requestAnimationFrame(draw); return;
