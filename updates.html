@@ -760,6 +760,13 @@ margin: 0 0 28px;
     .synesthetic-note { font-size: 0.82rem; color: #666; font-style: italic; margin-bottom: 10px; }
     .synesthetic-canvas { width: 100%; height: 160px; display: block; border: 1px solid #e8e8e8; border-radius: 3px; background: linear-gradient(180deg, #fff, #f6f8ff); }
     .synesthetic-trace { margin-top: 10px; border: 1px solid #ececec; border-radius: 3px; background: #fafafa; padding: 8px 10px; font-size: 0.78rem; color: #444; line-height: 1.45; }
+
+    #hangar-shell { margin-top: 8px; }
+    .hangar-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:10px 0 8px; font-size:0.82rem; }
+    .hangar-controls button, .hangar-controls select { border:1px solid #ddd; background:#fff; color:#222; border-radius:3px; padding:6px 10px; font:inherit; }
+    .hangar-controls input[type="range"] { width:140px; }
+    .hangar-canvas { width:100%; height:300px; display:block; border:1px solid #ececec; border-radius:4px; background:linear-gradient(180deg,#f9fcff,#eef3f7); }
+    .hangar-metrics { display:flex; flex-wrap:wrap; gap:14px; margin-top:8px; }
   </style>
 </head>
 
@@ -794,10 +801,31 @@ margin: 0 0 28px;
     <hr>
     
     <h2>Hangar</h2>
-    <section class="game-shell">
+    <section id="hangar-shell" class="game-shell">
       <h2>for my favorite aircraft</h2>
-      <p class="small-note">
-        Empty...landing soon! 
+      <p class="small-note">Guide aircraft to a clean landing pattern. Keep separation and avoid near misses.</p>
+      <div class="hangar-controls" role="group" aria-label="Hangar controls">
+        <button id="hangar-start-btn" type="button">Start</button>
+        <button id="hangar-reset-btn" type="button">Reset</button>
+        <label for="hangar-spawn-rate">Spawn rate</label>
+        <input id="hangar-spawn-rate" type="range" min="0.2" max="2.2" step="0.1" value="1">
+        <span id="hangar-spawn-rate-value">1.0x</span>
+        <label for="hangar-aircraft-type">Aircraft</label>
+        <select id="hangar-aircraft-type">
+          <option value="mixed">Mixed</option>
+          <option value="b2">B-2</option>
+          <option value="gen4">4th gen</option>
+          <option value="gen5">5th gen</option>
+          <option value="gen6">6th gen</option>
+        </select>
+      </div>
+      <canvas id="hangar-canvas" class="hangar-canvas" width="920" height="440" aria-label="Hangar air traffic simulation"></canvas>
+      <div class="hangar-metrics small-note">
+        <span>Active: <strong id="hangar-active">0</strong></span>
+        <span>Landed: <strong id="hangar-landed">0</strong></span>
+        <span>Conflicts: <strong id="hangar-conflicts">0</strong></span>
+        <span>Mode: <strong id="hangar-mode">Paused</strong></span>
+      </div>
     </section>
   <hr>
     
@@ -1808,6 +1836,53 @@ margin: 0 0 28px;
   </script>
 
   <script>
+    (() => {
+      const canvas = document.getElementById('hangar-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const startBtn = document.getElementById('hangar-start-btn');
+      const resetBtn = document.getElementById('hangar-reset-btn');
+      const spawnRate = document.getElementById('hangar-spawn-rate');
+      const spawnRateValue = document.getElementById('hangar-spawn-rate-value');
+      const typeSelect = document.getElementById('hangar-aircraft-type');
+      const activeEl = document.getElementById('hangar-active');
+      const landedEl = document.getElementById('hangar-landed');
+      const conflictsEl = document.getElementById('hangar-conflicts');
+      const modeEl = document.getElementById('hangar-mode');
+      const runway = { x: 0.5, y: 0.78, len: 140, width: 22, heading: -Math.PI / 2 };
+      const types = ['b2','gen4','gen5','gen6'];
+      let aircraft=[]; let running=false; let landed=0; let conflicts=0; let spawnTimer=0; let raf=0; let last=performance.now();
+      function size(){ const w=canvas.clientWidth,h=canvas.clientHeight; if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;} }
+      function pickType(){ return typeSelect.value==='mixed'?types[(Math.random()*types.length)|0]:typeSelect.value; }
+      function spawn(){ const w=canvas.width,h=canvas.height,e=(Math.random()*4)|0; let x,y;
+        if(e===0){x=Math.random()*w;y=-10;} else if(e===1){x=w+10;y=Math.random()*h;} else if(e===2){x=Math.random()*w;y=h+10;} else {x=-10;y=Math.random()*h;}
+        const tx=runway.x*w, ty=runway.y*h; const ang=Math.atan2(ty-y,tx-x)+(Math.random()-0.5)*0.4;
+        aircraft.push({x,y,v:70+Math.random()*40,ang,type:pickType(),landed:false,id:Math.random().toString(36).slice(2)}); }
+      function angleDiff(a,b){let d=b-a; while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2; return d;}
+      function update(dt){ spawnTimer += dt*(Number(spawnRate.value)||1); if(spawnTimer>1.1){spawn(); spawnTimer=0;}
+        const tx=runway.x*canvas.width, ty=runway.y*canvas.height;
+        aircraft.forEach(p=>{const dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy); const target=Math.atan2(dy,dx); const turn=angleDiff(p.ang,target); const maxTurn=1.3*dt; p.ang+=Math.max(-maxTurn,Math.min(maxTurn,turn)); const slow=dist<130?Math.max(0.35,dist/130):1; const speed=p.v*slow; p.x+=Math.cos(p.ang)*speed*dt; p.y+=Math.sin(p.ang)*speed*dt; if(dist<22&&Math.abs(angleDiff(p.ang,runway.heading))<0.55){p.landed=true; landed++;} });
+        for(let i=0;i<aircraft.length;i++)for(let j=i+1;j<aircraft.length;j++){const a=aircraft[i],b=aircraft[j]; if(Math.hypot(a.x-b.x,a.y-b.y)<26){conflicts++;}}
+        aircraft=aircraft.filter(p=>!p.landed&&p.x>-40&&p.y>-40&&p.x<canvas.width+40&&p.y<canvas.height+40);
+      }
+      function drawPlane(p){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.ang); ctx.fillStyle='#23252a'; ctx.strokeStyle='#0f1013'; ctx.lineWidth=1;
+        ctx.beginPath();
+        if(p.type==='b2'){ctx.moveTo(16,0);ctx.lineTo(-12,-11);ctx.lineTo(-18,0);ctx.lineTo(-12,11);} 
+        else if(p.type==='gen4'){ctx.moveTo(14,0);ctx.lineTo(-6,-6);ctx.lineTo(-12,-12);ctx.lineTo(-9,-2);ctx.lineTo(-20,0);ctx.lineTo(-9,2);ctx.lineTo(-12,12);ctx.lineTo(-6,6);} 
+        else if(p.type==='gen5'){ctx.moveTo(15,0);ctx.lineTo(2,-7);ctx.lineTo(-10,-10);ctx.lineTo(-18,-3);ctx.lineTo(-18,3);ctx.lineTo(-10,10);ctx.lineTo(2,7);} 
+        else {ctx.moveTo(16,0);ctx.lineTo(5,-7);ctx.lineTo(-7,-9);ctx.lineTo(-18,0);ctx.lineTo(-7,9);ctx.lineTo(5,7);} 
+        ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+      function render(){ size(); ctx.clearRect(0,0,canvas.width,canvas.height); const rw=runway.width,rl=runway.len,rx=runway.x*canvas.width,ry=runway.y*canvas.height;
+        ctx.fillStyle='#dfe6ec';ctx.fillRect(0,0,canvas.width,canvas.height); ctx.save();ctx.translate(rx,ry);ctx.rotate(runway.heading+Math.PI/2);ctx.fillStyle='#808891';ctx.fillRect(-rw/2,-rl/2,rw,rl);ctx.fillStyle='rgba(255,255,255,.7)'; for(let i=-rl/2+8;i<rl/2;i+=20)ctx.fillRect(-2,i,4,10); ctx.restore(); aircraft.forEach(drawPlane);
+        activeEl.textContent=String(aircraft.length);landedEl.textContent=String(landed);conflictsEl.textContent=String(conflicts);modeEl.textContent=running?'Running':'Paused';
+      }
+      function loop(ts){ const dt=Math.min(0.05,(ts-last)/1000); last=ts; if(running) update(dt); render(); raf=requestAnimationFrame(loop); }
+      startBtn.addEventListener('click',()=>{running=!running; startBtn.textContent=running?'Pause':'Start';});
+      resetBtn.addEventListener('click',()=>{aircraft=[];landed=0;conflicts=0;spawnTimer=0;});
+      spawnRate.addEventListener('input',()=>{spawnRateValue.textContent=`${Number(spawnRate.value).toFixed(1)}x`;});
+      spawnRateValue.textContent='1.0x'; raf=requestAnimationFrame(loop);
+    })();
+
     (() => {
       const SCORE_TO_BEAT = 92;
       const GAME_SECONDS = 120;
