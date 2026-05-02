@@ -740,6 +740,26 @@ margin: 0 0 28px;
       75% { transform: translate(3px, 1px) rotate(-0.4deg); }
       100% { transform: translate(0, 0) rotate(0deg); }
     }
+
+    #synesthetic-dj {
+      margin-top: 16px;
+      border-top: 1px dashed #d9d9d9;
+      padding-top: 14px;
+    }
+
+    #synesthetic-dj h3 {
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #999;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .synesthetic-note { font-size: 0.82rem; color: #666; font-style: italic; margin-bottom: 10px; }
+    .synesthetic-canvas { width: 100%; height: 160px; display: block; border: 1px solid #e8e8e8; border-radius: 3px; background: linear-gradient(180deg, #fff, #f6f8ff); }
+    .synesthetic-trace { margin-top: 10px; border: 1px solid #ececec; border-radius: 3px; background: #fafafa; padding: 8px 10px; font-size: 0.78rem; color: #444; line-height: 1.45; }
   </style>
 </head>
 
@@ -897,6 +917,13 @@ margin: 0 0 28px;
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="synesthetic-dj" aria-live="polite">
+    <h3>Synesthetic DJ</h3>
+    <p class="synesthetic-note">Spotify playback state becomes a small dancing automaton.</p>
+    <canvas id="synesthetic-canvas" class="synesthetic-canvas" width="520" height="160"></canvas>
+    <div id="synesthetic-trace" class="synesthetic-trace">Waiting for Spotify playback metadata…</div>
   </section>
 
     </section>
@@ -1521,6 +1548,16 @@ margin: 0 0 28px;
             elapsedEl.textContent = formatAway(awayMs);
             durationEl.textContent = 'minutes since';
           }
+
+          window.dispatchEvent(new CustomEvent('adina:spotify-state', {
+            detail: {
+              isPlaying,
+              progressMs,
+              durationMs,
+              track: currentTrack,
+              receivedAt: Date.now()
+            }
+          }));
         } catch (error) {
           setIdleState('Unable to reach now playing endpoint.');
         }
@@ -2365,6 +2402,76 @@ margin: 0 0 28px;
         await ensureSupabaseIdentity();
         await renderLeaderboard();
       })();
+    })();
+
+    (function () {
+      const canvas = document.getElementById('synesthetic-canvas');
+      const traceEl = document.getElementById('synesthetic-trace');
+      if (!canvas || !traceEl) return;
+
+      const ctx = canvas.getContext('2d');
+      let latest = null;
+      let motion = null;
+      function hashTrackId(trackId) {
+        let h = 2166136261;
+        for (let i = 0; i < trackId.length; i += 1) { h ^= trackId.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+      }
+      function deriveMotion(seed) {
+        return { seed, bpm: 90 + (seed % 61), style: ['bounce', 'orbit', 'wiggle'][seed % 3], amplitude: 10 + ((seed >>> 8) % 20) };
+      }
+      function liveProgressMs() {
+        if (!latest) return 0;
+        if (!latest.isPlaying) return Number(latest.progressMs || 0);
+        return Number(latest.progressMs || 0) + Math.max(0, Date.now() - Number(latest.receivedAt || Date.now()));
+      }
+      function setTrace(stateLabel) {
+        traceEl.innerHTML = [
+          `<div><strong>track name:</strong> ${latest?.track?.name || '—'}</div>`,
+          `<div><strong>seed:</strong> ${motion?.seed ?? '—'}</div>`,
+          `<div><strong>bpm (synthetic):</strong> ${motion?.bpm ?? '—'}</div>`,
+          `<div><strong>motion style:</strong> ${motion?.style ?? '—'}</div>`,
+          `<div><strong>state:</strong> ${stateLabel}</div>`,
+          '<div><strong>note:</strong> uses Spotify playback metadata, not raw audio</div>'
+        ].join('');
+      }
+      window.addEventListener('adina:spotify-state', function (event) {
+        latest = event.detail || null;
+        motion = latest?.track?.id ? deriveMotion(hashTrackId(String(latest.track.id))) : null;
+      });
+      function draw() {
+        const width = canvas.clientWidth || canvas.width;
+        const height = canvas.clientHeight || canvas.height;
+        if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#f9fbff'; ctx.fillRect(0, 0, width, height);
+        if (!latest || !motion || !latest.track) {
+          ctx.fillStyle = '#777'; ctx.font = 'italic 15px "Computer Modern Serif", Georgia, serif'; ctx.fillText('waiting', (width / 2) - 24, height / 2);
+          setTrace('waiting'); requestAnimationFrame(draw); return;
+        }
+        const playing = !!latest.isPlaying;
+        const beat = (liveProgressMs() / 1000) * (motion.bpm / 60) * Math.PI * 2;
+        const sway = Math.sin(beat);
+        const bounce = Math.abs(Math.sin(beat));
+        const baseX = width / 2; const baseY = height / 2 + 20;
+        ctx.save(); ctx.translate(baseX, baseY);
+        if (playing && motion.style === 'orbit') ctx.rotate(sway * 0.4);
+        if (playing && motion.style === 'wiggle') ctx.rotate(sway * 0.16);
+        const yOffset = playing ? (motion.style === 'bounce' ? -bounce * motion.amplitude : -Math.abs(Math.sin(beat * 0.5)) * (motion.amplitude * 0.6)) : 0;
+        ctx.translate(0, yOffset);
+        ctx.fillStyle = '#222'; ctx.fillRect(-18, -40, 36, 42); ctx.beginPath(); ctx.arc(0, -54, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
+        const armSwing = playing ? sway * (motion.amplitude * 0.35) : 0;
+        ctx.beginPath();
+        ctx.moveTo(-18, -25); ctx.lineTo(-30, -8 + armSwing * 0.4);
+        ctx.moveTo(18, -25); ctx.lineTo(30, -8 - armSwing * 0.4);
+        ctx.moveTo(-8, 2); ctx.lineTo(-14, 25 + (playing ? bounce * 6 : 0));
+        ctx.moveTo(8, 2); ctx.lineTo(14, 25 + (playing ? (1 - bounce) * 6 : 0));
+        ctx.stroke(); ctx.restore();
+        setTrace(playing ? 'playing' : 'paused');
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
     })();
   </script>
 </body>
