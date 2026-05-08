@@ -915,10 +915,10 @@ const dateProofRight = document.getElementById("dateProofRight");
 
 if (!dateSecondsEl) return;
 
-const birthTime = new Date("2005-07-19T06:48:00-08:00");
+const lastMedjoolDateTime = new Date("2026-05-03T02:00:00-08:00");
 
 function updateExistenceCounter() {
-const seconds = Math.max(0, (Date.now() - birthTime.getTime()) / 1000);
+const seconds = Math.max(0, (Date.now() - lastMedjoolDateTime.getTime()) / 1000);
 const wholeSeconds = Math.floor(seconds);
 dateSecondsEl.textContent = wholeSeconds.toLocaleString();
 }
