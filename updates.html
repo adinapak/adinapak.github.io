@@ -1982,11 +1982,18 @@ margin: 0 0 28px;
       }
 
 
+      function getProfileUsername(entry) {
+        const profile = Array.isArray(entry?.profiles) ? entry.profiles[0] : entry?.profiles;
+        return sanitizeName(profile?.username || "");
+      }
+
       function normalizeScoreRow(entry) {
         const scoreValue = Number(entry?.score);
         const createdAt = entry?.created_at || entry?.date || entry?.when || null;
-        const resolvedName = sanitizeName(entry?.username || entry?.name || entry?.display_name || "") || DEFAULT_NAME;
-        const resolvedPlayerId = (entry?.player_id || "").toString().trim();
+        const profileUsername = getProfileUsername(entry);
+        const scoreUsername = sanitizeName(entry?.username || entry?.name || entry?.display_name || "");
+        const resolvedName = profileUsername || scoreUsername || DEFAULT_NAME;
+        const resolvedPlayerId = (entry?.player_id || entry?.user_id || "").toString().trim();
 
         return {
           name: resolvedName,
@@ -2154,17 +2161,52 @@ margin: 0 0 28px;
         let rows = [];
 
         if (usingCloudBoard && supabase) {
-          const response = await supabase
+          let response = await supabase
             .from("zetamac_scores")
-            .select("*")
+            .select("*, profiles(username)")
             .order("score", { ascending: false })
             .order("created_at", { ascending: true })
             .limit(10);
+
+          if (response.error) {
+            console.error('Failed to load Zetamac leaderboard with profile usernames.', response.error);
+            response = await supabase
+              .from("zetamac_scores")
+              .select("*")
+              .order("score", { ascending: false })
+              .order("created_at", { ascending: true })
+              .limit(10);
+
+            if (!response.error) {
+              const profileIds = [...new Set((response.data || [])
+                .map((row) => row.user_id)
+                .filter(Boolean))];
+
+              if (profileIds.length) {
+                const profilesResponse = await supabase
+                  .from("profiles")
+                  .select("id, username")
+                  .in("id", profileIds);
+
+                if (!profilesResponse.error) {
+                  const profilesById = new Map((profilesResponse.data || [])
+                    .map((profile) => [profile.id, profile]));
+                  response.data = (response.data || []).map((row) => ({
+                    ...row,
+                    profiles: profilesById.get(row.user_id) || null
+                  }));
+                } else {
+                  console.error('Failed to load Zetamac profile usernames.', profilesResponse.error);
+                }
+              }
+            }
+          }
 
           if (!response.error) {
             rows = bestScoresByPlayer(response.data || []);
             boardSourceMsg.textContent = "";
           } else {
+            console.error('Failed to load Zetamac leaderboard.', response.error);
             boardSourceMsg.textContent = "Leaderboard connection unavailable.";
           }
         }
