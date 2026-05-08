@@ -1887,8 +1887,7 @@ margin: 0 0 28px;
       const SCORE_TO_BEAT = 92;
       const GAME_SECONDS = 120;
       const MAX_COP_OUTS = 3;
-      const STORAGE_KEY = "zetamacLeaderboardV1";
-      const PROFILE_KEY = "zetamacLocalProfileV1";
+      const PENDING_NAME_KEY = "zetamacPendingPlayerNameV1";
       const PLAYER_ID_KEY = "zetamacPlayerId";
       const DEFAULT_NAME = "Player";
 
@@ -2015,31 +2014,16 @@ margin: 0 0 28px;
           .slice(0, 10);
       }
 
-      function safeLoadLeaderboard() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          const parsed = raw ? JSON.parse(raw) : [];
-          return Array.isArray(parsed) ? parsed : [];
-        } catch {
-          return [];
-        }
+      function loadPendingPlayerName() {
+        return sanitizeName(localStorage.getItem(PENDING_NAME_KEY) || "");
       }
 
-      function saveLocalLeaderboard(entries) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 10)));
+      function savePendingPlayerName(username) {
+        localStorage.setItem(PENDING_NAME_KEY, username);
       }
 
-      function localProfile() {
-        try {
-          const raw = localStorage.getItem(PROFILE_KEY);
-          const parsed = raw ? JSON.parse(raw) : null;
-          if (parsed && typeof parsed.username === "string") return parsed;
-        } catch {}
-        return { username: "" };
-      }
-
-      function saveLocalProfile(username) {
-        localStorage.setItem(PROFILE_KEY, JSON.stringify({ username }));
+      function clearPendingPlayerName() {
+        localStorage.removeItem(PENDING_NAME_KEY);
       }
 
       function applyWelcomeMessage() {
@@ -2107,20 +2091,6 @@ margin: 0 0 28px;
         answerInput.value = "";
       }
 
-      async function saveNameToSupabase(username) {
-        if (!(usingCloudBoard && supabase && currentUserId && username)) return true;
-
-        const result = await supabase
-          .from("profiles")
-          .upsert({
-            id: currentUserId,
-            username,
-            updated_at: new Date().toISOString()
-          });
-
-        return !result.error;
-      }
-
       async function ensureKnownName({ forcePrompt = false } = {}) {
         if (!forcePrompt && currentUsername) return true;
 
@@ -2134,20 +2104,13 @@ margin: 0 0 28px;
         }
 
         currentUsername = chosen;
-        saveLocalProfile(chosen);
-
-        const savedCloud = await saveNameToSupabase(chosen);
-        if (!savedCloud) {
-          statusMsg.textContent = "Saved locally, but cloud profile update failed.";
-        }
-
+        savePendingPlayerName(chosen);
         applyWelcomeMessage();
         return true;
       }
 
       async function ensureSupabaseIdentity() {
-        const local = localProfile();
-        currentUsername = sanitizeName(local.username);
+        currentUsername = loadPendingPlayerName();
 
         if (!supabase) {
           usingCloudBoard = false;
@@ -2182,24 +2145,6 @@ margin: 0 0 28px;
         currentUserId = session.user.id;
         usingCloudBoard = true;
         boardSourceMsg.textContent = "";
-
-        const profileResult = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", currentUserId)
-          .maybeSingle();
-
-        if (!profileResult.error) {
-          const existingName = sanitizeName(profileResult.data?.username);
-
-          if (existingName) {
-            currentUsername = existingName;
-            saveLocalProfile(existingName);
-          } else if (currentUsername) {
-            await saveNameToSupabase(currentUsername);
-          }
-        }
-
         applyWelcomeMessage();
       }
 
@@ -2222,10 +2167,6 @@ margin: 0 0 28px;
           } else {
             boardSourceMsg.textContent = "Leaderboard connection unavailable.";
           }
-        }
-
-        if (!rows.length) {
-          rows = bestScoresByPlayer(safeLoadLeaderboard());
         }
 
         if (!rows.length) {
@@ -2258,7 +2199,7 @@ margin: 0 0 28px;
       }
 
       async function saveScore(scoreValue) {
-        const nameToUse = currentUsername || spotifyDisplayName || DEFAULT_NAME;
+        const nameToUse = currentUsername || DEFAULT_NAME;
         const now = new Date().toISOString();
 
         if (usingCloudBoard && supabase && currentUserId) {
@@ -2314,19 +2255,6 @@ margin: 0 0 28px;
           boardSourceMsg.textContent = "Leaderboard connection unavailable.";
         }
 
-        const entries = safeLoadLeaderboard();
-        entries.push({
-          name: nameToUse,
-          username: nameToUse,
-          player_id: playerId || "",
-          score: scoreValue,
-          when: now,
-          created_at: now
-        });
-
-        entries.sort((a, b) => b.score - a.score);
-        saveLocalLeaderboard(entries);
-
         return false;
       }
 
@@ -2343,11 +2271,6 @@ margin: 0 0 28px;
           if (!response.error) {
             highScore = Number(response.data?.[0]?.score) || 0;
           }
-        }
-
-        if (highScore === 0) {
-          const localHigh = safeLoadLeaderboard()[0]?.score;
-          highScore = Number(localHigh) || 0;
         }
 
         return highScore;
@@ -2377,15 +2300,21 @@ margin: 0 0 28px;
         gameShell.classList.add("game-over");
         finalScoreMsg.textContent = `Final score: ${score}`;
 
+        const recordedName = currentUsername || DEFAULT_NAME;
         const previousHighScore = await getCurrentHighScoreBeforeInsert();
-        await saveScore(score);
+        const scoreSaved = await saveScore(score);
+        clearPendingPlayerName();
+        currentUsername = "";
+        applyWelcomeMessage();
         await renderLeaderboard();
 
-        if (score > previousHighScore) {
+        if (scoreSaved && score > previousHighScore) {
           explodePage();
-          statusMsg.textContent = `Q.E.D. — ${currentUsername || DEFAULT_NAME} scored ${score}.`;
+          statusMsg.textContent = `Q.E.D. — ${recordedName} scored ${score}.`;
+        } else if (scoreSaved) {
+          statusMsg.textContent = `Score recorded. ${recordedName} scored ${score}.`;
         } else {
-          statusMsg.textContent = `Score recorded. ${currentUsername || DEFAULT_NAME} scored ${score}.`;
+          statusMsg.textContent = `Run complete, but the leaderboard connection failed before ${recordedName}'s score could be recorded.`;
         }
       }
 
