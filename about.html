@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Me</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="favicon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .about-intro p {
+      font-size: 0.95rem;
+      font-style: normal;
+      color: #222;
+      margin-bottom: 14px;
+      line-height: 1.85;
+    }
+
+    .about-transition {
+      font-style: italic;
+      color: #444;
+      margin-top: 10px;
+    }
+
+    .derivations-link {
+      display: inline-block;
+      margin-top: 2px;
+      border-bottom: 1px solid #bbb;
+      text-decoration: none;
+      color: #111;
+      font-size: 0.95rem;
+    }
+
+    .timeline-list {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 12px;
+    }
+
+    .timeline-list li {
+      margin-bottom: 16px;
+      font-size: 0.92rem;
+      color: #333;
+      line-height: 1.75;
+    }
+
+    .timeline-year {
+      display: inline-block;
+      min-width: 102px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .topology-tip {
+      position: relative;
+      border-bottom: 1px dotted #999;
+      cursor: help;
+      white-space: nowrap;
+    }
+
+    .topology-tip::after {
+      content: "Backed by OpenAI, Google Ventures, and Khosla Ventures.";
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      width: min(280px, 78vw);
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.98);
+      color: #222;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      border-radius: 2px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 140ms ease;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+      white-space: normal;
+      z-index: 10;
+    }
+
+    .topology-tip:hover::after,
+    .topology-tip:focus-visible::after {
+      opacity: 1;
+    }
+
+    @media (max-width: 640px) {
+      .timeline-year {
+        display: block;
+        min-width: 0;
+        margin-bottom: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>About Me</h1>
+
+  <nav aria-label="Primary">
+    <a href="about.html">About</a>
+    <span>|</span>
+    <a href="principles.html">Principles</a>
+    <span>|</span>
+    <a href="updates.html">Sandbox</a>
+  </nav>
+
+  <hr>
+
+  <section class="about-intro">
+    <p>Hi! My name is Adina. I am [xyz] years and [xyz] months old. My name is of Hebrew origin — עֲדִינָא, pronounced ah-dee-NAH — and means “delicate” or “gentle.”</p>
+
+    <p>I’m afraid my priors may disappoint those who subscribe to nominative determinism, but my name does convey something about the way I view the universe: as a delicate balance of interconnected schemas. Perhaps another slightly out-of-distribution musing, but I like to think that the universe is an ontology of God.</p>
+
+    <p>That view also informs my belief that every individual has the ability to impart impact on the world. The magnitude of that impact is determined by agency; the direction probably has something to do with one’s priors and moral subscriptions.</p>
+
+    <p class="about-transition">This page is the short version. The longer proof system lives in Derivations.</p>
+    <p><a class="derivations-link" href="principles.html">Read the derivations →</a></p>
+  </section>
+
+  <hr>
+
+  <section>
+    <h3>Timeline</h3>
+    <ul class="timeline-list">
+      <li><span class="timeline-year">2026–present</span> Joined <span class="topology-tip" tabindex="0">Topology Labs</span> at seed stage, where we are building revolutionary consumer social products. It has been the most talent-dense organization I have been part of.</li>
+      <li><span class="timeline-year">2023–2025</span> Studied Applied Mathematics at UC Berkeley with a cluster concentration in Economics. I also enjoyed dabbling in psychology courses.</li>
+    </ul>
+  </section>
+</body>
+</html>
