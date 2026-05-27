@@ -45,6 +45,43 @@
       line-height: 1.75;
     }
 
+    .experience-details {
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    .experience-details summary {
+      display: inline-block;
+      border-bottom: 1px dotted #9a9a9a;
+      cursor: pointer;
+      color: #2f2f2f;
+      font-size: 0.84rem;
+      list-style: none;
+    }
+
+    .experience-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .experience-details[open] summary {
+      margin-bottom: 6px;
+    }
+
+    .experience-details ul {
+      margin: 0 0 0 8px;
+      padding-left: 12px;
+      border-left: 1px solid #d6d6d6;
+      list-style: none;
+    }
+
+    .experience-details li {
+      margin-bottom: 8px;
+      font-size: 0.84rem;
+      line-height: 1.65;
+      color: #444;
+    }
+
     .timeline-year {
       display: inline-block;
       min-width: 102px;
@@ -129,7 +166,16 @@
       <li><span class="timeline-year">2023–2025</span></li>
       <ul>
         <li>Studied Applied Mathematics at UC Berkeley with a cluster concentration in Economics. I also enjoyed dabbling in psychology courses.</li> 
-        <li>Explored the world of Wall Street, fell in love with understanding the levers that made a business great.</li>
+        <li>Explored the world of Wall Street, fell in love with understanding the levers that made a business great.
+          <details class="experience-details">
+            <summary>selected experiences</summary>
+            <ul>
+              <li>The Riverside Company — private equity internship; worked across market mapping, company research, and investment analysis.</li>
+              <li>Investment banking — learned how businesses are valued, compared, diligenced, and translated into financial narratives.</li>
+              <li>Cedar — explored healthcare technology, operations, and the constraints of building in complex regulated systems.</li>
+            </ul>
+          </details>
+        </li>
       </ul>
        <li><span class="timeline-year">2005-2023</span> </li>
       <ul>
