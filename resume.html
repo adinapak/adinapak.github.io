@@ -116,6 +116,10 @@
       padding-left: 0.01in;
     }
 
+    li::marker {
+      font-size: 14.15px;
+    }
+
     .subproject {
       margin-top: 0.05in;
       font-size: 14.5px;
@@ -125,17 +129,23 @@
     .subproject .project-name { font-style: italic; }
 
     /* ---- Additional Intern Experience (bulleted, with expandable finance roles) ---- */
-    .additional { margin-top: 0.045in; }
+    .additional { margin: 0.025in 0 0 0.12in; }
 
     .prior-head {
       display: grid;
-      grid-template-columns: 0.14in minmax(0, 1fr) auto;
-      column-gap: 0.02in;
+      grid-template-columns: 0.08in minmax(0, 1fr) auto;
+      column-gap: 0.05in;
       align-items: baseline;
-      font-size: 14.3px;
+      font-size: 14.15px;
     }
 
-    .prior-head .bullet { color: var(--ink); }
+    .prior-head .bullet {
+      color: var(--ink);
+      display: inline;
+      font-size: 14.15px;
+      line-height: 1;
+      text-align: left;
+    }
     .prior-head .prior-date { font-style: italic; white-space: nowrap; padding-left: 0.18in; }
     .prior-head .prior-main em { font-style: italic; }
 
@@ -257,6 +267,20 @@
         padding-left: 0.01in !important;
       }
 
+      li::marker {
+        font-size: 14.15px;
+      }
+
+      .additional {
+        margin: 0.025in 0 0 0.12in !important;
+      }
+
+      .prior-head {
+        display: grid;
+        grid-template-columns: 0.08in minmax(0, 1fr) auto;
+        column-gap: 0.05in;
+      }
+
       .additional {
         margin: 0.025in 0 0 0.08in !important;
       }
@@ -272,6 +296,8 @@
 
       .prior-head .bullet {
         display: inline;
+        font-size: 14.15px;
+        line-height: 1;
         text-align: left;
       }
 
