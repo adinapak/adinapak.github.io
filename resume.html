@@ -229,20 +229,32 @@
     @media print {
       @page { size: letter; margin: 0; }
       html, body { background: #fff; }
-      body { line-height: 1.14; }
+      body { line-height: 1.18; }
       .page {
         width: auto;
         min-height: auto;
         margin: 0;
-        padding: 0.34in 0.40in 0.24in;
+        padding: 0.46in 0.42in 0.36in;
         box-shadow: none;
       }
       a { color: var(--ink); text-decoration: none; }
-      section { margin-top: 0.12in; break-inside: avoid; }
-      h2 { margin-bottom: 0.06in; }
-      header { padding-bottom: 0.12in; margin-bottom: 0.13in; }
-      .entry { break-inside: avoid; }
-      li { margin: 0.018in 0; }
+      section { margin-top: 0.17in; break-inside: avoid; }
+      h2 { margin-bottom: 0.08in; }
+      header { padding-bottom: 0.16in; margin-bottom: 0.18in; }
+      .entry { margin-top: 0.075in; break-inside: avoid; }
+      .entry:first-of-type { margin-top: 0; }
+      ul {
+        margin: 0.025in 0 0 0.22in;
+        padding-left: 0.16in;
+      }
+      li { margin: 0.022in 0; }
+      .prior-head {
+        display: list-item;
+        margin-left: 0.38in;
+        padding-left: 0.02in;
+        font-size: 14.15px;
+      }
+      .prior-head .bullet { display: none; }
 
       /* Printed copy = the one-page resume only: drop all expandable detail + affordances */
       .caret { display: none !important; }
