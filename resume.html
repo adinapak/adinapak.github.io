@@ -263,6 +263,16 @@
       .tip { text-decoration: none !important; cursor: default; }
       details.prior > summary { cursor: default; }
       details.prior > summary:hover .prior-main { text-decoration: none; }
+     
+  .spacer {
+    display: block !important;
+    height: 0.08in !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    break-inside: avoid;
+  }
+
     }
 
     @media screen and (max-width: 820px) {
@@ -272,6 +282,12 @@
       .date, .place { text-align: left; }
       .prior-head { grid-template-columns: 0.14in 1fr; }
     }
+    .spacer {
+  display: block;
+  height: 0.08in;
+  width: 100%;
+  flex: 0 0 auto;
+}
   </style>
 </head>
 <body>
