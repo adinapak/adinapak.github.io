@@ -1,1 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adina Pak Resume</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css">
+  <style>
+    :root {
+      --ink: #070707;
+      --muted: #202020;
+      --rule: #111;
+      --link: #2e6670;
+    }
 
+    * { box-sizing: border-box; }
+
+    html {
+      background: #f3f1ec;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Computer Modern Serif", "CMU Serif", "Latin Modern Roman", Georgia, "Times New Roman", serif;
+      line-height: 1.18;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 24px auto;
+      padding: 0.46in 0.42in 0.36in;
+      background: #fff;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.10);
+    }
+
+    header {
+      text-align: center;
+      border-bottom: 1.4px solid var(--rule);
+      padding-bottom: 0.16in;
+      margin-bottom: 0.18in;
+    }
+
+    h1 {
+      margin: 0 0 0.07in;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .contact {
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration-thickness: 0.6px;
+      text-underline-offset: 2px;
+    }
+
+    section { margin-top: 0.17in; }
+
+    h2 {
+      margin: 0 0 0.08in;
+      text-align: center;
+      font-size: 17px;
+      line-height: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      column-gap: 0.2in;
+      align-items: baseline;
+    }
+
+    .org,
+    .role,
+    .date,
+    .place,
+    .label {
+      font-size: 15px;
+    }
+
+    .org,
+    .label { font-weight: 700; }
+    .date, .place { text-align: right; white-space: nowrap; }
+    .role, .date { font-style: italic; }
+    .muted { color: var(--muted); }
+
+    .degree { font-size: 15px; }
+    .edu-note { font-size: 14px; font-style: italic; margin-top: 0.035in; text-align: center; }
+
+    .entry { margin-top: 0.075in; }
+    .entry:first-of-type { margin-top: 0; }
+
+    ul {
+      margin: 0.025in 0 0 0.22in;
+      padding-left: 0.16in;
+      font-size: 14.15px;
+    }
+
+    li { margin: 0.022in 0; padding-left: 0.02in; }
+
+    .subproject {
+      margin-top: 0.05in;
+      font-size: 14.5px;
+    }
+
+    .subproject .title { text-decoration: underline; }
+    .subproject .project-name { font-style: italic; }
+
+    .additional-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      column-gap: 0.24in;
+      row-gap: 0.025in;
+      font-size: 14.3px;
+      margin-top: 0.035in;
+    }
+
+    .additional-grid div:nth-child(even) { text-align: right; white-space: nowrap; }
+
+    .compact-list { margin-top: 0.02in; }
+    .divider {
+      text-align: center;
+      color: #555;
+      margin: 0.04in 0 0.02in;
+      letter-spacing: 0.07em;
+    }
+
+    .skills p {
+      margin: 0.035in 0 0;
+      font-size: 14.15px;
+    }
+
+    @media print {
+      @page { size: letter; margin: 0; }
+      html, body { background: #fff; }
+      .page {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        padding: 0.42in 0.40in 0.30in;
+        box-shadow: none;
+      }
+      a { color: var(--ink); text-decoration: none; }
+      section { break-inside: avoid; }
+      .entry { break-inside: avoid; }
+    }
+
+    @media screen and (max-width: 820px) {
+      .page { width: calc(100vw - 24px); padding: 32px 22px; }
+      .contact { white-space: normal; }
+      .row, .additional-grid { grid-template-columns: 1fr; }
+      .date, .place, .additional-grid div:nth-child(even) { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" aria-label="Resume for Adina Pak">
+    <header>
+      <h1>Adina Pak</h1>
+      <div class="contact">San Francisco, CA &bull; <a href="mailto:adinapak@gmail.com">adinapak@gmail.com</a> &bull; (310) 433-6373 &bull; <a href="https://www.adina.life">www.adina.life</a></div>
+    </header>
+
+    <section class="education" aria-labelledby="education-heading">
+      <h2 id="education-heading">Education</h2>
+      <div class="row">
+        <div class="org">University of California, Berkeley</div>
+        <div class="date">2023 &ndash; 2025*</div>
+      </div>
+      <div class="row">
+        <div class="degree">B.A. Applied Mathematics | <em>Economics Focus Cluster</em></div>
+        <div class="date">SAT: 1550/1600</div>
+      </div>
+      <div class="degree"><strong><u>Affiliations:</u></strong> Quantum Computing at Berkeley, Math Undergraduate Student Association, Collegiate Business Association</div>
+    </section>
+
+    <section class="experience" aria-labelledby="experience-heading">
+      <h2 id="experience-heading">Experience</h2>
+
+      <article class="entry">
+        <div class="row">
+          <div class="org">Topology Labs</div>
+          <div class="place">San Francisco, CA</div>
+        </div>
+        <div class="row">
+          <div class="role">Early Operations &amp; Growth</div>
+          <div class="date">Jan 2026 &ndash; May 2026</div>
+        </div>
+        <ul>
+          <li>One of the early non-technical hires at a consumer AI startup building a social app and personal context layer that gives users agency over their own data; seed round backed by OpenAI, Khosla Ventures, and Google Ventures</li>
+          <li>Owned the secondary ambassador pipeline for sourcing, increasing active ambassador headcount by 28% by launch</li>
+          <li>Translated founder priorities into a vetting framework for technical hiring and inorganic growth sourcing efforts</li>
+          <li>Made &gt;2000 AI dialer-assisted calls to source ambassadors for app beta, logging outcomes to track conversion</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <div class="row">
+          <div class="org">The Riverside Company</div>
+          <div class="place">San Francisco, CA</div>
+        </div>
+        <div class="row">
+          <div class="role">Private Equity Intern</div>
+          <div class="date">Sep 2024 &ndash; Dec 2024</div>
+        </div>
+        <ul>
+          <li>Served as primary investment team intern on &gt;$14B AUM flagship capital appreciation buyout strategy, with rotations ad hoc via senior associates and VPs</li>
+          <li>Compiled directory of 200+ educational consulting companies, shipped KPI consistencies, and formulated research survey</li>
+          <li>Attended and took notes on pre-IOI call for portfolio company add-on investment in baking space; created draft post-framework memo and add-on framework</li>
+        </ul>
+        <div class="subproject"><span class="title">Selected Transaction Experience</span></div>
+        <div class="subproject">Project Apex: <span class="project-name">Leveraged Buyout of Wall Street Prep</span></div>
+        <ul>
+          <li>Performed target customer market research to help evaluate platform acquisition of workplace training platform</li>
+          <li>Produced comp set of financial service institutions; collated unstructured FINRA and MBA data to project TAM</li>
+        </ul>
+      </article>
+
+      <article class="entry">
+        <div class="label">Additional Priors</div>
+        <div class="additional-grid" aria-label="Additional prior experience">
+          <div><strong>826 Valencia</strong> &ndash; SFUSD Youth Writing &amp; Literacy Nonprofit</div><div>Teaching Volunteer, <em>Fall 2025</em></div>
+          <div><strong>Cedar Holdings</strong> &ndash; Biotechnology Investment Fund with &gt;$750M AUM</div><div>Public Equities, <em>Summer 2024</em></div>
+          <div><strong>Centerstone Capital</strong> &ndash; Consumer M&amp;A Advisory Firm</div><div>Investment Banking, <em>Winter 2024</em></div>
+          <div><strong>Hypercore</strong> &ndash; Private Credit Software ($13.5M Series A backed by Insight Partners)</div><div>Business Development, <em>Fall 2023</em></div>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="divider">&mdash;&mdash;</div>
+        <div class="row">
+          <div class="org">Berkeley Investment Group <span class="muted">| L/S Fund seeded by Steve Cohen (&gt;$180K AUM)</span></div>
+          <div class="date">Feb 2024 &ndash; Dec 2025</div>
+        </div>
+        <div class="role">Executive Board &amp; Investment Officer</div>
+        <ul>
+          <li>Main club liaison to corporate sponsors (Citadel, Point72, D.E. Shaw); coordinated 10+ campus info sessions</li>
+          <li>Led recruitment and organized outreach for spring term recruitment cycle, produced all media for external channels</li>
+          <li>Selected Programs: Discover Citadel (1 of 39 Nationally), Point72 Spring Academy Sessions, Farallon Stock Pitch</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="skills" aria-labelledby="skills-heading">
+      <h2 id="skills-heading">Skills &amp; Interests</h2>
+      <p><strong>Skills and Tools:</strong> Codex, Cursor, Claude Code, Vercel, Supabase, Palantir Foundry, Data Operations, Financial Modeling</p>
+      <p><strong>Awards:</strong> 1st Place International, American Prot&eacute;g&eacute; Piano &amp; Strings (2x Carnegie Hall); 1st Place in CA, MTAC Piano Concerto</p>
+      <p><strong>Interests:</strong> Classical Piano (2x Carnegie Hall), Surfing, Combat Aircraft, 80s Rock (Def Leppard, The Cure), Zetamac (92)</p>
+    </section>
+
+    <p class="edu-note">*Left university in 2025 to pursue early-stage opportunities. Degree not conferred.</p>
+  </main>
+</body>
+</html>
