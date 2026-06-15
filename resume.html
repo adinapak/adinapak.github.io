@@ -126,13 +126,14 @@
 
     .prior-head {
       display: grid;
-      grid-template-columns: 0.14in 1fr;
-      column-gap: 0.08in;
+      grid-template-columns: 0.14in minmax(0, 1fr) auto;
+      column-gap: 0.02in;
       align-items: baseline;
       font-size: 14.3px;
     }
 
     .prior-head .bullet { color: var(--ink); }
+    .prior-head .prior-date { font-style: italic; white-space: nowrap; padding-left: 0.18in; }
     .prior-head .prior-main em { font-style: italic; }
 
     .u { text-decoration: underline; text-underline-offset: 2px; }
@@ -237,7 +238,7 @@
         padding: 0.46in 0.42in 0.36in;
         box-shadow: none;
       }
-      a { color: var(--ink); text-decoration: none; }
+      a { color: var(--link); text-decoration: underline; }
       section { margin-top: 0.17in; break-inside: avoid; }
       h2 { margin-bottom: 0.08in; }
       header { padding-bottom: 0.16in; margin-bottom: 0.18in; }
@@ -248,13 +249,16 @@
         padding-left: 0.16in;
       }
       li { margin: 0.022in 0; }
+      .additional { margin: 0.025in 0 0 0.22in; }
       .prior-head {
-        display: list-item;
-        margin-left: 0.38in;
+        display: grid;
+        grid-template-columns: 0.14in minmax(0, 1fr) auto;
+        column-gap: 0.02in;
+        margin: 0.022in 0;
         padding-left: 0.02in;
         font-size: 14.15px;
       }
-      .prior-head .bullet { display: none; }
+      .prior-head .bullet { display: inline; }
 
       /* Printed copy = the one-page resume only: drop all expandable detail + affordances */
       .caret { display: none !important; }
@@ -294,14 +298,14 @@
   <main class="page" aria-label="Resume for Adina Pak">
     <header>
       <h1>Adina Pak</h1>
-      <div class="contact">San Francisco, CA &bull; <a href="mailto:adinapak@gmail.com">adinapak@gmail.com</a> &bull; (310) 433-6373 &bull; <a href="https://www.adina.life">www.adina.life</a></div>
+      <div class="contact">San Francisco, CA &bull; <a href="mailto:adinapak@gmail.com">adinapak@gmail.com</a> &bull; (310) 433-6373 &bull; <a href="https://adina.life">adina.life</a></div>
     </header>
 
     <section class="education" aria-labelledby="education-heading">
       <h2 id="education-heading">Education</h2>
       <div class="row">
         <div class="org">University of California, Berkeley</div>
-        <div class="date">2023 &ndash; 2025*</div>
+        <div class="date"><strong>2023 &ndash; 2025*</strong></div>
       </div>
       <div class="row">
         <div class="degree">B.A. Applied Mathematics | <em>Economics Focus Cluster</em></div>
@@ -360,6 +364,7 @@
             <summary class="prior-head">
               <span class="bullet">&bull;</span>
               <span class="prior-main">Public Equities (Cedar Holdings | <em>$750M AUM Biotech Fund</em>)<span class="caret"></span></span>
+              <span class="prior-date">Q3 2024</span>
             </summary>
             <div class="expand-body">
               <div class="row">
@@ -382,6 +387,7 @@
             <summary class="prior-head">
               <span class="bullet">&bull;</span>
               <span class="prior-main">Investment Banking (Centerstone Capital | <em>Consumer M&amp;A</em>)<span class="caret"></span></span>
+              <span class="prior-date">Q2 2024</span>
             </summary>
             <div class="expand-body">
               <div class="row">
@@ -404,6 +410,7 @@
             <summary class="prior-head">
               <span class="bullet">&bull;</span>
               <span class="prior-main">Business Development (Hypercore | <em>Private Credit Management Platform backed by Insight</em>)<span class="caret"></span></span>
+              <span class="prior-date">Q4 2023</span>
             </summary>
             <div class="expand-body">
               <div class="row">
@@ -421,6 +428,12 @@
               </ul>
             </div>
           </details>
+
+          <div class="prior-head" role="listitem">
+            <span class="bullet">&bull;</span>
+            <span class="prior-main">Volunteer Writing Tutor (826 Valencia | <em>SFUSD Youth Literacy Non-Profit</em>)</span>
+            <span class="prior-date">Q4 2025</span>
+          </div>
 
         </div>
       </article>
