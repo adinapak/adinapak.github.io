@@ -1,7 +1,4 @@
-function json(res, status, body) {
-  res.status(status).setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(body));
-}
+const { json } = require('./_spotify-auth');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
