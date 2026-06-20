@@ -52,6 +52,7 @@ module.exports = async function handler(req, res) {
 
   const query = (req.query.q || '').trim();
   if (!query) return json(res, 200, { tracks: [] });
+  if (query.length > 200) return json(res, 400, { error: 'Query too long (max 200 chars).' });
 
   try {
     const accessToken = await getAccessToken();
