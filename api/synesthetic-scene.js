@@ -86,13 +86,27 @@ module.exports = async function handler(req, res) {
       })
     });
 
-    if (!response.ok) return res.status(200).json(fallbackScene(trackName, artist));
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      console.error('synesthetic-scene: OpenAI API request failed.', response.status, detail);
+      return res.status(200).json(fallbackScene(trackName, artist));
+    }
     const payload = await response.json();
     const raw = payload?.output_text;
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (!parsed || !ALLOWED_SCENE_IDS.has(parsed.sceneId)) return res.status(200).json(fallbackScene(trackName, artist));
+    let parsed = null;
+    try {
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch (parseError) {
+      console.error('synesthetic-scene: Failed to parse OpenAI response JSON.', parseError.message, raw);
+      return res.status(200).json(fallbackScene(trackName, artist));
+    }
+    if (!parsed || !ALLOWED_SCENE_IDS.has(parsed.sceneId)) {
+      console.warn('synesthetic-scene: OpenAI response missing or has invalid sceneId.', parsed?.sceneId);
+      return res.status(200).json(fallbackScene(trackName, artist));
+    }
     return res.status(200).json(parsed);
   } catch (error) {
+    console.error('synesthetic-scene: Unexpected error.', error);
     return res.status(200).json(fallbackScene(trackName, artist));
   }
 };
