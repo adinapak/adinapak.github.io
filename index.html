@@ -1040,7 +1040,7 @@ Authorization: `Bearer ${anon}`
 cache: 'no-store'
 });
 
-if (!response.ok) throw new Error('failed');
+if (!response.ok) throw new Error(`Oura data fetch failed (${response.status})`);
 
 const rows = await response.json();
 const row = Array.isArray(rows) ? rows[0] : null;
@@ -1065,6 +1065,7 @@ metaEl.firstElementChild.textContent = 'OURA';
 metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
 setLiveState('live');
 } catch (error) {
+console.warn('Oura steps load failed.', error);
 stepsEl.textContent = '—';
 traversedEl.textContent = '—';
 forceEl.textContent = '—';
