@@ -1,0 +1,15 @@
+# Environment / secrets
+.env
+.env.*
+supabase-config.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node (if local dev tooling is added)
+node_modules/

@@ -5,6 +5,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ liked: false });
   }
 
+  // Spotify track IDs are 22-char base62 strings
+  if (!/^[a-zA-Z0-9]{1,64}$/.test(trackId)) {
+    return res.status(400).json({ error: 'Invalid track ID format.' });
+  }
+
   try {
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',

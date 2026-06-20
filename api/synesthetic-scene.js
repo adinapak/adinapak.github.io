@@ -29,6 +29,11 @@ module.exports = async function handler(req, res) {
   const { trackId = '', trackName = '', artist = '' } = req.body || {};
   if (!trackId || !trackName || !artist) return res.status(400).json({ error: 'Missing required fields' });
 
+  // Validate input lengths to prevent abuse
+  if (String(trackId).length > 64 || String(trackName).length > 512 || String(artist).length > 512) {
+    return res.status(400).json({ error: 'Input exceeds maximum allowed length' });
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(200).json(fallbackScene(trackName, artist));
