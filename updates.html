@@ -6,11 +6,13 @@
   <title>Sandbox</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
+  <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="favicon.svg">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./supabase-config.js"></script>
+  <script src="shared.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,91 +28,11 @@
       background: #fdfdfd;
       color: #1a1a1a;
       line-height: 1.65;
+      max-width: none;
+      margin: 0;
+      padding: 0;
     }
-.top-nav {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-box-sizing: border-box;
-z-index: 1000;
-display: flex;
-justify-content: space-between;
-align-items: center;
-gap: 10px 20px;
-padding: 12px 24px;
-font-size: 0.98rem;
-background: rgba(255,255,255,0.85);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-border-bottom: 1px solid #ddd;
-color: #444;
-flex-wrap: wrap;
-}
 
-.top-nav-links,
-.top-nav-pages {
-display: flex;
-align-items: center;
-gap: 0.28rem;
-flex-wrap: wrap;
-}
-
-.top-nav a {
-color: #111;
-text-decoration: none;
-font-style: normal;
-}
-
-.top-nav-pages a {
-border-bottom: 1px solid #bbb;
-}
-
-.top-nav .nav-sep,
-.top-nav .slash-sep {
-font-style: italic;
-}
-
-.top-nav-contact:nth-of-type(1):hover {
-color: #000;
-font-weight: 700;
-}
-
-.top-nav-contact:nth-of-type(2):hover {
-color: #0077b5;
-font-weight: 700;
-}
-
-.top-nav-contact:nth-of-type(3):hover {
-color: #EA4335;
-font-weight: 700;
-}
-
-.top-nav-contact:nth-of-type(4):hover {
-background: linear-gradient(90deg,#ff6ec7,#ff9a3c,#ffec3c,#5fffb0,#5fcfff,#a78bfa);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-background-clip: text;
-font-weight: 700;
-}
-
-@media (max-width: 640px) {
-.top-nav {
-padding: 10px 18px;
-font-size: 0.78rem;
-gap: 8px;
-}
-
-.top-nav-pages {
-justify-content: flex-end;
-}
-}
-
-hr {
-border: none;
-border-top: 1px solid #ddd;
-margin: 0 0 28px;
-}
     #root {
       max-width: 680px;
       margin: 64px auto;
@@ -124,69 +46,11 @@ margin: 0 0 28px;
       }
     }
 
-    h1 {
-      font-size: 2.1rem;
-      font-weight: 400;
-      letter-spacing: 0.01em;
-      margin-bottom: 18px;
-      color: #111;
-    }
-
-    nav {
-      font-size: 0.88rem;
-      font-style: italic;
-      margin-bottom: 28px;
-      line-height: 2.2;
-      text-align: left;
-      color: #444;
-    }
-
-    nav a {
-      color: #111;
-      text-decoration: none;
-      font-style: normal;
-      border-bottom: 1px solid #bbb;
-    }
-
-    nav span {
-      color: #bbb;
-      margin: 0 6px;
-      font-style: normal;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 0 0 28px;
-    }
-
-    section {
-      margin-bottom: 26px;
-    }
-
-    section p {
-      font-size: 0.85rem;
-      font-style: italic;
-      color: #888;
-      margin-bottom: 8px;
-    }
-
     section strong {
       font-size: 1rem;
       font-weight: 600;
       color: #111;
       font-style: normal;
-    }
-
-    .game-shell {
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
-      border: 1px solid rgba(0,0,0,0.07);
-      padding: 24px 22px;
-      margin-top: 20px;
     }
 
     .game-shell h2 {
@@ -402,334 +266,6 @@ margin: 0 0 28px;
       text-align: right;
       color: #777;
     }
-
-    .dj-widget {
-      margin-top: 1rem;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(0,0,0,0.07);
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
-      padding: 16px 20px;
-      max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .dj-widget h3 {
-      text-align: left;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #999;
-      font-weight: 400;
-      margin-bottom: 12px;
-    }
-
-    .dj-now-playing {
-      display: grid;
-      grid-template-columns: 48px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 12px;
-      min-height: 48px;
-    }
-
-    .dj-cover-btn {
-      border: 0;
-      background: transparent;
-      padding: 0;
-      width: 48px;
-      height: 48px;
-      border-radius: 3px;
-      overflow: hidden;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .dj-cover {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      display: block;
-      background: #eee;
-      border-radius: 3px;
-    }
-
-    .dj-track-wrap {
-      min-width: 0;
-      display: grid;
-      gap: 2px;
-    }
-
-    .dj-track,
-    .dj-artist {
-      margin: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
-    }
-
-    .dj-track {
-      font-size: 0.92rem;
-      font-weight: 600;
-    }
-
-    .dj-artist {
-      font-size: 0.8rem;
-      color: #666;
-      font-style: italic;
-    }
-
-    .dj-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dj-widget.paused .dj-love-btn,
-    .dj-widget.idle .dj-love-btn {
-      display: none;
-    }
-
-    .dj-love-btn,
-    .dj-login-btn,
-    .dj-queue-btn {
-      font-family: inherit;
-      font-size: 0.78rem;
-      padding: 5px 12px;
-      border-radius: 2px;
-      line-height: 1;
-      min-height: 30px;
-      touch-action: manipulation;
-      cursor: pointer;
-    }
-
-    .dj-love-btn {
-      border: 1px solid #bbb;
-      background: #fff;
-      color: #333;
-      position: relative;
-      transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
-    }
-
-    .dj-love-btn:disabled {
-      opacity: 0.7;
-      cursor: wait;
-    }
-
-    .dj-love-btn.liked {
-      background: #ff4fa2;
-      border-color: #ff4fa2;
-      color: #fff;
-    }
-
-    .heart-flutter {
-      position: absolute;
-      right: -10px;
-      top: -12px;
-      font-size: 1rem;
-      pointer-events: none;
-      opacity: 0;
-      animation: heartFlutter 760ms ease-out forwards;
-    }
-
-    @keyframes heartFlutter {
-      0% {
-        opacity: 0;
-        transform: translateY(0) scale(0.6) rotate(-8deg);
-      }
-      20% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(-22px) scale(1.05) rotate(10deg);
-      }
-    }
-
-    .dj-login-btn,
-    .dj-queue-btn {
-      border: none;
-      background: #111;
-      color: #fff;
-    }
-
-    .dj-login-btn.library-mode {
-      background: #fff;
-      color: #111;
-      border: 1px solid #bbb;
-    }
-
-    .dj-progress {
-      width: 100%;
-      margin-top: 10px;
-      height: 2px;
-    }
-
-    .dj-times {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      color: #aaa;
-      margin-top: 4px;
-      min-height: 18px;
-    }
-
-    .dj-status {
-      min-height: 20px;
-      font-size: 0.78rem;
-      color: #666;
-      font-style: italic;
-      margin: 8px 0 0;
-    }
-
-    .queue-master {
-      margin-top: 1rem;
-      border-top: 1px dashed #d9d9d9;
-      padding-top: 0.9rem;
-    }
-
-    .queue-master p {
-      margin: 0 0 0.6rem;
-      font-size: 0.85rem;
-      color: #444;
-    }
-
-    .queue-master-controls {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    .queue-master-input-row {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 0.4rem;
-      align-items: center;
-    }
-
-    .queue-master-input {
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 2px;
-      padding: 0.38rem 0.45rem;
-      font: inherit;
-      font-size: 0.82rem;
-    }
-
-    .queue-master-connect-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.28rem;
-    }
-
-    .queue-master-connect-icon {
-      font-size: 0.92rem;
-      line-height: 1;
-      color: inherit;
-    }
-
-    .queue-master-connect-btn.connected .queue-master-connect-icon {
-      color: #1DB954;
-    }
-
-    @media (max-width: 560px) {
-      .queue-master-input-row {
-        grid-template-columns: minmax(0, 1fr) auto;
-      }
-
-      .queue-master-connect-btn {
-        grid-column: 1 / -1;
-        justify-self: start;
-      }
-    }
-
-    .queue-master-results {
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .queue-master-item {
-      display: grid;
-      grid-template-columns: 38px minmax(0, 1fr) auto;
-      gap: 0.45rem;
-      align-items: center;
-      font-size: 0.8rem;
-      padding: 0.32rem 0.1rem;
-      border-bottom: 1px dotted #ececec;
-    }
-
-    .queue-master-cover {
-      width: 38px;
-      height: 38px;
-      object-fit: cover;
-      border-radius: 2px;
-      background: #f0f0f0;
-    }
-
-    .queue-master-meta {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .queue-master-title {
-      font-weight: 600;
-    }
-
-    .queue-master-sub {
-      font-size: 0.74rem;
-      color: #666;
-    }
-
-    .queue-list {
-      margin-top: 0.35rem;
-      border-top: 1px dotted #ececec;
-      padding-top: 0.45rem;
-    }
-
-    .queue-list h4 {
-      margin: 0 0 0.35rem;
-      font-size: 0.78rem;
-      color: #777;
-      font-weight: 600;
-    }
-
-    .surprise-overlay {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      pointer-events: none;
-      background: radial-gradient(circle at center, rgba(30,215,96,0.35), rgba(0,0,0,0.6));
-      color: #fff;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      font-weight: 700;
-      text-align: center;
-      padding: 2rem;
-      animation: flashIn 250ms ease-out;
-      font-family: "Computer Modern Serif","CMU Serif",Georgia,serif;
-    }
-
-    .surprise-overlay.show {
-      display: flex;
-    }
-
-    @keyframes flashIn {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
 
     body.page-explode {
       animation: shake 0.35s linear 6;
@@ -1018,8 +554,7 @@ margin: 0 0 28px;
 
       const pendingQueuedTrackIds = new Set();
 
-      const SPOTIFY_PROFILE_IMAGE = "/assets/adina-spotify-profile.png";
-      const SPOTIFY_PROFILE_URL = "https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93";
+      const { SPOTIFY_PROFILE_IMAGE, SPOTIFY_PROFILE_URL, formatMs, escapeHtml, getTrackUrl, isRealSpotifyTrack } = window.AdinaShared;
 
       function setStatus(message) {
         statusEl.textContent = message || '';
@@ -1046,10 +581,6 @@ margin: 0 0 28px;
         resetLoveButton();
       }
 
-      function isRealSpotifyTrack(track) {
-        return !!(track && track.id && track.uri && track.uri.startsWith('spotify:track:'));
-      }
-
       function showFloatingHeartAnimation() {
         const heartEl = document.createElement('span');
         heartEl.className = 'heart-flutter';
@@ -1059,13 +590,6 @@ margin: 0 0 28px;
         window.setTimeout(() => {
           heartEl.remove();
         }, 780);
-      }
-
-      function formatMs(ms) {
-        const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes}:${String(seconds).padStart(2, '0')}`;
       }
 
       function renderProgress() {
@@ -1613,14 +1137,6 @@ margin: 0 0 28px;
         }, { passive: true });
       }
 
-      function escapeHtml(value) {
-        return String(value || '')
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      }
 
       function renderSearchResults(items) {
         if (!items.length) {
