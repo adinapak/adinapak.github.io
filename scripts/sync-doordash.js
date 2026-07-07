@@ -22,18 +22,15 @@ const CATEGORY_KEYWORDS = [
   ['food', ['restaurant', 'kitchen', 'grill', 'cafe', 'taco', 'ramen', 'noodle', 'sandwich']]
 ];
 
-const ZIP_CITY = new Map([
-  ...range(94102, 94134).map(z => [String(z), 'San Francisco']), ['94158', 'San Francisco'],
-  ...['94702','94703','94704','94705','94706','94707','94708','94709','94710','94720'].map(z => [z, 'Berkeley']),
-  ...['94601','94602','94603','94605','94606','94607','94608','94609','94610','94611','94612','94618','94619','94621'].map(z => [z, 'Oakland']),
-  ...['90001','90002','90003','90004','90005','90006','90007','90008','90010','90011','90012','90013','90014','90015','90016','90017','90018','90019','90020','90021','90022','90023','90024','90025','90026','90027','90028','90029','90031','90032','90033','90034','90035','90036','90037','90038','90039','90041','90042','90043','90044','90045','90046','90047','90048','90049','90056','90057','90058','90059','90061','90062','90063','90064','90065','90066','90067','90068','90069','90071','90077','90089','90094'].map(z => [z, 'Los Angeles']),
-  ...['90274','90275'].map(z => [z, 'Palos Verdes'])
+const ZIP_LOCATIONS = new Map([
+  ['90274', { city: 'Palos Verdes', state: 'CA' }],
+  ['90275', { city: 'Rancho Palos Verdes', state: 'CA' }],
+  ['90272', { city: 'Pacific Palisades', state: 'CA' }]
 ]);
 
-function range(a, b) { return Array.from({ length: b - a + 1 }, (_, i) => a + i); }
 function requireEnv(name) { const value = process.env[name]; if (!value) throw new Error(`Missing required env var: ${name}`); return value; }
 function decodeBase64Url(data = '') { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }
-function htmlToText(html) { return html.replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<br\s*\/?\s*>/gi, '\n').replace(/<\/p>|<\/div>|<\/tr>|<\/li>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+function htmlToText(html) { return decodeHtmlEntities(html.replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<br\s*\/?\s*>/gi, '\n').replace(/<\/p>|<\/div>|<\/tr>|<\/li>/gi, '\n').replace(/<[^>]+>/g, ' ')); }
 function normalize(text) { return (text || '').replace(/\r/g, '\n').replace(/[\t ]+/g, ' ').replace(/\n[ \t]+/g, '\n').replace(/\n{3,}/g, '\n\n').trim(); }
 function header(message, name) { return (message.payload?.headers || []).find(h => h.name?.toLowerCase() === name.toLowerCase())?.value || ''; }
 function collectParts(part, out = { html: [], text: [] }) {
@@ -46,6 +43,9 @@ function collectParts(part, out = { html: [], text: [] }) {
   return out;
 }
 function cleanLine(line) { return line.replace(/^[-•*\s]+/, '').replace(/\s+/g, ' ').trim(); }
+function decodeHtmlEntities(text = '') { return text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+function normalizeMerchantName(merchant) { const cleaned = cleanLine(merchant || '').replace(/^(?:from|at)\s+/i, '').replace(/[|•].*$/, '').trim(); return cleaned.toLowerCase() === 'misc' ? 'misc coffee' : cleaned; }
+function trimMerchantCandidate(candidate) { return normalizeMerchantName((candidate || '').split(/\n|\r|\s+[—–-]\s+|\s+View order\b|\s+Receipt\b|\s+Order details\b|\s+Subtotal\b|\s+Total\b|\s+Help\b|\s+DoorDash\b/i)[0]).slice(0, 70); }
 function isUnsafeLine(line) {
   return !line || /\$\s?\d|subtotal|total|tax|tip|fees?|delivery fee|service fee|promo|discount|visa|mastercard|amex|card|order\s*#|order number|dasher|delivered to|drop.?off|address|apt|unit|phone|support|receipt|view order|track order|help/i.test(line) || /@/.test(line) || /\b\d{1,6}\s+[A-Za-z0-9 .'-]+\s+(st|street|ave|avenue|rd|road|blvd|boulevard|dr|drive|ln|lane|way|ct|court)\b/i.test(line);
 }
@@ -60,8 +60,8 @@ function hasOrderConfirmation(text, subject) {
   return /Order Confirmation for Adina/i.test(`${subject}\n${text}`);
 }
 function extractReceiptPhrase(hay) {
-  return hay.match(/Order Confirmation for Adina\s+from\s+([^\n.!|]+)/i)
-    || hay.match(/Order Confirmation for Adina[^\n]{0,80}?\bfrom\s+([^\n.!|]+)/i);
+  return hay.match(/Order Confirmation for Adina\s+from\s+(.{1,140})/i)
+    || hay.match(/Order Confirmation for Adina[^\n]{0,80}?\bfrom\s+(.{1,140})/i);
 }
 function isValidReceipt(text, subject) {
   const hay = `${subject}\n${text}`;
@@ -72,13 +72,13 @@ function isValidReceipt(text, subject) {
 function inferMerchant(text, subject) {
   const hay = `${subject}\n${text}`;
   const receiptMatch = extractReceiptPhrase(hay);
-  if (receiptMatch) return cleanLine(receiptMatch[1]).replace(/\s+(?:is confirmed|has been.*|$).*$/i, '').slice(0, 70);
+  if (receiptMatch) return trimMerchantCandidate(receiptMatch[1]).replace(/\s+(?:is confirmed|has been.*)$/i, '').trim();
   const patterns = [/Thanks for your order from\s+([^\n.!]+)/i, /Your order from\s+([^\n.!]+)/i, /order from\s+([^\n.!]+)/i, /receipt from\s+([^\n.!]+)/i];
-  for (const re of patterns) { const m = hay.match(re); if (m) return cleanLine(m[1]).replace(/\s+has been.*$/i, '').slice(0, 70); }
+  for (const re of patterns) { const m = hay.match(re); if (m) return trimMerchantCandidate(m[1]).replace(/\s+has been.*$/i, '').trim(); }
   const idx = hay.search(/Order Confirmation for Adina/i);
   if (idx >= 0) {
     const nearby = hay.slice(idx, idx + 600).split('\n').map(cleanLine).filter(Boolean).find(l => !/Order Confirmation|DoorDash|receipt|confirmation|thanks/i.test(l) && !isUnsafeLine(l));
-    if (nearby) return nearby.slice(0, 70);
+    if (nearby) return normalizeMerchantName(nearby).slice(0, 70);
   }
   return 'DoorDash';
 }
@@ -108,6 +108,24 @@ function inferZip(text) {
   if (addressish) return addressish[1];
   const m = text.match(/\b(\d{5})(?:-\d{4})?\b/);
   return m?.[1];
+}
+function inferLocation(zip) {
+  if (!zip) return { city: 'unknown', state: null };
+  if (ZIP_LOCATIONS.has(zip)) return ZIP_LOCATIONS.get(zip);
+  if (/^(900|901|902)\d{2}$/.test(zip)) return { city: 'Los Angeles', state: 'CA' };
+  if (/^941\d{2}$/.test(zip)) return { city: 'San Francisco', state: 'CA' };
+  if (/^947\d{2}$/.test(zip)) return { city: 'Berkeley', state: 'CA' };
+  if (/^946\d{2}$/.test(zip)) return { city: 'Oakland', state: 'CA' };
+  return { city: 'unknown', state: null };
+}
+function extractVendorUrl(html, merchant) {
+  const decoded = decodeHtmlEntities(html || '');
+  const hrefs = [...decoded.matchAll(/href=["']([^"']+)["']/gi)].map(m => decodeHtmlEntities(m[1]));
+  const cleanMerchantSlug = normalizeMerchantName(merchant).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const candidates = hrefs.filter(href => /^https?:\/\//i.test(href) && /doordash\.com/i.test(href) && !/unsubscribe|privacy|help|support|email-preferences/i.test(href));
+  return candidates.find(href => /doordash\.com\/store/i.test(href))
+    || candidates.find(href => cleanMerchantSlug && href.toLowerCase().includes(cleanMerchantSlug))
+    || null;
 }
 function inferCategory(merchant, items) { const hay = `${merchant} ${items.join(' ')}`.toLowerCase(); for (const [cat, words] of CATEGORY_KEYWORDS) if (words.some(w => hay.includes(w))) return cat; return 'unknown'; }
 function summarize(merchant, items, category) { if (items.length) return items.slice(0, 3).join(', '); return 'order details unavailable'; }
@@ -141,7 +159,7 @@ async function main() {
   const candidates = list.messages || [];
   console.log(`Fetched ${candidates.length} DoorDash candidate emails.`);
   if (!candidates.length) throw new Error('No DoorDash receipt candidates found.');
-  let message, text = '', subject = '';
+  let message, text = '', subject = '', html = '';
   for (const candidate of candidates) {
     const candidateMessage = await gmailFetch(`/${candidate.id}?${new URLSearchParams({ format: 'full' })}`, accessToken);
     const candidateSubject = header(candidateMessage, 'Subject');
@@ -153,6 +171,7 @@ async function main() {
     }
     message = candidateMessage;
     text = candidateText;
+    html = parts.html.join('\n');
     subject = candidateSubject;
     console.log(`Selected receipt subject: ${redactSubject(subject)}`);
     break;
@@ -164,14 +183,15 @@ async function main() {
   const orderedAt = new Date(Number(message.internalDate || Date.now()));
   const ordered_at = Number.isNaN(orderedAt.getTime()) ? new Date().toISOString() : orderedAt.toISOString();
   const zip_code = inferZip(text);
-  const city = zip_code ? (ZIP_CITY.get(zip_code) || 'unknown') : 'unknown';
+  const { city, state } = inferLocation(zip_code);
   const category = inferCategory(merchant, items);
   const order_summary = summarize(merchant, items, category);
+  const vendor_url = extractVendorUrl(html, merchant);
   console.log(`Parsed merchant: ${merchant}`);
   console.log(`Parsed fulfillment_type: ${fulfillment_type}`);
   console.log(`Parsed zip_code: ${zip_code || 'unknown'}`);
   console.log(`Parsed item count: ${items.length}`);
-  const metadata = { merchant, order_summary, items, fulfillment_type, zip_code: zip_code || null, city, category, ordered_at, image_url: null, image_alt: `Representative ${category} image for a DoorDash order`, image_model_name: DEFAULT_MODEL_NAME, image_model_url: DEFAULT_MODEL_URL };
+  const metadata = { merchant, order_summary, items, fulfillment_type, zip_code: zip_code || null, city, state, vendor_url, category, ordered_at, image_url: null, image_alt: `Representative ${category} image for a DoorDash order`, image_model_name: DEFAULT_MODEL_NAME, image_model_url: DEFAULT_MODEL_URL };
   const row = { source: 'doordash', activity_date: activityDateLA(new Date(ordered_at)), title: 'Last DoorDash order', body: `${merchant} — ${order_summary}`, icon: 'food', occurred_at: ordered_at, visibility: 'public', metadata };
   await upsertSupabase(row);
   console.log(`DoorDash sync complete. Stored sanitized public row for ${row.activity_date}; merchant/category only: ${merchant} / ${category}.`);

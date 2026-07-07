@@ -1060,11 +1060,54 @@ if (Number.isNaN(date.getTime())) return 'last ordered recently';
 return `last ordered ${date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
 }
 
-function formatLocation(city, zipCode, fulfillment) {
-const normalizedCity = safeText(city, 'unknown');
+const ZIP_LOCATION_MAP = new Map([
+['90274', { city: 'Palos Verdes', state: 'CA' }],
+['90275', { city: 'Rancho Palos Verdes', state: 'CA' }],
+['90272', { city: 'Pacific Palisades', state: 'CA' }]
+]);
+
+function normalizeMerchant(merchant) {
+const normalized = safeText(merchant, 'DoorDash');
+return normalized.toLowerCase() === 'misc' ? 'misc coffee' : normalized;
+}
+
+function formatFulfillment(fulfillment) {
+const normalized = safeText(fulfillment, 'unknown').toLowerCase();
+if (normalized === 'pickup') return 'Ordered via pickup';
+if (normalized === 'delivery') return 'Ordered via delivery';
+return 'Ordered via DoorDash';
+}
+
+function inferLocationFromZip(zipCode) {
 const zip = safeText(zipCode, '');
-const location = normalizedCity !== 'unknown' && zip ? `${normalizedCity} ${zip}` : zip ? `ZIP ${zip}` : normalizedCity;
-return `${location} · ${fulfillment}`;
+if (!/^\d{5}$/.test(zip)) return null;
+if (ZIP_LOCATION_MAP.has(zip)) return ZIP_LOCATION_MAP.get(zip);
+if (/^(900|901|902)\d{2}$/.test(zip)) return { city: 'Los Angeles', state: 'CA' };
+if (/^941\d{2}$/.test(zip)) return { city: 'San Francisco', state: 'CA' };
+if (/^947\d{2}$/.test(zip)) return { city: 'Berkeley', state: 'CA' };
+if (/^946\d{2}$/.test(zip)) return { city: 'Oakland', state: 'CA' };
+return null;
+}
+
+function getDisplayLocation(metadata) {
+const metadataCity = safeText(metadata.city, '');
+let city = metadataCity.toLowerCase() === 'unknown' ? '' : metadataCity;
+let state = safeText(metadata.state, '');
+if (city && !state && city.toLowerCase() === 'palos verdes') state = 'CA';
+if (!city || !state) {
+const inferred = inferLocationFromZip(metadata.zip_code);
+if (inferred) {
+city = city || inferred.city;
+state = state || inferred.state;
+}
+}
+return city && state ? `${city}, ${state}` : '';
+}
+
+function formatSummary(orderSummary, displayLocation) {
+const summary = safeText(orderSummary, '');
+if (summary && summary.toLowerCase() !== 'order details unavailable') return summary;
+return displayLocation ? `Eaten in ${displayLocation}` : 'Eaten somewhere';
 }
 
 function renderFallback() {
@@ -1103,16 +1146,26 @@ renderFallback();
 return;
 }
 const metadata = row.metadata || {};
-const merchant = safeText(metadata.merchant, 'DoorDash');
-const city = safeText(metadata.city, 'unknown');
-const zipCode = safeText(metadata.zip_code, '');
+const merchant = normalizeMerchant(metadata.merchant);
 const fulfillment = safeText(metadata.fulfillment_type, 'unknown');
-const summary = safeText(metadata.order_summary || row.body, 'order details unavailable');
+const displayLocation = getDisplayLocation(metadata);
+const summary = formatSummary(metadata.order_summary, displayLocation);
+const vendorUrl = safeText(metadata.vendor_url || metadata.store_url, '');
 const category = VALID_CATEGORIES.has(metadata.category) ? metadata.category : 'unknown';
 const modelName = safeText(metadata.image_model_name, 'manual');
 const modelUrl = safeText(metadata.image_model_url, '#');
+merchantEl.textContent = '';
+if (vendorUrl) {
+const merchantLink = document.createElement('a');
+merchantLink.href = vendorUrl;
+merchantLink.target = '_blank';
+merchantLink.rel = 'noopener noreferrer';
+merchantLink.textContent = merchant;
+merchantEl.appendChild(merchantLink);
+} else {
 merchantEl.textContent = merchant;
-locationEl.textContent = formatLocation(city, zipCode, fulfillment);
+}
+locationEl.textContent = formatFulfillment(fulfillment);
 summaryEl.textContent = summary;
 imageEl.src = safeText(metadata.image_url, `assets/doordash/${category}.svg`);
 imageEl.alt = safeText(metadata.image_alt, `Representative ${category} DoorDash order image`);
