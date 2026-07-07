@@ -37,11 +37,7 @@ jobs:
           fi
 
           STEPS="$(printf '%s' "$ACTIVITY_JSON" | jq -r --arg today "$TODAY" '
-            (
-              [.data[]? | select((.day // .date // .activity_date // "") == $today) | (.steps // .contributors.steps // empty)]
-              +
-              [.data[]? | (.steps // .contributors.steps // empty)]
-            ) | first // 0
+            [.data[]? | select((.day // .date // .activity_date // "") == $today) | (.steps // .contributors.steps // empty)] | first // 0
           ')"
 
           echo "Resolved Oura steps for ${TODAY}: ${STEPS}"
@@ -75,7 +71,7 @@ jobs:
               icon: "steps",
               occurred_at: $occurred_at,
               visibility: "public",
-              metadata: { steps: $steps, date: $date }
+              metadata: { steps: $steps, date: $date, lastSuccessfulUpdate: $occurred_at }
             }')"
 
           curl -fsS -X POST "${SUPABASE_URL}/rest/v1/activity_feed?on_conflict=source,activity_date" \
