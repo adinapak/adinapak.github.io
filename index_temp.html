@@ -1057,7 +1057,14 @@ function formatLastOrdered(occurredAt) {
 if (!occurredAt) return 'waiting for receipt';
 const date = new Date(occurredAt);
 if (Number.isNaN(date.getTime())) return 'last ordered recently';
-return `last ordered ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
+return `last ordered ${date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+}
+
+function formatLocation(city, zipCode, fulfillment) {
+const normalizedCity = safeText(city, 'unknown');
+const zip = safeText(zipCode, '');
+const location = normalizedCity !== 'unknown' && zip ? `${normalizedCity} ${zip}` : zip ? `ZIP ${zip}` : normalizedCity;
+return `${location} · ${fulfillment}`;
 }
 
 function renderFallback() {
@@ -1066,7 +1073,7 @@ locationEl.textContent = 'DoorDash feed unavailable';
 summaryEl.textContent = 'waiting for receipt';
 imageEl.src = 'assets/doordash/unknown.svg';
 imageEl.alt = 'Representative DoorDash order image';
-imageEl.title = 'representative image · generated/classified by receipt-classifier-v0';
+imageEl.title = 'representative image · manual';
 imageLinkEl.href = '#';
 lastOrderedEl.textContent = 'waiting for receipt';
 }
@@ -1097,18 +1104,19 @@ return;
 }
 const metadata = row.metadata || {};
 const merchant = safeText(metadata.merchant, 'DoorDash');
-const city = safeText(metadata.city, 'somewhere');
+const city = safeText(metadata.city, 'unknown');
+const zipCode = safeText(metadata.zip_code, '');
 const fulfillment = safeText(metadata.fulfillment_type, 'unknown');
-const summary = safeText(metadata.order_summary || row.body, 'recent order');
+const summary = safeText(metadata.order_summary || row.body, 'order details unavailable');
 const category = VALID_CATEGORIES.has(metadata.category) ? metadata.category : 'unknown';
-const modelName = safeText(metadata.image_model_name, 'receipt-classifier-v0');
+const modelName = safeText(metadata.image_model_name, 'manual');
 const modelUrl = safeText(metadata.image_model_url, '#');
 merchantEl.textContent = merchant;
-locationEl.textContent = `${city} · ${fulfillment}`;
+locationEl.textContent = formatLocation(city, zipCode, fulfillment);
 summaryEl.textContent = summary;
-imageEl.src = `assets/doordash/${category}.svg`;
+imageEl.src = safeText(metadata.image_url, `assets/doordash/${category}.svg`);
 imageEl.alt = safeText(metadata.image_alt, `Representative ${category} DoorDash order image`);
-imageEl.title = `representative image · generated/classified by ${modelName}`;
+imageEl.title = `representative image · ${modelName}`;
 imageLinkEl.href = modelUrl;
 lastOrderedEl.textContent = formatLastOrdered(row.occurred_at || metadata.ordered_at);
 } catch (error) {
