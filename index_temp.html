@@ -638,7 +638,7 @@ display: flex;
 
 
 
-.oura-widget {
+.doordash-widget {
 margin: 14px auto 0;
 max-width: 560px;
 background: rgba(255,255,255,0.72);
@@ -652,25 +652,25 @@ margin-left: auto;
 margin-right: auto;
 }
 
-.oura-header,
-.oura-main {
+.doordash-header,
+.doordash-main {
 display: flex;
 align-items: center;
 justify-content: space-between;
 gap: 0.8rem;
 }
 
-.oura-header {
+.doordash-header {
 margin-bottom: 0.7rem;
 }
 
 
-.oura-brand {
+.doordash-brand {
 display: flex;
 align-items: center;
 }
 
-.oura-label {
+.doordash-label {
 margin: 0;
 font-size: 0.72rem;
 color: #999;
@@ -679,8 +679,63 @@ text-transform: uppercase;
 font-weight: 400;
 }
 
-.oura-main {
+.doordash-main {
 justify-content: flex-start;
+align-items: flex-start;
+}
+
+.doordash-image-link {
+flex: 0 0 auto;
+}
+
+.doordash-image {
+display: block;
+width: 92px;
+height: 92px;
+object-fit: cover;
+border-radius: 4px;
+border: 1px solid rgba(0,0,0,0.08);
+background: #fbfaf7;
+}
+
+.doordash-content {
+min-width: 0;
+flex: 1;
+}
+
+.doordash-merchant {
+margin: 0;
+font-size: clamp(1.25rem, 4vw, 1.65rem);
+font-weight: 650;
+line-height: 1.05;
+letter-spacing: -0.02em;
+color: #101010;
+}
+
+.doordash-location {
+margin: 0.28rem 0 0;
+font-size: 0.82rem;
+color: #666;
+font-style: italic;
+}
+
+.doordash-summary {
+margin: 0.6rem 0 0;
+font-size: 0.92rem;
+line-height: 1.35;
+color: #222;
+}
+
+@media (max-width: 420px) {
+.doordash-main {
+flex-direction: column;
+}
+
+.doordash-image {
+width: 100%;
+height: auto;
+aspect-ratio: 1 / 1;
+}
 }
 
 .oura-metrics {
@@ -716,7 +771,7 @@ font-style: italic;
 text-align: center;
 }
 
-.oura-steps-meta {
+.doordash-meta {
 margin: 0.8rem 0 0;
 font-size: 0.74rem;
 color: #666;
@@ -885,30 +940,25 @@ Date notes:
 <p id="dj-status" class="dj-status" role="status"></p>
 </section>
 
-<section class="oura-widget" aria-live="polite" aria-label="Oura daily steps">
-<div class="oura-header">
-<div class="oura-brand">
-<p class="oura-label" style="font-style: normal;">Wrapped around my finger...</p>
+<!-- Oura widget preserved in git history for rollback; visible homepage now uses the public DoorDash feed. -->
+<section class="doordash-widget" aria-live="polite" aria-label="Last DoorDash order">
+<div class="doordash-header">
+<div class="doordash-brand">
+<p class="doordash-label" style="font-style: normal;">Recently at my door...</p>
 </div>
 </div>
-<div class="oura-main">
-<div class="oura-metrics">
-<div class="oura-metric">
-<p id="oura-steps-value" class="oura-steps-value" style="font-style: normal;">—</p>
-<p class="oura-steps-label">steps today</p>
-</div>
-<div class="oura-metric">
-<p id="oura-747s-value" class="oura-steps-value" style="font-style: normal;">—</p>
-<p class="oura-steps-label">Boeing 747 Laps</p>
-</div>
-<div class="oura-metric">
-<p id="oura-force-value" class="oura-steps-value" style="font-style: normal;">—</p>
-<p class="oura-steps-label">N of Step-Force</p>
-</div>
+<div class="doordash-main">
+<a id="doordash-image-link" class="doordash-image-link" href="#" aria-label="Representative DoorDash image">
+<img id="doordash-image" class="doordash-image" src="assets/doordash/unknown.svg" alt="Representative DoorDash order image">
+</a>
+<div class="doordash-content">
+<p id="doordash-merchant" class="doordash-merchant" style="font-style: normal;">Loading…</p>
+<p id="doordash-location" class="doordash-location">DoorDash feed unavailable</p>
+<p id="doordash-summary" class="doordash-summary">waiting for receipt</p>
 </div>
 </div>
 </section>
-<p id="oura-steps-meta" class="oura-steps-meta"><span>OURA</span><span aria-hidden="true">·</span><span id="oura-last-updated">last updated ...</span></p>
+<p id="doordash-meta" class="doordash-meta"><span>DOORDASH</span><span aria-hidden="true">·</span><span id="doordash-last-ordered">waiting for receipt</span></p>
 
 <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
 🎉 TWINNEMMMM
@@ -989,49 +1039,48 @@ miniPlayer.setAttribute('aria-hidden', 'true');
 
 <script>
 (function () {
-const stepsEl = document.getElementById('oura-steps-value');
-const traversedEl = document.getElementById('oura-747s-value');
-const forceEl = document.getElementById('oura-force-value');
-const metaEl = document.getElementById('oura-steps-meta');
-const metaUpdatedEl = document.getElementById('oura-last-updated');
-if (!stepsEl || !traversedEl || !forceEl || !metaEl || !metaUpdatedEl) return;
+const merchantEl = document.getElementById('doordash-merchant');
+const locationEl = document.getElementById('doordash-location');
+const summaryEl = document.getElementById('doordash-summary');
+const imageEl = document.getElementById('doordash-image');
+const imageLinkEl = document.getElementById('doordash-image-link');
+const lastOrderedEl = document.getElementById('doordash-last-ordered');
+if (!merchantEl || !locationEl || !summaryEl || !imageEl || !imageLinkEl || !lastOrderedEl) return;
 
-function setLiveState() {}
+const VALID_CATEGORIES = new Set(['groceries', 'bowl', 'salad', 'sushi', 'pizza', 'burger', 'boba', 'coffee', 'convenience', 'dessert', 'food', 'unknown']);
 
-function formatUpdatedTime(occurredAt) {
-if (!occurredAt) return 'last updated just now';
+function safeText(value, fallback) {
+return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function formatLastOrdered(occurredAt) {
+if (!occurredAt) return 'waiting for receipt';
 const date = new Date(occurredAt);
-if (Number.isNaN(date.getTime())) return 'last updated recently';
-return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+if (Number.isNaN(date.getTime())) return 'last ordered recently';
+return `last ordered ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
 }
 
-function formatCumulativeForce(forceNewtons) {
-if (forceNewtons < 1000) return `${Math.round(forceNewtons)}`;
-if (forceNewtons < 1000000) return `${Math.round(forceNewtons / 1000)}k`;
-return `${(forceNewtons / 1000000).toFixed(1)}M`;
+function renderFallback() {
+merchantEl.textContent = 'No recent signal';
+locationEl.textContent = 'DoorDash feed unavailable';
+summaryEl.textContent = 'waiting for receipt';
+imageEl.src = 'assets/doordash/unknown.svg';
+imageEl.alt = 'Representative DoorDash order image';
+imageEl.title = 'representative image · generated/classified by receipt-classifier-v0';
+imageLinkEl.href = '#';
+lastOrderedEl.textContent = 'waiting for receipt';
 }
 
-async function loadOuraSteps() {
+async function loadDoorDashOrder() {
 const url = window.SUPABASE_URL;
 const anon = window.SUPABASE_ANON_KEY;
-
-stepsEl.textContent = 'Loading…';
-metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = 'Loading latest step sync…';
-setLiveState('loading');
-
 if (!url || !anon) {
-stepsEl.textContent = '—';
-traversedEl.textContent = '—';
-forceEl.textContent = '—';
-metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = 'Supabase client config missing.';
-setLiveState('offline');
+renderFallback();
 return;
 }
 
 try {
-const endpoint = `${url}/rest/v1/activity_feed?source=eq.oura&visibility=eq.public&order=occurred_at.desc&limit=1`;
+const endpoint = `${url}/rest/v1/activity_feed?source=eq.doordash&visibility=eq.public&order=occurred_at.desc&limit=1`;
 const response = await fetch(endpoint, {
 headers: {
 apikey: anon,
@@ -1039,42 +1088,36 @@ Authorization: `Bearer ${anon}`
 },
 cache: 'no-store'
 });
-
 if (!response.ok) throw new Error('failed');
-
 const rows = await response.json();
 const row = Array.isArray(rows) ? rows[0] : null;
 if (!row) {
-stepsEl.textContent = '—';
-traversedEl.textContent = '—';
-forceEl.textContent = '—';
-metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = 'No Oura step data yet.';
-setLiveState('offline');
+renderFallback();
 return;
 }
-
-const steps = Number(row?.metadata?.steps ?? 0);
-const safeSteps = Number.isFinite(steps) ? steps : 0;
-const traversed747 = (safeSteps * 0.00047 * 5280) / 231;
-const cumulativeForce = safeSteps * 511;
-stepsEl.textContent = safeSteps.toLocaleString();
-traversedEl.textContent = traversed747.toFixed(1);
-forceEl.textContent = formatCumulativeForce(cumulativeForce);
-metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
-setLiveState('live');
+const metadata = row.metadata || {};
+const merchant = safeText(metadata.merchant, 'DoorDash');
+const city = safeText(metadata.city, 'somewhere');
+const fulfillment = safeText(metadata.fulfillment_type, 'unknown');
+const summary = safeText(metadata.order_summary || row.body, 'recent order');
+const category = VALID_CATEGORIES.has(metadata.category) ? metadata.category : 'unknown';
+const modelName = safeText(metadata.image_model_name, 'receipt-classifier-v0');
+const modelUrl = safeText(metadata.image_model_url, '#');
+merchantEl.textContent = merchant;
+locationEl.textContent = `${city} · ${fulfillment}`;
+summaryEl.textContent = summary;
+imageEl.src = `assets/doordash/${category}.svg`;
+imageEl.alt = safeText(metadata.image_alt, `Representative ${category} DoorDash order image`);
+imageEl.title = `representative image · generated/classified by ${modelName}`;
+imageLinkEl.href = modelUrl;
+lastOrderedEl.textContent = formatLastOrdered(row.occurred_at || metadata.ordered_at);
 } catch (error) {
-stepsEl.textContent = '—';
-traversedEl.textContent = '—';
-forceEl.textContent = '—';
-metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = 'Oura steps unavailable right now.';
-setLiveState('offline');
+renderFallback();
 }
 }
 
-loadOuraSteps();
+renderFallback();
+loadDoorDashOrder();
 })();
 </script>
 

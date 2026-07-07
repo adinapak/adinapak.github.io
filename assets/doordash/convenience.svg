@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Representative Convenience DoorDash order illustration">
+  <rect width="160" height="160" rx="18" fill="#fbfaf7"/>
+  <circle cx="80" cy="76" r="46" fill="#d7e4ef" stroke="#222" stroke-opacity=".12"/>
+  <path d="M45 104c18 18 52 18 70 0" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round" opacity=".38"/>
+  <text x="80" y="83" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#222" opacity=".72">Convenience</text>
+  <text x="80" y="108" text-anchor="middle" font-family="Georgia, serif" font-size="10" fill="#666" opacity=".75">DoorDash</text>
+</svg>
