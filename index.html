@@ -908,7 +908,7 @@ Date notes:
 </div>
 </div>
 </section>
-<p id="oura-steps-meta" class="oura-steps-meta"><span>OURA</span><span aria-hidden="true">·</span><span id="oura-last-updated">last updated ...</span></p>
+<p id="oura-steps-meta" class="oura-steps-meta"><span>OURA</span><span aria-hidden="true">·</span><span id="oura-last-updated">Last update unavailable</span></p>
 
 <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
 🎉 TWINNEMMMM
@@ -998,11 +998,11 @@ if (!stepsEl || !traversedEl || !forceEl || !metaEl || !metaUpdatedEl) return;
 
 function setLiveState() {}
 
-function formatUpdatedTime(occurredAt) {
-if (!occurredAt) return 'last updated just now';
-const date = new Date(occurredAt);
-if (Number.isNaN(date.getTime())) return 'last updated recently';
-return `last updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+function formatSuccessfulUpdateTime(updatedAt) {
+if (!updatedAt) return 'Last update unavailable';
+const date = new Date(updatedAt);
+if (Number.isNaN(date.getTime())) return 'Last update unavailable';
+return `last successful update ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
 }
 
 function formatCumulativeForce(forceNewtons) {
@@ -1017,7 +1017,7 @@ const anon = window.SUPABASE_ANON_KEY;
 
 stepsEl.textContent = 'Loading…';
 metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = 'Loading latest step sync…';
+metaUpdatedEl.textContent = 'Loading latest Oura data…';
 setLiveState('loading');
 
 if (!url || !anon) {
@@ -1062,7 +1062,7 @@ stepsEl.textContent = safeSteps.toLocaleString();
 traversedEl.textContent = traversed747.toFixed(1);
 forceEl.textContent = formatCumulativeForce(cumulativeForce);
 metaEl.firstElementChild.textContent = 'OURA';
-metaUpdatedEl.textContent = formatUpdatedTime(row?.occurred_at);
+metaUpdatedEl.textContent = formatSuccessfulUpdateTime(row?.metadata?.lastSuccessfulUpdate);
 setLiveState('live');
 } catch (error) {
 stepsEl.textContent = '—';
