@@ -1,10 +1,6 @@
-const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
-const SPOTIFY_QUEUE_URL = 'https://api.spotify.com/v1/me/player/queue';
+const { json, getAccessToken } = require('./_spotify-auth');
 
-function json(res, status, body) {
-  res.status(status).setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(body));
-}
+const SPOTIFY_QUEUE_URL = 'https://api.spotify.com/v1/me/player/queue';
 
 function normalizeTrackUri(trackIdOrUri) {
   if (!trackIdOrUri) return null;
@@ -13,7 +9,6 @@ function normalizeTrackUri(trackIdOrUri) {
     return trackIdOrUri;
   }
 
-  // If user passes a full Spotify track URL, convert to URI.
   if (trackIdOrUri.includes('open.spotify.com/track/')) {
     const cleanUrl = trackIdOrUri.split('?')[0];
     const id = cleanUrl.split('/track/')[1];
@@ -24,44 +19,6 @@ function normalizeTrackUri(trackIdOrUri) {
   return `spotify:track:${trackIdOrUri}`;
 }
 
-async function getAccessToken() {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    const err = new Error('Missing Spotify environment variables.');
-    err.status = 500;
-    throw err;
-  }
-
-  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const body = new URLSearchParams({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-  });
-
-  const tokenResponse = await fetch(SPOTIFY_TOKEN_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${authHeader}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body,
-  });
-
-  const tokenData = await tokenResponse.json().catch(() => ({}));
-
-  if (!tokenResponse.ok || !tokenData.access_token) {
-    const err = new Error('Failed to refresh Spotify access token.');
-    err.status = tokenResponse.status || 502;
-    err.details = tokenData;
-    throw err;
-  }
-
-  return tokenData.access_token;
-}
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
@@ -69,7 +26,6 @@ module.exports = async function handler(req, res) {
   }
 
 
-  // Security: never accept OAuth tokens from client input.
   if (req.query.refresh_token || req.query.access_token) {
     return json(res, 400, {
       error: 'Do not pass Spotify tokens in query params. Server uses env credentials only.',
@@ -131,4 +87,4 @@ module.exports = async function handler(req, res) {
       details: error.details || null,
     });
   }
-}
+};
