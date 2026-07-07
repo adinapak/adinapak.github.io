@@ -1,0 +1,12 @@
+{
+  "name": "adinapak.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "gmail:refresh-token": "node scripts/get-gmail-refresh-token.js"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}
