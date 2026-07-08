@@ -271,7 +271,23 @@ input:focus-visible {
   white-space: nowrap;
 }
 
-.doordash-meta a[href="belly.html"] {
+#doordash-meta {
+  max-width: 560px !important;
+  margin: -5.85rem auto 0 !important;
+  padding: 0 20px 0 0 !important;
+  justify-content: flex-end !important;
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
+
+#doordash-meta #doordash-meta-label,
+#doordash-meta #doordash-last-ordered,
+#doordash-meta > span {
+  display: none !important;
+}
+
+#doordash-meta a[href="belly.html"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -285,8 +301,12 @@ input:focus-visible {
   font-size: 0.78rem;
   line-height: 1;
   white-space: nowrap;
+  pointer-events: auto;
 }
 
-.doordash-meta {
-  flex-wrap: wrap;
+@media (max-width: 560px) {
+  #doordash-meta {
+    margin-top: -4.6rem !important;
+    padding-right: 18px !important;
+  }
 }
