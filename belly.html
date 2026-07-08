@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Belly · Adina Pak</title>
+<style>
+body { margin: 0; padding: 28px 16px 48px; background: #f7f3eb; color: #111; font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
+a { color: inherit; }
+.page { max-width: 760px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; margin-bottom: 18px; }
+h1 { margin: 0; font-size: clamp(2rem, 8vw, 4rem); letter-spacing: -0.05em; }
+.kicker, .meta, .mode, .location { color: #666; font-size: 0.82rem; }
+.kicker { text-transform: uppercase; letter-spacing: 1.2px; }
+.meals { display: grid; gap: 14px; }
+.meal-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.07); border-radius: 4px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); }
+.meal-card img { width: 112px; height: 112px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); background: #fbfaf7; }
+.meal-card h2 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.7rem); line-height: 1.05; letter-spacing: -0.02em; }
+.mode { margin: 0.3rem 0 0; font-style: italic; }
+.description { margin: 0.7rem 0; line-height: 1.35; }
+.meta { margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.empty { background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.07); padding: 18px; }
+@media (max-width: 520px) { .meal-card { grid-template-columns: 1fr; } .meal-card img { width: 100%; height: auto; aspect-ratio: 1 / 1; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="header">
+    <div>
+      <p class="kicker">Meal log</p>
+      <h1>Belly</h1>
+    </div>
+    <a href="index_temp.html">Home</a>
+  </div>
+  <section id="meals" class="meals" aria-live="polite"><p class="empty">Loading meals…</p></section>
+</main>
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+const mealsEl = document.getElementById('meals');
+function safeText(value, fallback = '') { return typeof value === 'string' && value.trim() ? value.trim() : fallback; }
+function formatMode(mode) { return ({ pickup: 'Ordered via pickup', delivery: 'Ordered via delivery', dining_in: 'Dining in', made_by_me: 'Made by me', unknown: 'Digitally logged meal' }[safeText(mode, 'unknown')] || 'Digitally logged meal'); }
+function formatDate(value, label) { const date = new Date(value || ''); return Number.isNaN(date.getTime()) ? '' : `${label} ${date.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`; }
+function locationFor(row) { return [safeText(row.city), safeText(row.state)].filter(Boolean).join(', '); }
+function imageFor(row) { const category = row.metadata?.category || 'unknown'; return safeText(row.image_url, `assets/doordash/${category}.svg`); }
+function render(rows) {
+  if (!rows.length) { mealsEl.innerHTML = '<p class="empty">No public meals logged yet.</p>'; return; }
+  mealsEl.textContent = '';
+  rows.forEach(row => {
+    const card = document.createElement('article'); card.className = 'meal-card';
+    const img = document.createElement('img'); img.src = imageFor(row); img.alt = safeText(row.image_alt, `Meal image for ${safeText(row.restaurant_name, 'a meal')}`);
+    const body = document.createElement('div');
+    const title = document.createElement('h2'); title.textContent = safeText(row.restaurant_name, 'A meal');
+    const mode = document.createElement('p'); mode.className = 'mode'; mode.textContent = [formatMode(row.meal_mode), locationFor(row)].filter(Boolean).join(' · ');
+    const desc = document.createElement('p'); desc.className = 'description'; desc.textContent = [safeText(row.description), safeText(row.image_description)].filter(Boolean).join(' · ') || 'No note yet.';
+    const meta = document.createElement('p'); meta.className = 'meta'; meta.textContent = [formatDate(row.logged_at, 'Logged'), formatDate(row.ordered_at, 'Ordered')].filter(Boolean).join(' · ');
+    body.append(title, mode, desc, meta); card.append(img, body); mealsEl.appendChild(card);
+  });
+}
+async function load() {
+  const url = window.SUPABASE_URL, anon = window.SUPABASE_ANON_KEY;
+  if (!url || !anon) { mealsEl.innerHTML = '<p class="empty">Meal log unavailable.</p>'; return; }
+  try {
+    const response = await fetch(`${url}/rest/v1/meal_logs?visibility=eq.public&order=logged_at.desc.nullslast,ordered_at.desc.nullslast`, { headers: { apikey: anon, Authorization: `Bearer ${anon}` }, cache: 'no-store' });
+    if (!response.ok) throw new Error('failed');
+    render(await response.json());
+  } catch (error) { mealsEl.innerHTML = '<p class="empty">Meal log unavailable.</p>'; }
+}
+load();
+})();
+</script>
+</body>
+</html>

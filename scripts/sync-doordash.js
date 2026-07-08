@@ -143,12 +143,68 @@ async function getAccessToken() {
   if (!res.ok) throw new Error(`Gmail token exchange failed (${res.status})`);
   return (await res.json()).access_token;
 }
-async function upsertSupabase(row) {
+async function supabaseFetch(path, init = {}) {
   const url = requireEnv('SUPABASE_URL').replace(/\/$/, '');
   const key = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
-  const res = await fetch(`${url}/rest/v1/activity_feed?on_conflict=source,activity_date`, { method: 'POST', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(row) });
-  if (!res.ok) throw new Error(`Supabase upsert failed (${res.status}): ${await res.text()}`);
-  return res.json();
+  const res = await fetch(`${url}${path}`, {
+    ...init,
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      ...(init.headers || {})
+    }
+  });
+  if (!res.ok) throw new Error(`Supabase request failed (${res.status}): ${await res.text()}`);
+  return res.status === 204 ? null : res.json();
+}
+async function upsertSupabase(row) {
+  return supabaseFetch('/rest/v1/activity_feed?on_conflict=source,activity_date', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(row)
+  });
+}
+function isManualMealEdit(row) {
+  const metadata = row?.metadata || {};
+  return Boolean(metadata.manual_image_note || metadata.manual_updated_at || metadata.twilio_media_sid || row?.source === 'manual');
+}
+async function upsertMealLog(meal) {
+  const query = new URLSearchParams({
+    source: 'eq.doordash',
+    doordash_activity_date: `eq.${meal.doordash_activity_date}`,
+    visibility: 'eq.public',
+    limit: '1'
+  });
+  const existing = await supabaseFetch(`/rest/v1/meal_logs?${query}`);
+  const current = Array.isArray(existing) ? existing[0] : null;
+  if (!current) {
+    return supabaseFetch('/rest/v1/meal_logs', {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(meal)
+    });
+  }
+  const manual = isManualMealEdit(current);
+  const patch = {
+    ordered_at: meal.ordered_at,
+    source: 'doordash',
+    restaurant_name: current.restaurant_name || meal.restaurant_name,
+    meal_mode: current.meal_mode || meal.meal_mode,
+    city: current.city || meal.city,
+    state: current.state || meal.state,
+    description: manual && current.description ? current.description : meal.description,
+    image_url: manual && current.image_url ? current.image_url : (current.image_url || meal.image_url),
+    image_alt: manual && current.image_alt ? current.image_alt : (current.image_alt || meal.image_alt),
+    doordash_activity_date: meal.doordash_activity_date,
+    metadata: { ...(meal.metadata || {}), ...(current.metadata || {}) },
+    visibility: 'public'
+  };
+  return supabaseFetch(`/rest/v1/meal_logs?id=eq.${current.id}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify(patch)
+  });
 }
 
 async function main() {
@@ -194,7 +250,21 @@ async function main() {
   const metadata = { merchant, order_summary, items, fulfillment_type, zip_code: zip_code || null, city, state, vendor_url, category, ordered_at, image_url: null, image_alt: `Representative ${category} image for a DoorDash order`, image_model_name: DEFAULT_MODEL_NAME, image_model_url: DEFAULT_MODEL_URL };
   const row = { source: 'doordash', activity_date: activityDateLA(new Date(ordered_at)), title: 'Last DoorDash order', body: `${merchant} — ${order_summary}`, icon: 'food', occurred_at: ordered_at, visibility: 'public', metadata };
   await upsertSupabase(row);
-  console.log(`DoorDash sync complete. Stored sanitized public row for ${row.activity_date}; merchant/category only: ${merchant} / ${category}.`);
+  await upsertMealLog({
+    ordered_at,
+    source: 'doordash',
+    restaurant_name: merchant,
+    meal_mode: fulfillment_type,
+    city: city === 'unknown' ? null : city,
+    state,
+    description: order_summary,
+    image_url: metadata.image_url,
+    image_alt: metadata.image_alt,
+    doordash_activity_date: row.activity_date,
+    metadata: { category, vendor_url, zip_code: zip_code || null, items, order_summary, fulfillment_type },
+    visibility: 'public'
+  });
+  console.log(`DoorDash sync complete. Stored sanitized public row and meal log for ${row.activity_date}; merchant/category only: ${merchant} / ${category}.`);
 }
 
 main().catch(err => { console.error(err.message); process.exit(1); });
