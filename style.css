@@ -273,9 +273,9 @@ input:focus-visible {
 
 #doordash-meta {
   max-width: 560px !important;
-  margin: -5.85rem auto 0 !important;
-  padding: 0 20px 0 0 !important;
-  justify-content: flex-end !important;
+  margin: 0.8rem auto 0 !important;
+  padding: 0 !important;
+  justify-content: center !important;
   position: relative !important;
   z-index: 10 !important;
   pointer-events: none !important;
@@ -284,29 +284,49 @@ input:focus-visible {
 #doordash-meta #doordash-meta-label,
 #doordash-meta #doordash-last-ordered,
 #doordash-meta > span {
-  display: none !important;
+  display: inline !important;
 }
 
 #doordash-meta a[href="belly.html"] {
+  position: absolute;
+  right: 20px;
+  top: -8.45rem;
+  display: grid;
+  gap: 0.35rem;
+  width: max-content;
+  color: transparent;
+  font-size: 0;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+#doordash-meta a[href="belly.html"]::before,
+#doordash-meta a[href="belly.html"]::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 12px;
   min-height: 30px;
+  padding: 5px 12px;
   border-radius: 2px;
   background: #111;
   color: #fff;
   border: 1px solid #111;
-  text-decoration: none;
   font-size: 0.78rem;
   line-height: 1;
   white-space: nowrap;
-  pointer-events: auto;
+}
+
+#doordash-meta a[href="belly.html"]::before {
+  content: "On Beli";
+}
+
+#doordash-meta a[href="belly.html"]::after {
+  content: "In Belly";
 }
 
 @media (max-width: 560px) {
-  #doordash-meta {
-    margin-top: -4.6rem !important;
-    padding-right: 18px !important;
+  #doordash-meta a[href="belly.html"] {
+    right: 18px;
+    top: -7.25rem;
   }
 }
