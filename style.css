@@ -293,7 +293,7 @@ input:focus-visible {
   top: -8.45rem;
   display: grid;
   gap: 0.35rem;
-  width: max-content;
+  width: 7.2rem;
   color: transparent;
   font-size: 0;
   text-decoration: none;
@@ -305,6 +305,7 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 7.2rem;
   min-height: 30px;
   padding: 5px 12px;
   border-radius: 2px;

@@ -27,6 +27,14 @@ async function latestMeal() {
   const rows = await supabase('/rest/v1/meal_logs?visibility=eq.public&order=logged_at.desc.nullslast,ordered_at.desc.nullslast&limit=1');
   return Array.isArray(rows) ? rows[0] : null;
 }
+function parseCityState(value = '') {
+  const [city, ...stateParts] = value.split(',').map(part => part.trim()).filter(Boolean);
+  return { city: city || null, state: stateParts.join(', ') || null };
+}
+function isUnavailableDescription(value = '') {
+  const text = String(value || '').trim();
+  return !text || text.toLowerCase() === 'order details unavailable';
+}
 function normalizeMode(value = '') {
   const v = value.trim().toLowerCase().replace(/[-\s]+/g, ' ');
   if (v === 'pickup') return 'pickup';
@@ -42,8 +50,14 @@ function parseCommand(body = '') {
     const value = match[2].trim();
     if (match[1] === '1') return { type: 'update', patch: { restaurant_name: value } };
     if (match[1] === '2') return { type: 'update', patch: { meal_mode: normalizeMode(value) } };
-    if (match[1] === '3') return { type: 'update', patch: { city: value } };
+    if (match[1] === '3') return { type: 'update', patch: parseCityState(value) };
     if (match[1] === '4') return { type: 'update', patch: { description: value } };
+  }
+  if (text.startsWith('!')) {
+    const lines = text.slice(1).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (lines.length < 4) return { type: 'badOverride' };
+    const location = parseCityState(lines[1]);
+    return { type: 'override', patch: { restaurant_name: lines[0], ...location, description: lines[2], source: lines[3] } };
   }
   match = text.match(/^new\s+([\s\S]+)$/i);
   if (match) {
@@ -87,6 +101,7 @@ module.exports = async function handler(req, res) {
     const body = (payload.Body || '').trim();
     const mediaCount = Number(payload.NumMedia || 0);
     const command = parseCommand(body);
+    if (command?.type === 'badOverride') { res.status(200).send(twiml('Use: ! then restaurant, city/state, description, source on separate lines.')); return; }
     if (command?.type === 'new') {
       await supabase('/rest/v1/meal_logs', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...command.row, source: 'manual', logged_at: new Date().toISOString(), visibility: 'public', metadata: {} }) });
       res.status(200).send(twiml('Created meal log.')); return;
@@ -94,6 +109,10 @@ module.exports = async function handler(req, res) {
     const latest = await latestMeal();
     if (!latest && mediaCount > 0) { res.status(200).send(twiml('No meal exists yet. Text: new restaurant | mode | city | note')); return; }
     if (!latest) { res.status(200).send(twiml('Meal log update failed.')); return; }
+    if (command?.type === 'override') {
+      await supabase(`/rest/v1/meal_logs?id=eq.${latest.id}`, { method: 'PATCH', body: JSON.stringify({ ...command.patch, logged_at: new Date().toISOString(), metadata: { ...(latest.metadata || {}), manual_override: true, manual_updated_at: new Date().toISOString() } }) });
+      res.status(200).send(twiml('Overrode current meal.')); return;
+    }
     if (command?.type === 'update') {
       await supabase(`/rest/v1/meal_logs?id=eq.${latest.id}`, { method: 'PATCH', body: JSON.stringify({ ...command.patch, logged_at: new Date().toISOString(), metadata: { ...(latest.metadata || {}), manual_updated_at: new Date().toISOString() } }) });
       res.status(200).send(twiml('Updated meal log.')); return;
@@ -101,8 +120,19 @@ module.exports = async function handler(req, res) {
     if (mediaCount > 0) {
       const imageUrl = await uploadTwilioMedia(payload.MediaUrl0, payload.MediaContentType0 || 'image/jpeg', payload.MediaSid0);
       const desc = await describeImage(imageUrl);
-      await supabase(`/rest/v1/meal_logs?id=eq.${latest.id}`, { method: 'PATCH', body: JSON.stringify({ image_url: imageUrl, image_alt: desc || 'Meal photo', image_description: desc, logged_at: new Date().toISOString(), metadata: { ...(latest.metadata || {}), manual_image_note: body || undefined, twilio_media_sid: payload.MediaSid0 || undefined } }) });
-      res.status(200).send(twiml('Updated latest meal image.')); return;
+      const patch = {
+        image_url: imageUrl,
+        image_alt: desc || 'Meal photo',
+        image_description: desc || latest.image_description || null,
+        logged_at: new Date().toISOString(),
+        metadata: { ...(latest.metadata || {}), twilio_media_sid: payload.MediaSid0 || undefined }
+      };
+      if (body) {
+        if (isUnavailableDescription(latest.description)) patch.description = body;
+        else patch.metadata.manual_image_note = body;
+      }
+      await supabase(`/rest/v1/meal_logs?id=eq.${latest.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+      res.status(200).send(twiml('Attached image to current meal.')); return;
     }
     res.status(200).send(twiml('Meal log update failed.'));
   } catch (error) {

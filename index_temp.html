@@ -1056,19 +1056,39 @@ function formatDate(value, prefix) {
   if (Number.isNaN(date.getTime())) return `${prefix} recently`;
   return `${prefix} ${date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
 }
-function formatMealMode(mode) {
-  const normalized = safeText(mode, 'unknown').toLowerCase();
-  if (normalized === 'pickup') return 'Ordered via pickup';
-  if (normalized === 'delivery') return 'Ordered via delivery';
-  if (normalized === 'dining_in') return 'Dining in';
-  if (normalized === 'made_by_me') return 'Made by me';
-  return 'Digitally logged meal';
+function zipLocation(zipCode) {
+  const zip = safeText(zipCode, '');
+  if (zip === '90274') return { city: 'Palos Verdes', state: 'CA' };
+  if (zip === '90275') return { city: 'Rancho Palos Verdes', state: 'CA' };
+  if (zip === '90272') return { city: 'Pacific Palisades', state: 'CA' };
+  if (/^941\d{2}$/.test(zip)) return { city: 'San Francisco', state: 'CA' };
+  if (/^947\d{2}$/.test(zip)) return { city: 'Berkeley', state: 'CA' };
+  if (/^946\d{2}$/.test(zip)) return { city: 'Oakland', state: 'CA' };
+  if (/^(900|901|902)\d{2}$/.test(zip)) return { city: 'Los Angeles', state: 'CA' };
+  return { city: '', state: '' };
 }
 function formatLocation(city, state) {
   const cleanCity = safeText(city, '').toLowerCase() === 'unknown' ? '' : safeText(city, '');
   const cleanState = safeText(state, '');
   return cleanCity && cleanState ? `${cleanCity}, ${cleanState}` : cleanCity;
 }
+function displayLocationFrom(city, state, zipCode) {
+  const direct = formatLocation(city, state);
+  if (direct) return direct;
+  const inferred = zipLocation(zipCode);
+  return formatLocation(inferred.city, inferred.state);
+}
+function formatEnjoyedLocation(city, state, zipCode) {
+  const displayLocation = displayLocationFrom(city, state, zipCode);
+  return displayLocation ? `Enjoyed in ${displayLocation}` : 'Digitally logged meal';
+}
+function mealDescription(row, displayLocation) {
+  const description = safeText(row.description || row.order_summary, '');
+  if (description && description.toLowerCase() !== 'order details unavailable') return description;
+  if (safeText(row.image_description, '')) return safeText(row.image_description, '');
+  return displayLocation ? `Eaten in ${displayLocation}` : 'meal logged';
+}
+function sourceLabel(source) { return safeText(source, 'doordash').toUpperCase(); }
 function renderFallback() {
   merchantEl.textContent = 'No recent signal';
   locationEl.textContent = 'DoorDash feed unavailable';
@@ -1089,7 +1109,7 @@ function renderMeal(row) {
   const metadata = row.metadata || {};
   const restaurant = safeText(row.restaurant_name, 'A meal');
   const vendorUrl = safeText(metadata.vendor_url || metadata.store_url, '');
-  const displayLocation = formatLocation(row.city, row.state);
+  const displayLocation = displayLocationFrom(row.city, row.state, metadata.zip_code);
   const category = VALID_CATEGORIES.has(metadata.category) ? metadata.category : 'unknown';
   merchantEl.textContent = '';
   if (vendorUrl) {
@@ -1100,24 +1120,24 @@ function renderMeal(row) {
     merchantLink.textContent = restaurant;
     merchantEl.appendChild(merchantLink);
   } else merchantEl.textContent = restaurant;
-  locationEl.textContent = [formatMealMode(row.meal_mode), displayLocation].filter(Boolean).join(' · ');
-  summaryEl.textContent = safeText(row.description, safeText(row.image_description, displayLocation ? `Eaten in ${displayLocation}` : 'Digitally logged meal'));
+  locationEl.textContent = formatEnjoyedLocation(row.city, row.state, metadata.zip_code);
+  summaryEl.textContent = mealDescription(row, displayLocation);
   imageEl.src = safeText(row.image_url, `assets/doordash/${category}.svg`);
   imageEl.alt = safeText(row.image_alt, `Meal image for ${restaurant}`);
   imageEl.title = row.image_description ? `image · ${row.image_description}` : 'meal image';
   imageLinkEl.href = vendorUrl || row.image_url || '#';
-  if (metaLabelEl) metaLabelEl.textContent = 'DIGITALLY LOGGED MEAL';
-  lastOrderedEl.textContent = formatDate(row.logged_at, 'logged');
+  if (metaLabelEl) metaLabelEl.textContent = sourceLabel(row.source);
+  lastOrderedEl.textContent = formatDate(row.source === 'doordash' ? (row.ordered_at || row.logged_at) : row.logged_at, row.source === 'doordash' ? 'last ordered' : 'logged');
 }
 function renderActivity(row) {
   const metadata = row.metadata || {};
   const merchant = safeText(metadata.merchant, 'DoorDash');
   const category = VALID_CATEGORIES.has(metadata.category) ? metadata.category : 'unknown';
   const city = safeText(metadata.city, '').toLowerCase() === 'unknown' ? '' : safeText(metadata.city, '');
-  const displayLocation = formatLocation(city, metadata.state);
+  const displayLocation = displayLocationFrom(city, metadata.state, metadata.zip_code);
   merchantEl.textContent = merchant;
-  locationEl.textContent = formatMealMode(metadata.fulfillment_type);
-  summaryEl.textContent = safeText(metadata.order_summary, displayLocation ? `Eaten in ${displayLocation}` : 'Eaten somewhere');
+  locationEl.textContent = formatEnjoyedLocation(metadata.city, metadata.state, metadata.zip_code);
+  summaryEl.textContent = mealDescription({ description: metadata.order_summary, image_description: metadata.image_description }, displayLocation);
   imageEl.src = safeText(metadata.image_url, `assets/doordash/${category}.svg`);
   imageEl.alt = safeText(metadata.image_alt, `Representative ${category} DoorDash order image`);
   imageLinkEl.href = safeText(metadata.image_model_url, '#');
