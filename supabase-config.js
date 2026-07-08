@@ -3,15 +3,27 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
 
 (function () {
   const originalFetch = window.fetch ? window.fetch.bind(window) : null;
-  if (!originalFetch || window.__ouraSuccessfulUpdatePatchInstalled) return;
+  if (!originalFetch || window.__publicSupabasePatchInstalled) return;
 
-  window.__ouraSuccessfulUpdatePatchInstalled = true;
+  window.__publicSupabasePatchInstalled = true;
   window.__lastOuraSuccessfulUpdate = null;
 
   function getRequestUrl(input) {
     if (typeof input === 'string') return input;
     if (input && typeof input.url === 'string') return input.url;
     return '';
+  }
+
+  function isMealLogsRequest(requestUrl) {
+    return requestUrl.includes('/rest/v1/meal_logs');
+  }
+
+  function emptyJsonResponse() {
+    return new Response(JSON.stringify([]), {
+      status: 200,
+      statusText: 'OK',
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   function getSuccessfulTimestamp(row) {
@@ -56,8 +68,13 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   }
 
   window.fetch = async function patchedFetch(input, init) {
-    const response = await originalFetch(input, init);
     const requestUrl = getRequestUrl(input);
+    const response = await originalFetch(input, init);
+
+    if (isMealLogsRequest(requestUrl) && !response.ok) {
+      return emptyJsonResponse();
+    }
+
     const isOuraActivityFeed = requestUrl.includes('/rest/v1/activity_feed')
       && requestUrl.includes('source=eq.oura');
 
