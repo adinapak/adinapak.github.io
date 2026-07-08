@@ -250,21 +250,25 @@ async function main() {
   const metadata = { merchant, order_summary, items, fulfillment_type, zip_code: zip_code || null, city, state, vendor_url, category, ordered_at, image_url: null, image_alt: `Representative ${category} image for a DoorDash order`, image_model_name: DEFAULT_MODEL_NAME, image_model_url: DEFAULT_MODEL_URL };
   const row = { source: 'doordash', activity_date: activityDateLA(new Date(ordered_at)), title: 'Last DoorDash order', body: `${merchant} — ${order_summary}`, icon: 'food', occurred_at: ordered_at, visibility: 'public', metadata };
   await upsertSupabase(row);
-  await upsertMealLog({
-    ordered_at,
-    source: 'doordash',
-    restaurant_name: merchant,
-    meal_mode: fulfillment_type,
-    city: city === 'unknown' ? null : city,
-    state,
-    description: order_summary,
-    image_url: metadata.image_url,
-    image_alt: metadata.image_alt,
-    doordash_activity_date: row.activity_date,
-    metadata: { category, vendor_url, zip_code: zip_code || null, items, order_summary, fulfillment_type },
-    visibility: 'public'
-  });
-  console.log(`DoorDash sync complete. Stored sanitized public row and meal log for ${row.activity_date}; merchant/category only: ${merchant} / ${category}.`);
+  try {
+    await upsertMealLog({
+      ordered_at,
+      source: 'doordash',
+      restaurant_name: merchant,
+      meal_mode: fulfillment_type,
+      city: city === 'unknown' ? null : city,
+      state,
+      description: order_summary,
+      image_url: metadata.image_url,
+      image_alt: metadata.image_alt,
+      doordash_activity_date: row.activity_date,
+      metadata: { category, vendor_url, zip_code: zip_code || null, items, order_summary, fulfillment_type },
+      visibility: 'public'
+    });
+  } catch (error) {
+    console.warn(`Meal log sync skipped; activity_feed was still updated. ${error.message}`);
+  }
+  console.log(`DoorDash sync complete. Stored sanitized public row for ${row.activity_date}; merchant/category only: ${merchant} / ${category}.`);
 }
 
 main().catch(err => { console.error(err.message); process.exit(1); });
