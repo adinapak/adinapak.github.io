@@ -251,3 +251,42 @@ input:focus-visible {
 #days-header:hover::after {
   opacity: 1;
 }
+
+/* ---------- HOMEPAGE BUTTON FIXES ---------- */
+#dj-play-btn {
+  display: none !important;
+}
+
+.dj-actions::before {
+  content: "";
+  display: inline-flex;
+  width: 7.2rem;
+  min-height: 30px;
+}
+
+#dj-library-btn {
+  background: #111 !important;
+  color: #fff !important;
+  border-color: #111 !important;
+  white-space: nowrap;
+}
+
+.doordash-meta a[href="belly.html"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  min-height: 30px;
+  border-radius: 2px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  text-decoration: none;
+  font-size: 0.78rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.doordash-meta {
+  flex-wrap: wrap;
+}
