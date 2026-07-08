@@ -13,6 +13,7 @@ Create a public Supabase Storage bucket named `meal-images` for Twilio MMS uploa
 ### Vercel environment variables
 
 - `ALLOWED_MMS_FROM`
+- `TWILIO_FROM_NUMBER`
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 - `SUPABASE_URL`

@@ -131,6 +131,25 @@ function inferCategory(merchant, items) { const hay = `${merchant} ${items.join(
 function summarize(merchant, items, category) { if (items.length) return items.slice(0, 3).join(', '); return 'order details unavailable'; }
 function activityDateLA(date) { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date); }
 function imagePrompt(category, merchant, summary) { return `minimal editorial illustration of a ${category === 'unknown' ? 'takeout food' : category} order on an off-white background`; }
+function optionalEnv(name) { return process.env[name] || ''; }
+async function sendDoorDashPrompt(restaurant) {
+  const sid = optionalEnv('TWILIO_ACCOUNT_SID');
+  const token = optionalEnv('TWILIO_AUTH_TOKEN');
+  const from = optionalEnv('TWILIO_FROM_NUMBER');
+  const to = optionalEnv('ALLOWED_MMS_FROM');
+  if (!sid || !token || !from || !to) {
+    console.warn('DoorDash SMS prompt skipped; Twilio env vars are incomplete.');
+    return false;
+  }
+  const params = new URLSearchParams({ From: from, To: to, Body: `New DoorDash meal logged: ${restaurant}. Reply with a photo + description.` });
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params
+  });
+  if (!res.ok) throw new Error(`Twilio SMS prompt failed (${res.status})`);
+  return true;
+}
 
 async function gmailFetch(path, accessToken, init = {}) {
   const res = await fetch(`${GMAIL_API}${path}`, { ...init, headers: { Authorization: `Bearer ${accessToken}`, ...(init.headers || {}) } });
@@ -179,11 +198,12 @@ async function upsertMealLog(meal) {
   const existing = await supabaseFetch(`/rest/v1/meal_logs?${query}`);
   const current = Array.isArray(existing) ? existing[0] : null;
   if (!current) {
-    return supabaseFetch('/rest/v1/meal_logs', {
+    const rows = await supabaseFetch('/rest/v1/meal_logs', {
       method: 'POST',
       headers: { Prefer: 'return=representation' },
       body: JSON.stringify(meal)
     });
+    return { rows, isNew: true };
   }
   const manual = isManualMealEdit(current);
   const patch = {
@@ -200,11 +220,12 @@ async function upsertMealLog(meal) {
     metadata: { ...(meal.metadata || {}), ...(current.metadata || {}) },
     visibility: 'public'
   };
-  return supabaseFetch(`/rest/v1/meal_logs?id=eq.${current.id}`, {
+  const rows = await supabaseFetch(`/rest/v1/meal_logs?id=eq.${current.id}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify(patch)
   });
+  return { rows, isNew: false };
 }
 
 async function main() {
@@ -251,7 +272,7 @@ async function main() {
   const row = { source: 'doordash', activity_date: activityDateLA(new Date(ordered_at)), title: 'Last DoorDash order', body: `${merchant} — ${order_summary}`, icon: 'food', occurred_at: ordered_at, visibility: 'public', metadata };
   await upsertSupabase(row);
   try {
-    await upsertMealLog({
+    const mealResult = await upsertMealLog({
       ordered_at,
       source: 'doordash',
       restaurant_name: merchant,
@@ -265,6 +286,19 @@ async function main() {
       metadata: { category, vendor_url, zip_code: zip_code || null, items, order_summary, fulfillment_type },
       visibility: 'public'
     });
+    const mealRow = Array.isArray(mealResult.rows) ? mealResult.rows[0] : null;
+    if (mealResult.isNew && mealRow && !mealRow.metadata?.sms_prompt_sent_at) {
+      try {
+        if (await sendDoorDashPrompt(merchant)) {
+          await supabaseFetch(`/rest/v1/meal_logs?id=eq.${mealRow.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ metadata: { ...(mealRow.metadata || {}), sms_prompt_sent_at: new Date().toISOString() } })
+          });
+        }
+      } catch (promptError) {
+        console.warn(`DoorDash SMS prompt skipped: ${promptError.message}`);
+      }
+    }
   } catch (error) {
     console.warn(`Meal log sync skipped; activity_feed was still updated. ${error.message}`);
   }
