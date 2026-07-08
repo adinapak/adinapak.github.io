@@ -48,3 +48,37 @@ drop policy if exists "users can insert own scores" on public.zetamac_scores;
 create policy "users can insert own scores"
 on public.zetamac_scores for insert
 with check (auth.uid() = user_id);
+
+-- Meal log backing table for the DoorDash card and Belly archive.
+create table if not exists public.meal_logs (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  ordered_at timestamptz,
+  logged_at timestamptz not null default now(),
+  source text not null default 'manual',
+  restaurant_name text,
+  meal_mode text,
+  city text,
+  state text,
+  description text,
+  image_url text,
+  image_alt text,
+  image_description text,
+  doordash_activity_date date,
+  metadata jsonb not null default '{}',
+  visibility text not null default 'public'
+);
+
+create unique index if not exists meal_logs_doordash_activity_date_idx
+on public.meal_logs (source, doordash_activity_date)
+where source = 'doordash' and doordash_activity_date is not null;
+
+alter table public.meal_logs enable row level security;
+
+drop policy if exists "meal logs are public read" on public.meal_logs;
+create policy "meal logs are public read"
+on public.meal_logs for select
+using (visibility = 'public');
+
+-- Server-side writers should use SUPABASE_SERVICE_ROLE_KEY. Create a public
+-- Supabase Storage bucket named meal-images for Twilio MMS uploads.
