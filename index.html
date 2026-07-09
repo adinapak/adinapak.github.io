@@ -804,8 +804,6 @@ transform: scale(1);
 <a href="about.html">About</a>
 <span class="nav-sep">|</span>
 <a href="principles.html">Principles</a>
-<span class="nav-sep">|</span>
-<a href="updates.html">Sandbox</a>
 </div>
 </div>
 
@@ -973,11 +971,19 @@ const closeButton = document.getElementById('email-mini-player-close');
 
 if (!emailLink || !miniPlayer || !closeButton) return;
 
-emailLink.addEventListener('click', function (event) {
-event.preventDefault();
+function openMiniPlayer() {
 miniPlayer.classList.add('open');
 miniPlayer.setAttribute('aria-hidden', 'false');
+}
+
+emailLink.addEventListener('click', function (event) {
+event.preventDefault();
+openMiniPlayer();
 });
+
+if (window.location.hash === '#email-video') {
+openMiniPlayer();
+}
 
 closeButton.addEventListener('click', function () {
 miniPlayer.classList.remove('open');
