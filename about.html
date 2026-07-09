@@ -9,6 +9,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
   <link rel="stylesheet" href="style.css">
   <style>
+    body {
+      padding-top: 52px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding-top: 44px;
+      }
+    }
+
     .about-intro p {
       font-size: 0.95rem;
       font-style: normal;
@@ -133,15 +147,24 @@
   </style>
 </head>
 <body>
-  <h1>About Me</h1>
+  <div class="top-nav" aria-label="Primary">
+    <div class="top-nav-links">
+      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank" aria-label="LinkedIn"><img class="linkedin-logo" src="assets/linkedin-logo.svg" alt="" aria-hidden="true"></a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="index.html#email-video">Email</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://pigeongram.com/" target="_blank">Snail Mail</a>
+    </div>
+    <div class="top-nav-pages">
+      <a href="index.html">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="principles.html">Principles</a>
+    </div>
+  </div>
 
-  <nav aria-label="Primary">
-    <a href="index.html">Home</a>
-    <span>|</span>
-    <a href="principles.html">Principles</a>
-    <span>|</span>
-    <a href="updates.html">Sandbox</a>
-  </nav>
+  <h1>About Me</h1>
 
   <hr>
 

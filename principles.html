@@ -8,19 +8,48 @@
   <meta charset="UTF-8">
   <title>Principles</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      padding-top: 52px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #days-header::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding-top: 44px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="top-nav" aria-label="Primary">
+    <div class="top-nav-links">
+      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank" aria-label="LinkedIn"><img class="linkedin-logo" src="assets/linkedin-logo.svg" alt="" aria-hidden="true"></a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="index.html#email-video">Email</a>
+      <span class="slash-sep">/</span>
+      <a class="top-nav-contact" href="https://pigeongram.com/" target="_blank">Snail Mail</a>
+    </div>
+    <div class="top-nav-pages">
+      <a href="index.html">Home</a>
+      <span class="nav-sep">|</span>
+      <a href="about.html">About</a>
+    </div>
+  </div>
+
   <h1 id="days-header">
     Derivations from <span id="days-since-birth"></span> Days
   </h1>
-
-  <nav aria-label="Primary">
-    <a href="index.html">Home</a>
-    <span>|</span>
-    <a href="about.html">About</a>
-    <span>|</span>
-    <a href="updates.html">Sandbox</a>
-  </nav>
 
   <hr>
 
