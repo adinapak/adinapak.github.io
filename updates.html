@@ -1168,7 +1168,8 @@ margin: 0 0 28px;
           }
 
           return parsed;
-        } catch {
+        } catch (error) {
+          console.warn('Failed to parse stored Spotify token.', error);
           localStorage.removeItem(SPOTIFY_TOKEN_KEY);
           return null;
         }
@@ -1305,7 +1306,8 @@ margin: 0 0 28px;
             const body = await response.json();
             detail = body.error?.message || '';
             reason = body.error?.reason || '';
-          } catch {
+          } catch (parseError) {
+            console.warn('Failed to parse Spotify API error body.', parseError);
             detail = '';
             reason = '';
           }
@@ -1408,7 +1410,8 @@ margin: 0 0 28px;
               clearSpotifyToken();
             }
 
-            console.warn('Current-track queue request failed silently.', error);
+            setStatus(getQueueFriendlyError(error));
+            console.warn('Current-track queue request failed.', error);
           } finally {
             if (trackId) pendingQueuedTrackIds.delete(trackId);
           }
@@ -1441,7 +1444,8 @@ margin: 0 0 28px;
           const body = await response.json();
           detail = body.error?.message || '';
           reason = body.error?.reason || '';
-        } catch {
+        } catch (parseError) {
+          console.warn('Failed to parse Spotify liked-songs error body.', parseError);
           detail = '';
           reason = '';
         }
@@ -1482,7 +1486,8 @@ margin: 0 0 28px;
             return;
           }
 
-          console.warn('Liked songs request failed silently.', error);
+          setStatus('Failed to save to Liked Songs. Try again.');
+          console.warn('Liked songs request failed.', error);
         } finally {
           loveBtnEl.disabled = false;
         }
@@ -1491,12 +1496,14 @@ margin: 0 0 28px;
       async function fetchNowPlaying() {
         try {
           const response = await fetch('/api/now-playing', { cache: 'no-store' });
-          const data = await response.json();
 
           if (!response.ok) {
+            console.warn('Now-playing API returned error status.', response.status);
             setIdleState('Unable to load playback right now.');
             return;
           }
+
+          const data = await response.json();
 
           if (!data.track) {
             setIdleState("If you're seeing this...");
@@ -1587,6 +1594,7 @@ margin: 0 0 28px;
             }
           }));
         } catch (error) {
+          console.warn('Now-playing fetch failed.', error);
           setIdleState('Unable to reach now playing endpoint.');
         }
       }
@@ -1965,7 +1973,8 @@ margin: 0 0 28px;
           const parsedProfile = rawProfile ? JSON.parse(rawProfile) : null;
           spotifyUserId = parsedProfile?.id || "";
           spotifyDisplayName = sanitizeName(parsedProfile?.display_name || "");
-        } catch {
+        } catch (error) {
+          console.warn('Failed to load stored Spotify identity.', error);
           spotifyUserId = "";
           spotifyDisplayName = "";
         }
@@ -2478,13 +2487,17 @@ margin: 0 0 28px;
           Object.entries(parsed).forEach(function ([trackId, value]) {
             if (trackId && value && typeof value === 'object') sceneMemoryCache.set(trackId, value);
           });
-        } catch (error) {}
+        } catch (error) {
+          console.warn('Failed to load synesthetic scene cache from localStorage.', error);
+        }
       }
       function saveSceneStorageCache() {
         try {
           const obj = Object.fromEntries(sceneMemoryCache.entries());
           localStorage.setItem(sceneStorageKey, JSON.stringify(obj));
-        } catch (error) {}
+        } catch (error) {
+          console.warn('Failed to save synesthetic scene cache to localStorage.', error);
+        }
       }
       function hashTrackId(trackId) {
         let h = 2166136261;
@@ -2570,7 +2583,9 @@ margin: 0 0 28px;
           sceneMemoryCache.set(trackId, inferred);
           saveSceneStorageCache();
           if (latest?.track?.id === trackId) scene = inferred;
-        } catch (error) {}
+        } catch (error) {
+          console.warn('Failed to fetch synesthetic scene from LLM.', error);
+        }
       }
       function synDrawScene(renderCtx, currentScene, t, w, h) {
         const palette = currentScene?.palette || ['#a78bfa', '#0f0f1a', '#e9ddff'];
