@@ -291,3 +291,78 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   document.getElementById('adina-ism-text').textContent = tweet.text;
   ouraMeta.innerHTML = `<span>${formatTweetTimestamp(tweet.timestamp).replace(' · ', ' - ')}</span><span aria-hidden="true">-</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">via X</a>`;
 })();
+
+(function () {
+  const style = document.createElement('style');
+  style.textContent = `
+    .dj-track {
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      white-space: nowrap !important;
+      font-style: normal !important;
+    }
+    .dj-track-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      font-style: normal !important;
+      will-change: transform;
+    }
+    .dj-track-marquee.is-scrolling {
+      animation: djTrackMarquee var(--dj-marquee-duration, 8s) ease-in-out infinite alternate;
+    }
+    @keyframes djTrackMarquee {
+      0%, 12% { transform: translateX(0); }
+      88%, 100% { transform: translateX(calc(-1 * var(--dj-marquee-distance, 0px))); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dj-track-marquee.is-scrolling { animation: none; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  function installMarquee() {
+    const trackEl = document.getElementById('dj-track');
+    if (!trackEl || trackEl.dataset.marqueeInstalled === 'true') return;
+
+    trackEl.dataset.marqueeInstalled = 'true';
+    let internalUpdate = false;
+
+    function refresh() {
+      if (internalUpdate) return;
+      const title = trackEl.textContent.trim();
+      if (!title) return;
+
+      internalUpdate = true;
+      trackEl.textContent = '';
+      const inner = document.createElement('span');
+      inner.className = 'dj-track-marquee';
+      inner.textContent = title;
+      trackEl.appendChild(inner);
+
+      window.requestAnimationFrame(function () {
+        const distance = Math.max(0, inner.scrollWidth - trackEl.clientWidth);
+        if (distance > 4) {
+          inner.style.setProperty('--dj-marquee-distance', `${distance}px`);
+          inner.style.setProperty('--dj-marquee-duration', `${Math.max(6, distance / 18).toFixed(1)}s`);
+          inner.classList.add('is-scrolling');
+        }
+        internalUpdate = false;
+      });
+    }
+
+    new MutationObserver(refresh).observe(trackEl, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+
+    window.addEventListener('resize', refresh);
+    refresh();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installMarquee);
+  } else {
+    installMarquee();
+  }
+})();
