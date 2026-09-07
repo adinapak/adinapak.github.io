@@ -202,16 +202,8 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
     return `${month} ${ordinalDay(day)} · ${hour}:${minute} ${dayPeriod}`;
   }
 
-  function shuffle(items) {
-    const copy = items.slice();
-    for (let i = copy.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  }
-
-  const shuffledTweets = shuffle(tweets);
+  const tweet = tweets[Math.floor(Math.random() * tweets.length)];
+  const tweetUrl = tweetSearchUrl(tweet.text);
 
   const style = document.createElement('style');
   style.textContent = `
@@ -247,26 +239,6 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
       text-transform: uppercase;
       font-weight: 400;
     }
-    .adina-isms-controls {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      color: #999;
-      font-size: 0.72rem;
-      font-variant-numeric: tabular-nums;
-    }
-    .adina-isms-arrow {
-      border: 0;
-      background: transparent;
-      color: #777;
-      font: inherit;
-      font-size: 0.9rem;
-      line-height: 1;
-      padding: 2px 3px;
-      cursor: pointer;
-    }
-    .adina-isms-arrow:hover,
-    .adina-isms-arrow:focus-visible { color: #111; }
     .adina-ism-link {
       display: block;
       color: inherit;
@@ -279,13 +251,11 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
       font-size: clamp(1.05rem, 2.6vw, 1.28rem);
       line-height: 1.55;
       color: #171717;
-      transition: opacity 160ms ease;
     }
     .adina-ism-link:hover .adina-ism-text,
     .adina-ism-link:focus-visible .adina-ism-text {
       color: #000;
     }
-    .adina-ism-text.is-changing { opacity: 0; }
     .adina-isms-meta {
       margin: 0.8rem 0 0;
       font-size: 0.74rem;
@@ -301,9 +271,6 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
       text-decoration: none;
       border-bottom: 1px dotted #aaa;
     }
-    @media (prefers-reduced-motion: reduce) {
-      .adina-ism-text { transition: none; }
-    }
   `;
   document.head.appendChild(style);
 
@@ -312,13 +279,8 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   ouraWidget.innerHTML = `
     <div class="adina-isms-header">
       <p class="adina-isms-label">Adina-isms</p>
-      <div class="adina-isms-controls" aria-label="Tweet navigation">
-        <button class="adina-isms-arrow" type="button" data-dir="-1" aria-label="Previous Adina-ism">←</button>
-        <span id="adina-isms-count">1 / ${shuffledTweets.length}</span>
-        <button class="adina-isms-arrow" type="button" data-dir="1" aria-label="Next Adina-ism">→</button>
-      </div>
     </div>
-    <a id="adina-ism-link" class="adina-ism-link" href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer" aria-label="Open this post on X">
+    <a id="adina-ism-link" class="adina-ism-link" href="${tweetUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open this post on X">
       <p id="adina-ism-text" class="adina-ism-text"></p>
     </a>
   `;
@@ -326,47 +288,6 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   ouraMeta.className = 'adina-isms-meta';
   ouraMeta.id = 'adina-isms-meta';
 
-  const textEl = document.getElementById('adina-ism-text');
-  const linkEl = document.getElementById('adina-ism-link');
-  const countEl = document.getElementById('adina-isms-count');
-  let index = 0;
-  let timer = null;
-
-  function render(nextIndex, animate) {
-    index = (nextIndex + shuffledTweets.length) % shuffledTweets.length;
-    const tweet = shuffledTweets[index];
-    const tweetUrl = tweetSearchUrl(tweet.text);
-
-    const apply = function () {
-      textEl.textContent = tweet.text;
-      linkEl.href = tweetUrl;
-      countEl.textContent = `${index + 1} / ${shuffledTweets.length}`;
-      ouraMeta.innerHTML = `<a href="${tweetUrl}" target="_blank" rel="noopener noreferrer">X</a><span aria-hidden="true">·</span><span>${formatTweetTimestamp(tweet.timestamp)}</span><span aria-hidden="true">·</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
-      textEl.classList.remove('is-changing');
-    };
-
-    if (animate) {
-      textEl.classList.add('is-changing');
-      window.setTimeout(apply, 160);
-    } else {
-      apply();
-    }
-  }
-
-  function restartShuffle() {
-    if (timer) window.clearInterval(timer);
-    timer = window.setInterval(function () {
-      render(index + 1, true);
-    }, 9000);
-  }
-
-  ouraWidget.querySelectorAll('.adina-isms-arrow').forEach(function (button) {
-    button.addEventListener('click', function () {
-      render(index + Number(button.dataset.dir || 1), true);
-      restartShuffle();
-    });
-  });
-
-  render(0, false);
-  restartShuffle();
+  document.getElementById('adina-ism-text').textContent = tweet.text;
+  ouraMeta.innerHTML = `<a href="${tweetUrl}" target="_blank" rel="noopener noreferrer">X</a><span aria-hidden="true">·</span><span>${formatTweetTimestamp(tweet.timestamp)}</span><span aria-hidden="true">·</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
 })();
