@@ -423,30 +423,35 @@ input:focus-visible {
     top: -7.25rem;
   }
 
-  /* Preserve the original three-column layout and Spotify button position.
-     Only tighten spacing/button footprint to give the song text more room. */
   .dj-now-playing {
-    grid-template-columns: 48px minmax(0, 1fr) auto !important;
-    gap: 7px !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
     align-items: center;
   }
 
   .dj-track-wrap {
+    grid-column: 2;
     min-width: 0;
+    width: 100%;
+  }
+
+  .dj-actions {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 6px;
   }
 
   .dj-actions::before {
-    width: 5.9rem;
+    display: none;
   }
 
   #dj-library-btn {
-    min-height: 30px;
-    padding-left: 7px;
-    padding-right: 7px;
-    font-size: 0.76rem;
+    min-height: 28px;
+    padding: 5px 10px;
+    font-size: 0.74rem;
   }
 
   .dj-track {
+    width: 100%;
     font-style: normal !important;
   }
 }
