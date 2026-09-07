@@ -6,6 +6,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Principles</title>
   <link rel="stylesheet" href="style.css">
   <style>
@@ -24,7 +25,44 @@
 
     @media (max-width: 640px) {
       body {
-        padding-top: 44px;
+        margin: 28px auto;
+        padding: 58px 20px 56px;
+      }
+
+      #days-header {
+        font-size: clamp(1.55rem, 8vw, 2rem);
+        line-height: 1.18;
+        margin: 10px auto 22px;
+        max-width: 12em;
+      }
+
+      #days-header::after {
+        width: min(300px, calc(100vw - 40px));
+        white-space: normal;
+        text-align: center;
+        line-height: 1.35;
+      }
+
+      section {
+        margin-bottom: 30px;
+      }
+
+      section h3 {
+        font-size: 1.05rem;
+      }
+
+      section p {
+        line-height: 1.45;
+      }
+
+      ul {
+        padding-left: 18px;
+        line-height: 1.65;
+        font-size: 0.92rem;
+      }
+
+      li + li {
+        margin-top: 10px;
       }
     }
   </style>
@@ -105,6 +143,5 @@
     headerEl.setAttribute("data-detail", detail);
   });
 </script>
-  </script>
 </body>
 </html>
