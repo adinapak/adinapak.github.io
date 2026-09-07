@@ -422,4 +422,36 @@ input:focus-visible {
     right: 18px;
     top: -7.25rem;
   }
+
+  .dj-now-playing {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    align-items: center;
+  }
+
+  .dj-track-wrap {
+    grid-column: 2;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dj-actions {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 6px;
+  }
+
+  .dj-actions::before {
+    display: none;
+  }
+
+  #dj-library-btn {
+    min-height: 28px;
+    padding: 5px 10px;
+    font-size: 0.74rem;
+  }
+
+  .dj-track {
+    width: 100%;
+    font-style: normal !important;
+  }
 }
