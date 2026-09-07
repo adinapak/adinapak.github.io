@@ -9,404 +9,88 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
   <link rel="stylesheet" href="style.css">
   <style>
-    :root {
-      --about-nav-height: 52px;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      scroll-padding-top: var(--about-nav-height);
-      scroll-snap-type: y proximity;
-    }
-
-    body {
-      margin: 0 auto;
-      padding-top: var(--about-nav-height);
-      padding-bottom: 0;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    @media (max-width: 640px) {
-      :root {
-        --about-nav-height: 44px;
-      }
-    }
-
-    .about-chapter {
-      display: flex;
-      min-height: calc(100vh - var(--about-nav-height));
-      min-height: calc(100svh - var(--about-nav-height));
-      margin: 0;
-      padding: 48px 0;
-      flex-direction: column;
-      justify-content: center;
-      scroll-snap-align: start;
-    }
-
-    .about-chapter--timeline {
-      justify-content: flex-start;
-      padding-top: 56px;
-      padding-bottom: 64px;
-    }
-
-    .chapter-title {
-      margin-bottom: 18px;
-      color: #111;
-      font-size: 1.7rem;
-      font-weight: 400;
-      letter-spacing: 0.01em;
-      text-align: center;
-    }
-
-    .chapter-link {
-      color: #111;
-      text-decoration: none;
-      border-bottom: 1px dotted #999;
-      transition: border-color 150ms ease;
-    }
-
-    .chapter-link:hover,
-    .chapter-link:focus-visible {
-      border-bottom-color: #222;
-    }
-
-    .about-intro p {
-      font-size: 0.95rem;
-      font-style: normal;
-      color: #222;
-      margin-bottom: 14px;
-      line-height: 1.85;
-    }
-
-    .about-transition {
-      font-style: italic;
-      color: #444;
-      margin-top: 10px;
-    }
-
-    .derivations-link {
-      display: inline-block;
-      margin-top: 2px;
-      border-bottom: 1px solid #bbb;
-      text-decoration: none;
-      color: #111;
-      font-size: 0.95rem;
-    }
-
-    .friends-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      border-top: 1px solid #ddd;
-    }
-
-    .friend-link {
-      display: block;
-      min-width: 0;
-      padding: 15px 14px 16px;
-      border-bottom: 1px solid #ddd;
-      color: #222;
-      text-decoration: none;
-      transition: background-color 150ms ease;
-    }
-
-    .friend-link:nth-child(odd) {
-      border-right: 1px solid #ddd;
-    }
-
-    .friend-name {
-      display: block;
-      margin-bottom: 4px;
-      color: #111;
-      font-size: 1rem;
-      font-weight: 600;
-      line-height: 1.35;
-      transition: transform 150ms ease;
-    }
-
-    .friend-description {
-      display: block;
-      color: #666;
-      font-size: 0.82rem;
-      font-style: italic;
-      line-height: 1.5;
-    }
-
-    .friend-link:hover,
-    .friend-link:focus-visible {
-      background: #f7f7f5;
-    }
-
-    .friend-link:hover .friend-name,
-    .friend-link:focus-visible .friend-name {
-      transform: translateX(2px);
-    }
-
-    .friends-intro {
-      margin: -4px 0 24px;
-      color: #666;
-      font-size: 0.88rem;
-      font-style: italic;
-      text-align: center;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-        scroll-snap-type: none;
-      }
-
-      .chapter-link,
-      .friend-link,
-      .friend-name {
-        transition: none;
-      }
-
-      .friend-link:hover .friend-name,
-      .friend-link:focus-visible .friend-name {
-        transform: none;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .about-chapter {
-        padding: 38px 0;
-      }
-
-      .about-chapter--timeline {
-        padding-top: 44px;
-        padding-bottom: 52px;
-      }
-
-      .chapter-title {
-        font-size: 1.5rem;
-      }
-
-      .friends-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .friend-link:nth-child(odd) {
-        border-right: none;
-      }
-    }
-
-    .timeline-list {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 12px;
-    }
-
-    .timeline-period {
-      margin-bottom: 22px;
-    }
-
-    .timeline-events {
-      margin-top: 8px;
-      padding-left: 22px;
-    }
-
-    .timeline-events > li {
-      margin-bottom: 16px;
-      font-size: 0.92rem;
-      color: #333;
-      line-height: 1.75;
-    }
-
-    .experience-details {
-      margin-top: 4px;
-      font-size: 0.85rem;
-      color: #444;
-    }
-
-    .experience-details summary {
-      display: inline-block;
-      border-bottom: 1px dotted #9a9a9a;
-      cursor: pointer;
-      color: #2f2f2f;
-      font-size: 0.84rem;
-      list-style: none;
-    }
-
-    .experience-details summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .experience-details[open] summary {
-      margin-bottom: 6px;
-    }
-
-    .experience-details ul {
-      margin: 0 0 0 8px;
-      padding-left: 12px;
-      border-left: 1px solid #d6d6d6;
-      list-style: none;
-    }
-
-    .experience-details li {
-      margin-bottom: 8px;
-      font-size: 0.84rem;
-      line-height: 1.65;
-      color: #444;
-    }
-
-    .timeline-year {
-      display: inline-block;
-      min-width: 102px;
-      font-weight: 600;
-      color: #111;
-    }
-
-    .topology-tip {
-      position: relative;
-      border-bottom: 1px dotted #999;
-      cursor: help;
-      white-space: nowrap;
-    }
-
-    .topology-tip::after {
-      content: "Backed by OpenAI, Google Ventures, and Khosla Ventures :)";
-      position: absolute;
-      left: 50%;
-      bottom: calc(100% + 8px);
-      transform: translateX(-50%);
-      width: min(280px, 78vw);
-      padding: 8px 10px;
-      border: 1px solid #ddd;
-      background: rgba(255, 255, 255, 0.98);
-      color: #222;
-      font-size: 0.75rem;
-      line-height: 1.45;
-      border-radius: 2px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 140ms ease;
-      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
-      white-space: normal;
-      z-index: 10;
-    }
-
-    .topology-tip:hover::after,
-    .topology-tip:focus-visible::after {
-      opacity: 1;
-    }
-
-    @media (max-width: 640px) {
-      .timeline-year {
-        display: block;
-        min-width: 0;
-        margin-bottom: 2px;
-      }
-    }
+    :root { --about-nav-height: 52px; }
+    html { scroll-behavior: smooth; scroll-padding-top: var(--about-nav-height); scroll-snap-type: y proximity; }
+    body { margin: 0 auto; padding-top: var(--about-nav-height); padding-bottom: 0; }
+    h1 { text-align: center; }
+    @media (max-width: 640px) { :root { --about-nav-height: 44px; } }
+    .about-chapter { display: flex; min-height: calc(100vh - var(--about-nav-height)); min-height: calc(100svh - var(--about-nav-height)); margin: 0; padding: 48px 0; flex-direction: column; justify-content: center; scroll-snap-align: start; }
+    .about-chapter--timeline { justify-content: flex-start; padding-top: 56px; padding-bottom: 64px; }
+    .chapter-title { margin-bottom: 18px; color: #111; font-size: 1.7rem; font-weight: 400; letter-spacing: 0.01em; text-align: center; }
+    .chapter-link { color: #111; text-decoration: none; border-bottom: 1px dotted #999; transition: border-color 150ms ease; }
+    .chapter-link:hover, .chapter-link:focus-visible { border-bottom-color: #222; }
+    .about-intro p { font-size: 0.95rem; font-style: normal; color: #222; margin-bottom: 14px; line-height: 1.85; }
+    .about-transition { font-style: italic; color: #444; margin-top: 10px; }
+    .derivations-link { display: inline-block; margin-top: 2px; border-bottom: 1px solid #bbb; text-decoration: none; color: #111; font-size: 0.95rem; }
+    .friends-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #ddd; }
+    .friend-link { display: block; min-width: 0; padding: 15px 14px 16px; border-bottom: 1px solid #ddd; color: #222; text-decoration: none; transition: background-color 150ms ease; }
+    .friend-link:nth-child(odd) { border-right: 1px solid #ddd; }
+    .friend-name { display: block; margin-bottom: 4px; color: #111; font-size: 1rem; font-weight: 600; line-height: 1.35; transition: transform 150ms ease; }
+    .friend-description { display: block; color: #666; font-size: 0.82rem; font-style: italic; line-height: 1.5; }
+    .friend-link:hover, .friend-link:focus-visible { background: #f7f7f5; }
+    .friend-link:hover .friend-name, .friend-link:focus-visible .friend-name { transform: translateX(2px); }
+    .friends-intro { margin: -4px 0 24px; color: #666; font-size: 0.88rem; font-style: italic; text-align: center; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; scroll-snap-type: none; } .chapter-link, .friend-link, .friend-name { transition: none; } .friend-link:hover .friend-name, .friend-link:focus-visible .friend-name { transform: none; } }
+    @media (max-width: 520px) { .about-chapter { padding: 38px 0; } .about-chapter--timeline { padding-top: 44px; padding-bottom: 52px; } .chapter-title { font-size: 1.5rem; } .friends-grid { grid-template-columns: 1fr; } .friend-link:nth-child(odd) { border-right: none; } }
+    .timeline-list { list-style: none; padding-left: 0; margin-top: 12px; }
+    .timeline-period { margin-bottom: 22px; }
+    .timeline-events { margin-top: 8px; padding-left: 22px; }
+    .timeline-events > li { margin-bottom: 16px; font-size: 0.92rem; color: #333; line-height: 1.75; }
+    .experience-details { margin-top: 4px; font-size: 0.85rem; color: #444; }
+    .experience-details summary { display: inline-block; border-bottom: 1px dotted #9a9a9a; cursor: pointer; color: #2f2f2f; font-size: 0.84rem; list-style: none; }
+    .experience-details summary::-webkit-details-marker { display: none; }
+    .experience-details[open] summary { margin-bottom: 6px; }
+    .experience-details ul { margin: 0 0 0 8px; padding-left: 12px; border-left: 1px solid #d6d6d6; list-style: none; }
+    .experience-details li { margin-bottom: 8px; font-size: 0.84rem; line-height: 1.65; color: #444; }
+    .timeline-year { display: inline-block; min-width: 102px; font-weight: 600; color: #111; }
+    .topology-tip { position: relative; border-bottom: 1px dotted #999; cursor: help; white-space: nowrap; }
+    .topology-tip::after { content: "Backed by OpenAI, Google Ventures, and Khosla Ventures :)"; position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); width: min(280px, 78vw); padding: 8px 10px; border: 1px solid #ddd; background: rgba(255, 255, 255, 0.98); color: #222; font-size: 0.75rem; line-height: 1.45; border-radius: 2px; opacity: 0; pointer-events: none; transition: opacity 140ms ease; box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08); white-space: normal; z-index: 10; }
+    .topology-tip:hover::after, .topology-tip:focus-visible::after { opacity: 1; }
+    @media (max-width: 640px) { .timeline-year { display: block; min-width: 0; margin-bottom: 2px; } }
   </style>
 </head>
 <body>
   <div class="top-nav" role="navigation" aria-label="Primary">
     <div class="top-nav-links">
-      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a>
-      <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank" aria-label="LinkedIn"><img class="linkedin-logo" src="assets/linkedin-logo.svg" alt="" aria-hidden="true"></a>
-      <span class="slash-sep">/</span>
-      <a class="top-nav-contact" href="mailto:adinapak@gmail.com" aria-label="Email">Email</a>
+      <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a><span class="slash-sep">/</span><a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank" aria-label="LinkedIn"><img class="linkedin-logo" src="assets/linkedin-logo.svg" alt="" aria-hidden="true"></a><span class="slash-sep">/</span><a class="top-nav-contact" href="mailto:adinapak@gmail.com" aria-label="Email">Email</a>
     </div>
-    <div class="top-nav-pages">
-      <a href="index.html">Home</a>
-      <span class="nav-sep">|</span>
-      <a href="principles.html">Principles</a>
-    </div>
+    <div class="top-nav-pages"><a href="index.html">Home</a><span class="nav-sep">|</span><a href="principles.html">Principles</a></div>
   </div>
-
   <main>
     <section class="about-chapter about-chapter--intro" aria-labelledby="about-heading">
-      <h1 id="about-heading">About Me</h1>
-
-      <hr>
-
+      <h1 id="about-heading">About Me</h1><hr>
       <div class="about-intro">
         <p>Hi! My name is Adina. I am 21 years old. My name is of Hebrew origin: עֲדִינָא, (pronounced /əˈdiːnə/) and means “delicate” or “gentle.”</p>
-
         <p>I’m afraid my priors may disappoint those who subscribe to nominative determinism, but my name does convey something about the way I view the universe: as a delicate balance of interconnected abstractions. Perhaps another slightly orthogonal musing, but I like to think that the universe is an ontology of God.</p>
-
         <p>That view also informs my belief that every individual has the capacity to exert meaningful influence on the world. The magnitude of that impact is determined by agency; the direction probably has something to do with one’s priors and moral commitments.</p>
-
         <p class="about-transition">This is a distillation of what lives in <a class="derivations-link" href="principles.html">Principles →</a></p>
         <p>My world-facing self is most likely a product of my <a class="chapter-link" href="#priors">priors</a> and the <a class="chapter-link" href="#friends">friends</a> I surround myself with.</p>
       </div>
     </section>
-
     <section class="about-chapter about-chapter--timeline" id="priors" aria-labelledby="priors-heading">
-      <h2 class="chapter-title" id="priors-heading">Priors</h2>
-
-      <hr>
-
+      <h2 class="chapter-title" id="priors-heading">Priors</h2><hr>
       <ul class="timeline-list">
-        <li class="timeline-period">
-          <span class="timeline-year">2026–present</span>
-          <ul class="timeline-events">
-            <li>Currently monkeying around with agents, helping <a class="chapter-link" href="https://mercor.com/careers" target="_blank" rel="noopener noreferrer">awesome people</a> build automations that push the frontier of intelligence.</li>
-            <li>Joined a <span class="topology-tip" tabindex="0">consumer AI company</span> to give people agency over their data. Learned that I wanted to spend my life surrounded by talented people with whimsy, exacting standards, and the resolve to build things that are good for the world.</li>
-          </ul>
-        </li>
-        <li class="timeline-period">
-          <span class="timeline-year">2023–2025</span>
-          <ul class="timeline-events">
-            <li>Studied Applied Mathematics at UC Berkeley with a cluster concentration toward Economics. Also enjoyed dabbling in Psychology classes!</li>
-            <li>
-              Explored the world of Wall Street, fell in love with understanding the levers that made a business great.
-
-              <details class="experience-details">
-                <summary>[+ foray...]</summary>
-                <ul>
-                  <li>Private Equity @ The Riverside Company ($14b aum - flagship buyout rcaf fund!)</li>
-                  <li>Public Equities @ Cedar Holdings (family office focused on FoF and SMid-cap biotech, $800m aum)</li>
-                  <li>Investment Banking @ Centerstone Capital (consumer m&amp;a)</li>
-                  <li>Business Dev @ Hypercore (private credit software startup, $13m Series A by Insight)</li>
-                </ul>
-              </details>
-            </li>
-          </ul>
-        </li>
-        <li class="timeline-period">
-          <span class="timeline-year">2005-2023</span>
-          <ul class="timeline-events">
-            <li>Trained as a classical concert pianist, won international competitions and played in Carnegie Hall twice.</li>
-            <li>Attempted multiple times to harvest energy from sound via piezoelectric effect (futile on initial intent, but got quite good at soldering diodes!)</li>
-            <li>Shadowed a neurosurgeon, first OR experience at 16 on a posterior lumbar discetomy</li>
-            <li>Surfed 4 mornings a week year round (shoutout surf team!)</li>
-            <li>Made lots of model airplanes and tinkered with Raspberry Pi</li>
-          </ul>
-        </li>
+        <li class="timeline-period"><span class="timeline-year">2026–present</span><ul class="timeline-events">
+          <li>Currently monkeying around with agents, helping <a class="chapter-link" href="https://mercor.com/careers" target="_blank" rel="noopener noreferrer">awesome people</a> build automations that push the frontier of intelligence.</li>
+          <li>Joined a <span class="topology-tip" tabindex="0">consumer AI company</span> to give people agency over their data! Learned that I wanted to spend my life surrounded by talented people with whimsy, high standards of excellence, and resolve to build good for the world.</li>
+        </ul></li>
+        <li class="timeline-period"><span class="timeline-year">2023–2025</span><ul class="timeline-events">
+          <li>Studied Applied Mathematics at UC Berkeley with a cluster concentration toward Economics. Also enjoyed dabbling in Psychology classes!</li>
+          <li>Explored the world of Wall Street, fell in love with understanding the levers that made a business great.<details class="experience-details"><summary>[+ foray...]</summary><ul><li>Private Equity @ The Riverside Company ($14b aum - flagship buyout rcaf fund!)</li><li>Public Equities @ Cedar Holdings (family office focused on FoF and SMid-cap biotech, $800m aum)</li><li>Investment Banking @ Centerstone Capital (consumer m&amp;a)</li><li>Business Dev @ Hypercore (private credit software startup, $13m Series A by Insight)</li></ul></details></li>
+        </ul></li>
+        <li class="timeline-period"><span class="timeline-year">2005-2023</span><ul class="timeline-events"><li>Trained as a classical concert pianist, won international competitions and played in Carnegie Hall twice.</li><li>Attempted multiple times to harvest energy from sound via piezoelectric effect (futile on initial intent, but got quite good at soldering diodes!)</li><li>Shadowed a neurosurgeon, first OR experience at 16 on a posterior lumbar discetomy</li><li>Surfed 4 mornings a week year round (shoutout surf team!)</li><li>Made lots of model airplanes and tinkered with Raspberry Pi</li></ul></li>
       </ul>
     </section>
-
     <section class="about-chapter about-chapter--friends" id="friends" aria-labelledby="friends-heading">
-      <h2 class="chapter-title" id="friends-heading">Friends</h2>
-
-      <hr>
-
+      <h2 class="chapter-title" id="friends-heading">Friends</h2><hr>
       <p class="friends-intro">Admittedly quite strange to compress people into a few words, but here are a few of the wonderful muses I'd cite in my basis expansion :) </p>
-
       <div class="friends-grid">
-        <a class="friend-link" href="https://ramis.ai/" target="_blank" rel="noopener noreferrer">
-          <span class="friend-name">Rami Seid</span>
-          <span class="friend-description">whimsical in intellect and magnanimity</span>
-        </a>
-        <a class="friend-link" href="https://www.cyr.is/" target="_blank" rel="noopener noreferrer">
-          <span class="friend-name">Cyris Kissane</span>
-          <span class="friend-description">if you took childlike wonder and argmax(chroma)
+        <a class="friend-link" href="https://ramis.ai/" target="_blank" rel="noopener noreferrer"><span class="friend-name">Rami Seid</span><span class="friend-description">whimsical in intellect and magnanimity</span></a>
+        <a class="friend-link" href="https://www.cyr.is/" target="_blank" rel="noopener noreferrer"><span class="friend-name">Cyris Kissane</span><span class="friend-description">if you took childlike wonder and argmax(chroma)
 
-</span>
-        </a>
-        <a class="friend-link" href="https://dorsarohani.com/" target="_blank" rel="noopener noreferrer">
-          <span class="friend-name">Dorsa Rohani</span>
-          <span class="friend-description">thoughtful exuberance in a cracked nutshell</span>
-        </a>
-        <a class="friend-link" href="https://substack.com/@karalo" target="_blank" rel="noopener noreferrer">
-          <span class="friend-name">Kara Lo</span>
-          <span class="friend-description">probably grokked me years ago...</span>
-        </a>
+</span></a>
+        <a class="friend-link" href="https://dorsarohani.com/" target="_blank" rel="noopener noreferrer"><span class="friend-name">Dorsa Rohani</span><span class="friend-description">thoughtful exuberance in a cracked nutshell</span></a>
+        <a class="friend-link" href="https://substack.com/@karalo" target="_blank" rel="noopener noreferrer"><span class="friend-name">Kara Lo</span><span class="friend-description">probably grokked me years ago...</span></a>
       </div>
     </section>
   </main>
