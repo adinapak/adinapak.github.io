@@ -133,16 +133,85 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
 
   const tweets = [
     {
-      text: 'taking human-machine collaboration to the next lemma ;) very excited to be supporting this!!',
-      date: 'Sep 6',
-      url: 'https://x.com/adinapak_'
+      text: 'Saving my white jeans for AFTER labor day bc I’m a woman of Girard yk? yk??',
+      timestamp: '2026-09-07T09:10:41Z'
+    },
+    {
+      text: 'taking human-machine collaboration to the next lemma ;)\n\nvery excited to be supporting this!!',
+      timestamp: '2026-09-04T23:09:10Z'
+    },
+    {
+      text: 'sigmoid = activation function of true looksmaxxers and sigma females and males (hence, sig-foids and sigmoids)',
+      timestamp: '2026-09-02T18:41:00Z'
+    },
+    {
+      text: 'Fluent in: English, Pig Latin (working proficiency), and Neuralese',
+      timestamp: '2026-09-02T02:31:02Z'
+    },
+    {
+      text: 'I am my own tamagotchi https://t.co/IXgxIdJeld',
+      timestamp: '2026-09-02T02:15:46Z'
+    },
+    {
+      text: 'Intelligence = d(data)/dt 😝 imo best entry wedge into total vertical integration of enterprise post training',
+      timestamp: '2026-09-02T01:57:14Z'
     },
     {
       text: 'You can’t estimate the reward without pulling the arm (or so they say) so I’m not clicking “no cilantro” on my Thai order tn',
-      date: 'Sep 3',
-      url: 'https://x.com/adinapak_'
+      timestamp: '2026-08-23T23:02:03Z'
     }
   ];
+
+  function tweetSearchUrl(text) {
+    const clean = text.replace(/https?:\/\/t\.co\/\S+/g, '').replace(/\s+/g, ' ').trim();
+    const query = `from:adinapak_ "${clean}"`;
+    return `https://x.com/search?q=${encodeURIComponent(query)}&src=typed_query&f=live`;
+  }
+
+  function ordinalDay(day) {
+    const mod100 = day % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${day}th`;
+    switch (day % 10) {
+      case 1: return `${day}st`;
+      case 2: return `${day}nd`;
+      case 3: return `${day}rd`;
+      default: return `${day}th`;
+    }
+  }
+
+  function formatTweetTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).formatToParts(date);
+
+    const value = (type) => parts.find((part) => part.type === type)?.value || '';
+    const month = value('month');
+    const day = Number(value('day'));
+    const hour = value('hour');
+    const minute = value('minute');
+    const dayPeriod = value('dayPeriod');
+
+    return `${month} ${ordinalDay(day)} · ${hour}:${minute} ${dayPeriod}`;
+  }
+
+  function shuffle(items) {
+    const copy = items.slice();
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  const shuffledTweets = shuffle(tweets);
 
   const style = document.createElement('style');
   style.textContent = `
@@ -156,6 +225,12 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
       border-radius: 4px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
       padding: 16px 20px;
+      font-style: normal !important;
+    }
+    .adina-isms-widget *,
+    .adina-isms-meta,
+    .adina-isms-meta * {
+      font-style: normal !important;
     }
     .adina-isms-header {
       display: flex;
@@ -192,13 +267,23 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
     }
     .adina-isms-arrow:hover,
     .adina-isms-arrow:focus-visible { color: #111; }
+    .adina-ism-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
     .adina-ism-text {
       margin: 0;
       min-height: 3.4em;
+      white-space: pre-line;
       font-size: clamp(1.05rem, 2.6vw, 1.28rem);
       line-height: 1.55;
       color: #171717;
       transition: opacity 160ms ease;
+    }
+    .adina-ism-link:hover .adina-ism-text,
+    .adina-ism-link:focus-visible .adina-ism-text {
+      color: #000;
     }
     .adina-ism-text.is-changing { opacity: 0; }
     .adina-isms-meta {
@@ -229,29 +314,34 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
       <p class="adina-isms-label">Adina-isms</p>
       <div class="adina-isms-controls" aria-label="Tweet navigation">
         <button class="adina-isms-arrow" type="button" data-dir="-1" aria-label="Previous Adina-ism">←</button>
-        <span id="adina-isms-count">1 / ${tweets.length}</span>
+        <span id="adina-isms-count">1 / ${shuffledTweets.length}</span>
         <button class="adina-isms-arrow" type="button" data-dir="1" aria-label="Next Adina-ism">→</button>
       </div>
     </div>
-    <p id="adina-ism-text" class="adina-ism-text"></p>
+    <a id="adina-ism-link" class="adina-ism-link" href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer" aria-label="Open this post on X">
+      <p id="adina-ism-text" class="adina-ism-text"></p>
+    </a>
   `;
 
   ouraMeta.className = 'adina-isms-meta';
   ouraMeta.id = 'adina-isms-meta';
 
   const textEl = document.getElementById('adina-ism-text');
+  const linkEl = document.getElementById('adina-ism-link');
   const countEl = document.getElementById('adina-isms-count');
   let index = 0;
   let timer = null;
 
   function render(nextIndex, animate) {
-    index = (nextIndex + tweets.length) % tweets.length;
-    const tweet = tweets[index];
+    index = (nextIndex + shuffledTweets.length) % shuffledTweets.length;
+    const tweet = shuffledTweets[index];
+    const tweetUrl = tweetSearchUrl(tweet.text);
 
     const apply = function () {
       textEl.textContent = tweet.text;
-      countEl.textContent = `${index + 1} / ${tweets.length}`;
-      ouraMeta.innerHTML = `<span>X</span><span aria-hidden="true">·</span><span>${tweet.date}</span><span aria-hidden="true">·</span><a href="${tweet.url}" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
+      linkEl.href = tweetUrl;
+      countEl.textContent = `${index + 1} / ${shuffledTweets.length}`;
+      ouraMeta.innerHTML = `<a href="${tweetUrl}" target="_blank" rel="noopener noreferrer">X</a><span aria-hidden="true">·</span><span>${formatTweetTimestamp(tweet.timestamp)}</span><span aria-hidden="true">·</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
       textEl.classList.remove('is-changing');
     };
 
