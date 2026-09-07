@@ -275,10 +275,10 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   document.head.appendChild(style);
 
   ouraWidget.className = 'adina-isms-widget';
-  ouraWidget.setAttribute('aria-label', 'Adina-isms');
+  ouraWidget.setAttribute('aria-label', '(Adina)-phorisms?');
   ouraWidget.innerHTML = `
     <div class="adina-isms-header">
-      <p class="adina-isms-label">Adina-isms</p>
+      <p class="adina-isms-label">(Adina)-phorisms?</p>
     </div>
     <a id="adina-ism-link" class="adina-ism-link" href="${tweetUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open this post on X">
       <p id="adina-ism-text" class="adina-ism-text"></p>
@@ -289,5 +289,5 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
   ouraMeta.id = 'adina-isms-meta';
 
   document.getElementById('adina-ism-text').textContent = tweet.text;
-  ouraMeta.innerHTML = `<a href="${tweetUrl}" target="_blank" rel="noopener noreferrer">X</a><span aria-hidden="true">·</span><span>${formatTweetTimestamp(tweet.timestamp)}</span><span aria-hidden="true">·</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
+  ouraMeta.innerHTML = `<span>${formatTweetTimestamp(tweet.timestamp).replace(' · ', ' - ')}</span><span aria-hidden="true">-</span><a href="https://x.com/adinapak_" target="_blank" rel="noopener noreferrer">via X</a>`;
 })();
