@@ -125,3 +125,158 @@ window.SUPABASE_ANON_KEY = "sb_publishable_2dxutx-0VyA8OnUwfX2Bpg_cSSeuA0D";
     }
   }
 })();
+
+(function () {
+  const ouraWidget = document.querySelector('.oura-widget');
+  const ouraMeta = document.getElementById('oura-steps-meta');
+  if (!ouraWidget || !ouraMeta) return;
+
+  const tweets = [
+    {
+      text: 'taking human-machine collaboration to the next lemma ;) very excited to be supporting this!!',
+      date: 'Sep 6',
+      url: 'https://x.com/adinapak_'
+    },
+    {
+      text: 'You can’t estimate the reward without pulling the arm (or so they say) so I’m not clicking “no cilantro” on my Thai order tn',
+      date: 'Sep 3',
+      url: 'https://x.com/adinapak_'
+    }
+  ];
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .adina-isms-widget {
+      margin: 14px auto 0;
+      max-width: 560px;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+      padding: 16px 20px;
+    }
+    .adina-isms-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .adina-isms-label {
+      margin: 0;
+      font-size: 0.72rem;
+      color: #999;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+    .adina-isms-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #999;
+      font-size: 0.72rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .adina-isms-arrow {
+      border: 0;
+      background: transparent;
+      color: #777;
+      font: inherit;
+      font-size: 0.9rem;
+      line-height: 1;
+      padding: 2px 3px;
+      cursor: pointer;
+    }
+    .adina-isms-arrow:hover,
+    .adina-isms-arrow:focus-visible { color: #111; }
+    .adina-ism-text {
+      margin: 0;
+      min-height: 3.4em;
+      font-size: clamp(1.05rem, 2.6vw, 1.28rem);
+      line-height: 1.55;
+      color: #171717;
+      transition: opacity 160ms ease;
+    }
+    .adina-ism-text.is-changing { opacity: 0; }
+    .adina-isms-meta {
+      margin: 0.8rem 0 0;
+      font-size: 0.74rem;
+      color: #666;
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 0.35rem;
+      text-align: center;
+    }
+    .adina-isms-meta a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted #aaa;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .adina-ism-text { transition: none; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  ouraWidget.className = 'adina-isms-widget';
+  ouraWidget.setAttribute('aria-label', 'Adina-isms');
+  ouraWidget.innerHTML = `
+    <div class="adina-isms-header">
+      <p class="adina-isms-label">Adina-isms</p>
+      <div class="adina-isms-controls" aria-label="Tweet navigation">
+        <button class="adina-isms-arrow" type="button" data-dir="-1" aria-label="Previous Adina-ism">←</button>
+        <span id="adina-isms-count">1 / ${tweets.length}</span>
+        <button class="adina-isms-arrow" type="button" data-dir="1" aria-label="Next Adina-ism">→</button>
+      </div>
+    </div>
+    <p id="adina-ism-text" class="adina-ism-text"></p>
+  `;
+
+  ouraMeta.className = 'adina-isms-meta';
+  ouraMeta.id = 'adina-isms-meta';
+
+  const textEl = document.getElementById('adina-ism-text');
+  const countEl = document.getElementById('adina-isms-count');
+  let index = 0;
+  let timer = null;
+
+  function render(nextIndex, animate) {
+    index = (nextIndex + tweets.length) % tweets.length;
+    const tweet = tweets[index];
+
+    const apply = function () {
+      textEl.textContent = tweet.text;
+      countEl.textContent = `${index + 1} / ${tweets.length}`;
+      ouraMeta.innerHTML = `<span>X</span><span aria-hidden="true">·</span><span>${tweet.date}</span><span aria-hidden="true">·</span><a href="${tweet.url}" target="_blank" rel="noopener noreferrer">@adinapak_</a>`;
+      textEl.classList.remove('is-changing');
+    };
+
+    if (animate) {
+      textEl.classList.add('is-changing');
+      window.setTimeout(apply, 160);
+    } else {
+      apply();
+    }
+  }
+
+  function restartShuffle() {
+    if (timer) window.clearInterval(timer);
+    timer = window.setInterval(function () {
+      render(index + 1, true);
+    }, 9000);
+  }
+
+  ouraWidget.querySelectorAll('.adina-isms-arrow').forEach(function (button) {
+    button.addEventListener('click', function () {
+      render(index + Number(button.dataset.dir || 1), true);
+      restartShuffle();
+    });
+  });
+
+  render(0, false);
+  restartShuffle();
+})();
