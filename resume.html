@@ -96,11 +96,11 @@
     .org,
     .label { font-weight: 700; }
     .date, .place { text-align: right; white-space: nowrap; }
-    .role, .date { font-style: italic; }
+    .role, .date { font-style: oblique; }
     .muted { color: var(--muted); }
 
     .degree { font-size: 15px; }
-    .edu-note { font-size: 14px; font-style: italic; margin-top: 0.035in; text-align: center; }
+    .edu-note { font-size: 14px; font-style: oblique; margin-top: 0.035in; text-align: center; }
 
     .entry { margin-top: 0.075in; }
     .entry:first-of-type { margin-top: 0; }
@@ -126,7 +126,7 @@
     }
 
     .subproject .title { text-decoration: underline; }
-    .subproject .project-name { font-style: italic; }
+    .subproject .project-name { font-style: oblique; }
 
     /* ---- Additional Intern Experience (bulleted, with expandable finance roles) ---- */
     .additional { margin: 0.025in 0 0 0.08in; }
@@ -148,8 +148,8 @@
       text-align: left;
       transform: translateY(0.06em);
     }
-    .prior-head .prior-date { font-style: italic; white-space: nowrap; padding-left: 0.18in; }
-    .prior-head .prior-main em { font-style: italic; }
+    .prior-head .prior-date { font-style: oblique; white-space: nowrap; padding-left: 0.18in; }
+    .prior-head .prior-main em { font-style: oblique; }
 
     .u { text-decoration: underline; text-underline-offset: 2px; }
     .reg { font-weight: 400; }
@@ -295,7 +295,7 @@
       }
 
       .prior-head .prior-date {
-        font-style: italic;
+        font-style: oblique;
         white-space: nowrap;
         padding-left: 0.08in;
       }
@@ -317,8 +317,9 @@
       .prior-head { grid-template-columns: 0.13in 1fr; }
     }
   </style>
+<link rel="stylesheet" href="paper.css">
 </head>
-<body>
+<body class="resume-page">
   <main class="page" aria-label="Resume for Adina Pak">
     <header>
       <h1>Adina Pak</h1>

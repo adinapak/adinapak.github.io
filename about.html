@@ -21,16 +21,16 @@
     .chapter-link:hover, .chapter-link:focus-visible { border-bottom-color: #222; }
     .mercor-link:hover, .mercor-link:focus-visible { color: #6f4cff; font-weight: 700; border-bottom-color: #6f4cff; }
     .about-intro p { font-size: 0.95rem; font-style: normal; color: #222; margin-bottom: 14px; line-height: 1.85; }
-    .about-transition { font-style: italic; color: #444; margin-top: 10px; }
+    .about-transition { font-style: oblique; color: #444; margin-top: 10px; }
     .derivations-link { display: inline-block; margin-top: 2px; border-bottom: 1px solid #bbb; text-decoration: none; color: #111; font-size: 0.95rem; }
     .friends-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #ddd; }
     .friend-link { display: block; min-width: 0; padding: 15px 14px 16px; border-bottom: 1px solid #ddd; color: #222; text-decoration: none; transition: background-color 150ms ease; }
     .friend-link:nth-child(odd) { border-right: 1px solid #ddd; }
     .friend-name { display: block; margin-bottom: 4px; color: #111; font-size: 1rem; font-weight: 600; line-height: 1.35; transition: transform 150ms ease; }
-    .friend-description { display: block; color: #666; font-size: 0.82rem; font-style: italic; line-height: 1.5; }
+    .friend-description { display: block; color: #666; font-size: 0.82rem; font-style: oblique; line-height: 1.5; }
     .friend-link:hover, .friend-link:focus-visible { background: #f7f7f5; }
     .friend-link:hover .friend-name, .friend-link:focus-visible .friend-name { transform: translateX(2px); }
-    .friends-intro { margin: -4px 0 24px; color: #666; font-size: 0.88rem; font-style: italic; text-align: center; }
+    .friends-intro { margin: -4px 0 24px; color: #666; font-size: 0.88rem; font-style: oblique; text-align: center; }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; scroll-snap-type: none; } .chapter-link, .friend-link, .friend-name { transition: none; } .friend-link:hover .friend-name, .friend-link:focus-visible .friend-name { transform: none; } }
     @media (max-width: 520px) { .about-chapter { padding: 38px 0; } .about-chapter--timeline { padding-top: 44px; padding-bottom: 52px; } .chapter-title { font-size: 1.5rem; } .friends-grid { grid-template-columns: 1fr; } .friend-link:nth-child(odd) { border-right: none; } }
     .timeline-list { list-style: none; padding-left: 0; margin-top: 12px; }
@@ -50,8 +50,9 @@
     .topology-tip:hover::after, .topology-tip:focus-visible::after { opacity: 1; }
     @media (max-width: 640px) { .timeline-year { display: block; min-width: 0; margin-bottom: 2px; } }
   </style>
+<link rel="stylesheet" href="paper.css">
 </head>
-<body>
+<body class="about-page">
   <div class="top-nav" role="navigation" aria-label="Primary">
     <div class="top-nav-links">
       <a class="top-nav-contact" href="https://x.com/adinapak_" target="_blank">𝕏</a><span class="slash-sep">/</span><a class="top-nav-contact" href="https://linkedin.com/in/adina-pak/" target="_blank" aria-label="LinkedIn"><img class="linkedin-logo" src="assets/linkedin-logo.svg" alt="" aria-hidden="true"></a><span class="slash-sep">/</span><a class="top-nav-contact" href="mailto:adinapak@gmail.com" aria-label="Email">Email</a>
@@ -59,14 +60,12 @@
     <div class="top-nav-pages"><a href="index.html">Home</a><span class="nav-sep">|</span><a href="principles.html">Principles</a></div>
   </div>
   <main>
-    <section class="about-chapter about-chapter--intro" aria-labelledby="about-heading">
+    <section class="about-chapter about-chapter--intro" id="about" aria-labelledby="about-heading">
       <h1 id="about-heading">About Me</h1><hr>
       <div class="about-intro">
-        <p>Hi! My name is Adina. I am 21 years old. My name is of Hebrew origin: עֲדִינָא, (pronounced /əˈdiːnə/) and means “delicate” or “gentle.”</p>
-        <p>I’m afraid my priors may disappoint those who subscribe to nominative determinism, but my name does convey something about the way I view the universe: as a delicate balance of interconnected abstractions. Perhaps another slightly orthogonal musing, but I like to think that the universe is an ontology of God.</p>
-        <p>That view also informs my belief that every individual has the capacity to exert meaningful influence on the world. The magnitude of that impact is determined by agency; the direction probably has something to do with one’s priors and moral commitments.</p>
-        <p class="about-transition">This is a distillation of what lives in <a class="derivations-link" href="principles.html">Principles →</a></p>
-        <p>My world-facing self is most likely a product of my <a class="chapter-link" href="#priors">priors</a> and the <a class="chapter-link" href="#friends">friends</a> I surround myself with.</p>
+        <p>Hi! My name is Adina. I am 21 years old. My name is of Hebrew origin: עֲדִינָא, (pronounced /əˈdiːnə/) and means “delicate” or “gentle.” I’m afraid my priors may disappoint those who subscribe to nominative determinism, but my name does convey something about the way I view <a class="annotated-link" href="#note-universe" id="universe-reference" role="doc-noteref">the universe<sup>[1]</sup></a>: as a delicate balance of interconnected abstractions.</p>
+        <p>That view also informs my belief that every individual has the capacity to exert meaningful influence on the world. I like to think that the magnitude of said impact is determined by agency; whilst the direction probably has something to do with one’s <a class="annotated-link" href="https://plato.stanford.edu/archives/win2008/entries/epistemology-bayesian/" target="_blank" rel="noopener noreferrer" aria-describedby="citation-bayesian">priors<span class="citation-label" id="citation-bayesian" role="tooltip">&quot;Bayesian Epistemology&quot;, Stanford Encyclopedia of Philosophy</span></a> and <a class="annotated-link" href="https://www.adina.life/principles" aria-describedby="citation-principles">moral commitments<span class="citation-label" id="citation-principles" role="tooltip">adina.life/principles</span></a>.</p>
+        <p>My world-facing self is also likely a product of my <a class="chapter-link" href="#priors">priors</a> and the <a class="chapter-link" href="#friends">friends</a> I surround myself with.</p>
       </div>
     </section>
     <section class="about-chapter about-chapter--timeline" id="priors" aria-labelledby="priors-heading">
@@ -95,6 +94,11 @@
         <a class="friend-link" href="https://substack.com/@karalo" target="_blank" rel="noopener noreferrer"><span class="friend-name">Kara Lo</span><span class="friend-description">probably grokked me years ago...</span></a>
       </div>
     </section>
+    <footer class="about-footnotes" aria-label="Footnotes" role="doc-endnotes">
+      <ol>
+        <li id="note-universe">Perhaps another slightly orthogonal musing, but I like to think that the universe is an ontology of God. <a href="#universe-reference" role="doc-backlink" aria-label="Return to the universe reference">↩</a></li>
+      </ol>
+    </footer>
   </main>
 </body>
 </html>

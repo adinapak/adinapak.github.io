@@ -1,0 +1,60 @@
+/* Computer Modern's real slanted roman faces, equivalent to LaTeX textsl. */
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/font/Serif/cmunrm.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/font/Serif/cmunbx.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/font/Serif%20Slanted/cmunsl.woff") format("woff");
+  font-style: oblique;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/font/Serif%20Slanted/cmunbl.woff") format("woff");
+  font-style: oblique;
+  font-weight: 700;
+  font-display: swap;
+}
+em, i, cite, dfn, address, var { font-style: oblique; }
+:root { --paper-width: 680px; --paper-gutter: 24px; }
+body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
+@media screen {
+  body:not(.resume-page) { box-sizing: border-box; width: 100%; max-width: var(--paper-width); margin-left: auto; margin-right: auto; padding-left: var(--paper-gutter); padding-right: var(--paper-gutter); }
+  .top-nav { left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--paper-width); padding-left: var(--paper-gutter); padding-right: var(--paper-gutter); }
+  .resume-page .page { max-width: min(100%, 8.5in); }
+}
+/* Keep the date's supplementary notes inside the same reading pane. */
+.date-proof-panel { top: calc(100% + 10px); left: 50%; right: auto; width: min(340px, calc(100vw - 48px)); transform: translateX(-50%) translateY(-4px); }
+.date-proof-right { margin-top: 144px; }
+.date-proof:hover .date-proof-panel, .date-proof:focus-within .date-proof-panel, .date-proof.open .date-proof-panel { transform: translateX(-50%) translateY(0); }
+.date-proof-left { z-index: 31; }
+.date-proof-right { z-index: 30; }
+.about-intro .annotated-link { position: relative; color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.annotated-link sup { display: inline-block; margin-left: 2px; font-size: 0.7em; line-height: 0; text-decoration: none; }
+.annotated-link:has(.citation-label) { display: inline-block; }
+.citation-label { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(265px, 65vw); padding: 9px 13px; border: 1px solid #e2e2e2; border-radius: 4px; box-shadow: 0 2px 8px #00000012; background: #fdfdfd; color: #182d50; font-size: 14px; line-height: 1.45; font-style: oblique; text-decoration: underline; text-underline-offset: 3px; text-align: center; pointer-events: none; opacity: 0; visibility: hidden; z-index: 20; }
+.annotated-link:hover .citation-label, .annotated-link:focus-visible .citation-label { opacity: 1; visibility: visible; }
+.about-footnotes { border-top: 1px solid #bbb; padding: 24px 0 48px; scroll-snap-align: start; }
+.about-footnotes ol { padding-left: 22px; font-size: 14px; line-height: 1.65; color: #555; }
+.about-footnotes li { margin-bottom: 12px; scroll-margin-top: calc(var(--about-nav-height) + 16px); }
+.about-footnotes li::marker { content: "[" counter(list-item) "] "; }
+.about-footnotes a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.about-footnotes li:target { background: #f7f1e9; }
+@media (max-width: 640px) {
+  :root { --paper-gutter: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; scroll-snap-type: none; }
+}

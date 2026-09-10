@@ -68,7 +68,7 @@ border-bottom: 1px solid #bbb;
 
 .top-nav .nav-sep,
 .top-nav .slash-sep {
-font-style: italic;
+font-style: oblique;
 }
 
 .top-nav-contact:nth-of-type(1):hover {
@@ -134,7 +134,7 @@ margin: 0 0 28px;
 
     nav {
       font-size: 0.88rem;
-      font-style: italic;
+      font-style: oblique;
       margin-bottom: 28px;
       line-height: 2.2;
       text-align: left;
@@ -166,7 +166,7 @@ margin: 0 0 28px;
 
     section p {
       font-size: 0.85rem;
-      font-style: italic;
+      font-style: oblique;
       color: #888;
       margin-bottom: 8px;
     }
@@ -198,7 +198,7 @@ margin: 0 0 28px;
     .small-note {
       font-size: 0.82rem;
       color: #666;
-      font-style: italic;
+      font-style: oblique;
       margin-bottom: 20px;
     }
 
@@ -479,7 +479,7 @@ margin: 0 0 28px;
     .dj-artist {
       font-size: 0.8rem;
       color: #666;
-      font-style: italic;
+      font-style: oblique;
     }
 
     .dj-actions {
@@ -581,7 +581,7 @@ margin: 0 0 28px;
       min-height: 20px;
       font-size: 0.78rem;
       color: #666;
-      font-style: italic;
+      font-style: oblique;
       margin: 8px 0 0;
     }
 
@@ -759,7 +759,7 @@ margin: 0 0 28px;
       margin-bottom: 8px;
     }
 
-    .synesthetic-note { font-size: 0.82rem; color: #666; font-style: italic; margin-bottom: 10px; }
+    .synesthetic-note { font-size: 0.82rem; color: #666; font-style: oblique; margin-bottom: 10px; }
     .synesthetic-canvas { width: 100%; height: 160px; display: block; border: 1px solid #e8e8e8; border-radius: 3px; background: linear-gradient(180deg, #fff, #f6f8ff); }
     .synesthetic-trace { margin-top: 10px; border: 1px solid #ececec; border-radius: 3px; background: #fafafa; padding: 8px 10px; font-size: 0.78rem; color: #444; line-height: 1.45; }
 
@@ -770,6 +770,7 @@ margin: 0 0 28px;
     .hangar-canvas { width:100%; height:300px; display:block; border:1px solid #ececec; border-radius:4px; background:linear-gradient(180deg,#f9fcff,#eef3f7); }
     .hangar-metrics { display:flex; flex-wrap:wrap; gap:14px; margin-top:8px; }
   </style>
+<link rel="stylesheet" href="paper.css">
 </head>
 
 <body>
@@ -2656,7 +2657,7 @@ margin: 0 0 28px;
         ctx.clearRect(0, 0, width, height);
         synDrawScene(ctx, scene, performance.now() / 1000, width, height);
         if (!latest || !motion || !latest.track) {
-          ctx.fillStyle = '#777'; ctx.font = 'italic 15px "Computer Modern Serif", Georgia, serif'; ctx.fillText('waiting', (width / 2) - 24, height / 2);
+          ctx.fillStyle = '#777'; ctx.font = 'oblique 15px "Computer Modern Serif", Georgia, serif'; ctx.fillText('waiting', (width / 2) - 24, height / 2);
           setTrace('waiting'); requestAnimationFrame(draw); return;
         }
         const playing = !!latest.isPlaying;

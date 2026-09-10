@@ -16,12 +16,13 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 4rem); letter-spacing: -0.05em; }
 .meal-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.07); border-radius: 4px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04); }
 .meal-card img { width: 112px; height: 112px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); background: #fbfaf7; }
 .meal-card h2 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.7rem); line-height: 1.05; letter-spacing: -0.02em; }
-.mode { margin: 0.3rem 0 0; font-style: italic; }
+.mode { margin: 0.3rem 0 0; font-style: oblique; }
 .description { margin: 0.7rem 0; line-height: 1.35; }
 .meta { margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
 .empty { background: rgba(255,255,255,0.72); border: 1px solid rgba(0,0,0,0.07); padding: 18px; }
 @media (max-width: 520px) { .meal-card { grid-template-columns: 1fr; } .meal-card img { width: 100%; height: auto; aspect-ratio: 1 / 1; } }
 </style>
+<link rel="stylesheet" href="paper.css">
 </head>
 <body>
 <main class="page">
