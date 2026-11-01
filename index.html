@@ -1188,7 +1188,7 @@ function renderNowPlaying(data) {
         const response = await fetch('/api/now-playing', { cache: 'no-store' });
 
         if (!response.ok) {
-          setFallbackState('Unable to load playback right now.');
+          setFallbackState('');
           return;
         }
 
@@ -1196,7 +1196,7 @@ function renderNowPlaying(data) {
         renderNowPlaying(data);
       } catch (error) {
         console.error('Spotify now-playing request failed.', error);
-        setFallbackState('Unable to reach now playing endpoint.');
+        setFallbackState('');
       }
     }
 
