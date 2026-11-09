@@ -151,57 +151,42 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
   .dj-artist { white-space: normal; line-height: 1.4; }
 }
 
-/* Optical alignment for mixed text and social marks. */
+/* Align navigation to one typographic baseline, not unequal flex boxes. */
 .top-nav .top-nav-links,
 .top-nav .top-nav-pages {
   display: flex;
-  align-items: center;
-  column-gap: 0.65rem;
+  align-items: baseline;
+  column-gap: 0.6rem;
 }
 .top-nav .top-nav-contact,
 .top-nav .top-nav-pages a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 0;
+  display: inline-block;
+  min-height: 0;
+  padding: 5px 0;
   line-height: 1;
+  font-size: inherit;
   font-weight: 400;
   white-space: nowrap;
+  vertical-align: baseline;
 }
 .top-nav .top-nav-contact { color: #222; }
 .top-nav .linkedin-logo {
-  display: block;
-  width: 0.9em;
-  height: 0.9em;
-  transform: translateY(-1px);
-}
-.top-nav a[href^="https://x.com/"] {
-  width: 0.8rem;
-  flex: 0 0 0.8rem;
-  font-size: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23222' d='M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.5 22H2.3l7.1-8.2L1.6 2h6.5l4.5 6.8L18.9 2Zm-1.1 18h1.7L7.2 3.9H5.4L17.8 20Z'/%3E%3C/svg%3E") center calc(50% - 1px) / 100% auto no-repeat;
+  display: inline-block;
+  width: 0.76em;
+  height: 0.76em;
+  vertical-align: baseline;
+  transform: none;
 }
 .top-nav .slash-sep,
 .top-nav .nav-sep {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 0.35rem;
-  height: 1rem;
-  font-size: 0;
-  flex-shrink: 0;
+  display: inline-block;
+  font-size: 1em;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  color: #b7b7b1;
 }
-.top-nav .slash-sep::after,
-.top-nav .nav-sep::after {
-  content: "";
-  display: block;
-  height: 0.9rem;
-  border-left: 1px solid #b7b7b1;
-}
-.top-nav .slash-sep::after { transform: rotate(25deg); }
 .top-nav .top-nav-contact:hover {
   font-weight: 400;
-  background-color: transparent;
   -webkit-text-fill-color: currentColor;
 }
