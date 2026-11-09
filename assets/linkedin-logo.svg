@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="38 28 345 347" role="img" aria-labelledby="linkedin-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="34 24 354 356" role="img" aria-labelledby="linkedin-title">
   <title id="linkedin-title">LinkedIn</title>
-  <g fill="none" stroke="#111" stroke-width="6" stroke-linejoin="miter">
+  <g fill="none" stroke="#111" stroke-width="18" stroke-linejoin="miter">
     <circle cx="86" cy="77" r="39"/>
     <path d="M54 148h65v219H54z"/>
     <path d="M157 148h65v32c17-23 37-34 64-34h17c45 0 72 31 72 78v143h-65V253c0-28-16-49-43-49-27 0-45 21-45 49v114h-65z"/>
