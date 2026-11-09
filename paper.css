@@ -191,9 +191,9 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
   -webkit-text-fill-color: currentColor;
 }
 
-/* A small bracketed array of consistently sized contact icons. */
+/* Three evenly spaced contact icons. */
 .top-nav .top-nav-links { align-items: center; column-gap: 1rem; }
-.contact-array { display: inline-flex; align-items: center; gap: 0.3rem; color: #222; }
+.contact-array { display: inline-flex; align-items: center; gap: 0.7rem; color: #222; }
 .top-nav .contact-array .top-nav-contact {
   display: inline-flex; align-items: center; justify-content: center;
   width: 1rem; height: 1.8rem; padding: 0; line-height: 1;
@@ -206,6 +206,8 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
   vertical-align: initial; transform: none;
 }
 .top-nav .contact-array .mail-icon { width: 1rem; height: 1rem; }
-.array-bracket { font-family: "Computer Modern Serif", Georgia, serif; font-size: 1.1em; line-height: 1; }
-.array-comma { align-self: center; line-height: 1; margin-left: -0.18rem; transform: translateY(0.12em); color: #888; }
-.top-nav .snail-mail-link { color: #666; }
+
+
+.contact-footer { margin: 3rem 0 1.5rem; text-align: center; font-size: 0.75rem; }
+.contact-footer .snail-mail-link { color: #777; font-weight: 400; }
+.contact-footer .snail-mail-link:hover { color: #222; }
