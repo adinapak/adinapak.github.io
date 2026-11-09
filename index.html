@@ -1172,6 +1172,7 @@ function renderNowPlaying(data) {
   progressMs = Number(data.progress_ms || 0);
   durationMs = Number(data.duration_ms || 1);
   isPlaying = true;
+  if (widgetEl) widgetEl.classList.remove('paused', 'idle');
   currentTrackUrl = getTrackUrl(track);
 
   trackEl.textContent = track.name || 'Unknown track';
