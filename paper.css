@@ -168,7 +168,7 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
 }
 .top-nav .contact-icon, .top-nav .linkedin-logo {
   display: block; width: 0.85em; height: 0.85em;
-  transform: none; vertical-align: middle;
+  transform: translateY(-0.08em); vertical-align: middle;
 }
 .top-nav .slash-sep, .top-nav .nav-sep {
   display: inline-flex; align-items: center; justify-content: center;
@@ -196,4 +196,11 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
 }
 .top-nav .top-nav-contact:focus-visible {
   outline: 1px solid #777; outline-offset: 4px;
+}
+
+/* Optical alignment with the serif text's visible letterforms. */
+.top-nav .slash-sep, .top-nav .nav-sep { transform: translateY(-0.04em); }
+.top-nav .top-nav-pages a:is(:hover, :focus-visible) {
+  color: #888; border-bottom-color: #bbb; font-weight: 400;
+  -webkit-text-fill-color: currentColor;
 }
