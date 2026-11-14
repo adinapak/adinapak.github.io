@@ -97,7 +97,7 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
   .proof-title > p { font-size: 1.25rem; margin-bottom: 10px; }
   .date-counter { font-size: 1rem; color: #666; }
   .date-proof { margin-bottom: 0; }
-  .dj-widget, .oura-widget {
+  .dj-widget {
     max-width: none;
     margin: 24px 0 0;
     padding: 20px;
@@ -141,7 +141,7 @@ body { font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif; }
   .top-nav-links, .top-nav-pages { flex-wrap: nowrap; }
   .proof-title { margin: 44px 0 32px; }
   .about-page .about-chapter { margin-bottom: 40px; }
-  .dj-widget, .oura-widget { padding: 16px; }
+  .dj-widget { padding: 16px; }
 }
 @media screen and (max-width: 560px) {
   .dj-now-playing { gap: 10px 12px; }
