@@ -308,6 +308,9 @@ font-weight: 400;
 margin-bottom: 12px;
 }
 
+.dj-widget.predicted .dj-progress,
+.dj-widget.predicted .dj-times { display: none; }
+
 .dj-now-playing {
 display: grid;
 grid-template-columns: 48px minmax(0, 1fr) auto;
@@ -765,14 +768,11 @@ Date notes:
 <hr>
 
 <section class="dj-widget" aria-live="polite">
-<h3>On my airwaves!</h3>
+<h3 id="dj-heading">On my airwaves!</h3>
 
 <div class="dj-now-playing">
 <button id="dj-album-btn" class="dj-cover-btn" type="button" aria-label="Open current track on Spotify">
   <img id="dj-album-art" class="dj-cover" alt="Current album art" src="/assets/adina-spotify-profile.png">
-</button>  
-</button>
-  
 </button>
 
 <div class="dj-track-wrap">
@@ -903,6 +903,10 @@ miniPlayer.setAttribute('aria-hidden', 'true');
     const SPOTIFY_PROFILE_IMAGE = '/assets/adina-spotify-profile.png';
     const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/1b669ou3felhdl6afu6i9e0y6?si=17624adbd5a94f93';
 
+    const headingEl = document.getElementById('dj-heading');
+    let predictionCache = null;
+    let predictionExpires = 0;
+    let fetching = false;
     let currentTrackUrl = SPOTIFY_PROFILE_URL;
     let progressMs = 0;
     let durationMs = 1;
@@ -928,6 +932,10 @@ miniPlayer.setAttribute('aria-hidden', 'true');
 
     function setFallbackState(message) {
       isPlaying = false;
+      widgetEl?.classList.remove('predicted');
+      headingEl.textContent = 'On my airwaves!';
+      albumBtnEl?.setAttribute('aria-label', 'Open my Spotify profile');
+      albumArtEl.alt = 'Spotify profile';
       progressMs = 0;
       durationMs = 1;
       currentTrackUrl = SPOTIFY_PROFILE_URL;
@@ -971,7 +979,10 @@ function renderNowPlaying(data) {
   progressMs = Number(data.progress_ms || 0);
   durationMs = Number(data.duration_ms || 1);
   isPlaying = true;
-  if (widgetEl) widgetEl.classList.remove('paused', 'idle');
+  if (widgetEl) widgetEl.classList.remove('paused', 'idle', 'predicted');
+  headingEl.textContent = 'Listening now';
+  albumBtnEl?.setAttribute('aria-label', 'Open current track on Spotify');
+  albumArtEl.alt = 'Current album art';
   currentTrackUrl = getTrackUrl(track);
 
   trackEl.textContent = track.name || 'Unknown track';
@@ -983,20 +994,44 @@ function renderNowPlaying(data) {
   setStatus('');
 }
 
+    async function renderPrediction() {
+      setFallbackState('');
+      try {
+        if (Date.now() >= predictionExpires) {
+          const response = await fetch('/api/probably-listening');
+          predictionCache = response.ok ? (await response.json()).prediction : null;
+          predictionExpires = Date.now() + (response.ok ? 300000 : 60000);
+        }
+        if (!predictionCache?.track) return;
+        const track = predictionCache.track;
+        widgetEl?.classList.remove('paused', 'idle');
+        widgetEl?.classList.add('predicted');
+        headingEl.textContent = 'Probably listening to…';
+        trackEl.textContent = track.name || 'Unknown track';
+        artistEl.textContent = track.artist || 'Unknown artist';
+        albumArtEl.src = track.album_art_url || SPOTIFY_PROFILE_IMAGE;
+        albumArtEl.alt = 'Predicted track album art';
+        albumBtnEl?.setAttribute('aria-label', 'Open predicted track on Spotify');
+        currentTrackUrl = getTrackUrl(track);
+        setStatus(`A guess based on ${predictionCache.basis}. Not live playback.`);
+      } catch {
+        predictionExpires = Date.now() + 60000;
+      }
+    }
+
     async function fetchNowPlaying() {
+      if (fetching) return;
+      fetching = true;
       try {
         const response = await fetch('/api/now-playing', { cache: 'no-store' });
-
-        if (!response.ok) {
-          setFallbackState('');
-          return;
-        }
-
-        const data = await response.json();
-        renderNowPlaying(data);
+        const data = response.ok ? await response.json() : null;
+        if (data?.is_playing === true && data.track) renderNowPlaying(data);
+        else await renderPrediction();
       } catch (error) {
         console.error('Spotify now-playing request failed.', error);
-        setFallbackState('');
+        await renderPrediction();
+      } finally {
+        fetching = false;
       }
     }
 
